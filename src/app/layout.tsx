@@ -1,16 +1,7 @@
 import type { Metadata } from "next";
-import { Roboto_Flex, Roboto_Mono } from "next/font/google";
+
 import "./globals.css";
-
-const robotoFlex = Roboto_Flex({
-  variable: "--font-roboto-flex",
-  subsets: ["latin"],
-});
-
-const robotoMono = Roboto_Mono({
-  variable: "--font-roboto-mono",
-  subsets: ["latin"],
-});
+import "./fonts.css"
 
 export const metadata: Metadata = {
   title: "Eclipse",
@@ -24,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${robotoFlex.variable} ${robotoMono.variable} bg-background text-foreground antialiased`}>
+      <body className="font-base bg-background text-foreground antialiased">
         {children}
       </body>
     </html>

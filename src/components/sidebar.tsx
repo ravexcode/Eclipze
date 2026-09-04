@@ -1,6 +1,7 @@
 "use client";
 
-import { IconChevronDown, IconLayoutSidebar } from "@tabler/icons-react";
+import { IconBrain, IconChevronDown, IconFolders, IconLayoutDashboard, IconLayoutSidebar, IconMail, IconTarget } from "@tabler/icons-react";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { useState } from "react";
 
 type SelectedSection = "overview" | "mails" | "issues" | "agents" | "projects";
@@ -12,29 +13,92 @@ interface Props {
     avatar: string;
     id: string;
   };
+  router: AppRouterInstance
+}
+
+interface OptionsProps {
+  label: string;
+  icon: React.ReactNode;
+  action: () => void;
+  selected: boolean;
+}
+
+function Option(props: OptionsProps) {
+  const classes = props.selected ? "bg-background-focus text-foreground" : "text-foreground-off hover:bg-background-focus/30";
+
+  return (
+    <button
+      type="button"
+      onClick={props.action}
+      className={"text-sm flex gap-1 items-center justify-center p-2 px-3 rounded-sm w-full cursor-pointer " + classes}>
+      {props.icon}
+      <p
+        className="w-full text-start">
+        {props.label}
+      </p>
+    </button>
+  );
 }
 
 export default function Sidebar(props: Props) {
   const [visibility, setVisibility] = useState(true);
 
+  const router = props.router
+
   const toggle = () => {
     setVisibility(!visibility);
   };
 
+  const options = [
+    {
+      label: "Overview",
+      icon: <IconLayoutDashboard size={16} strokeWidth={2} />,
+      action: () => { router.push("/dashboard") },
+      selected: props.selected === "overview"
+    },
+    {
+      label: "My mails",
+      icon: <IconMail size={16} strokeWidth={2} />,
+      action: () => { router.push("/mails") },
+      selected: props.selected === "mails"
+    },
+    {
+      label: "Issues",
+      icon: <IconTarget size={16} strokeWidth={2} />,
+      action: () => { router.push("/issues") },
+      selected: props.selected === "issues"
+    },
+    {
+      label: "Agent",
+      icon: <IconBrain size={16} strokeWidth={2} />,
+      action: () => { router.push("/agents") },
+      selected: props.selected === "agents"
+    },
+    {
+      label: "Projects",
+      icon: <IconFolders size={16} strokeWidth={2} />,
+      action: () => { router.push("/projects") },
+      selected: props.selected === "projects"
+    },
+  ]
+
   if (!visibility) {
     return (
-      <button
-        type="button"
-        className="rounded-sm p-2 hover:bg-background-focus"
-        onClick={toggle}
-      >
-        <IconLayoutSidebar size={16} strokeWidth={2} />
-      </button>
+      <section
+        className="w-max px-2 py-4 h-dvh sticky top-0">
+        <button
+          type="button"
+          className="rounded-sm p-2 hover:bg-background-focus"
+          onClick={toggle}>
+          <IconLayoutSidebar size={16} strokeWidth={2} />
+        </button>
+      </section>
     );
   }
 
   return (
     <aside className="h-full min-h-dvh w-80 bg-background-card p-4 flex flex-col justify-start items-center">
+      {/* Profile and toggler */}
       <div className="flex gap-2 justify-center items-center w-full">
         <div className="w-full flex items-center justify-start gap-2 hover:bg-background-focus p-2 select-none rounded-sm px-3">
           <img
@@ -49,10 +113,23 @@ export default function Sidebar(props: Props) {
         <button
           type="button"
           className="rounded-sm p-2 hover:bg-background-focus"
-          onClick={toggle}
-        >
+          onClick={toggle}>
           <IconLayoutSidebar size={16} strokeWidth={2} />
         </button>
+      </div>
+
+      <div
+        className="flex flex-col items-center justify-center w-full mt-5">
+        {
+          options.map((option, index) => (
+            <Option
+              key={index}
+              label={option.label}
+              icon={option.icon}
+              selected={option.selected}
+              action={option.action} />
+          ))
+        }
       </div>
     </aside>
   );
