@@ -14,7 +14,7 @@ function HeaderLink({ href, children }: { href: string; children: React.ReactNod
 export default function Header() {
   return (
     <header
-      className="sticky top-0 min-w-3xl w-full max-w-5xs border-b border-background-focus p-4 animate-fade-in-down flex justify-between items-center">
+      className="sticky top-0 min-w-3xl w-full max-w-5xs border-b border-background-focus p-4 animate-fade-in-down flex justify-between items-center backdrop-blur">
         <Image
           src="/logo.svg"
           alt="Eclipse Logo"
