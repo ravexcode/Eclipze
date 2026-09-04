@@ -1,32 +1,98 @@
-# SolidStart
+# Eclipse
 
-Everything you need to build a Solid project, powered by [`solid-start`](https://start.solidjs.com);
+Eclipse is a **developer ↔ client contact tool** designed to centralize communication, project context, and workflow visibility in one interface.
 
-## Creating a project
+The current project is set up as a **Next.js** app with **pnpm**, using a dark visual system based on the Figma design documented in [`DESIGN.md`](./DESIGN.md).
+
+## Purpose
+
+This app is intended to help developers and clients stay aligned by giving them a shared place to:
+
+- review project status
+- track issues and ongoing work
+- keep communication organized
+- monitor agent/development sessions
+- build a clearer handoff between technical and non-technical stakeholders
+
+## Tech stack
+
+- **Next.js**
+- **React**
+- **TypeScript**
+- **Tailwind CSS v4**
+- **pnpm**
+- **Tabler Icons**
+
+## Getting started
+
+### Requirements
+
+- Node.js `>=20`
+- `pnpm`
+
+### Install dependencies
 
 ```bash
-# create a new project in the current directory
-npm init solid@latest
-
-# create a new project in my-app
-npm init solid@latest my-app
+pnpm install
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### Start the development server
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm dev
 ```
 
-## Building
+Open `http://localhost:3000` in your browser.
 
-Solid apps are built with Nitro _presets_, which optimise your project for deployment to different environments.
+## Available scripts
 
-By default, `npm run build` will generate a Node app under `.output` that you can run with `npm start`. To use a different preset, set it on the `nitro()` plugin in your `vite.config.ts`.
+```bash
+pnpm dev
+pnpm build
+pnpm start
+```
 
-## This project was created with the [Solid CLI](https://github.com/solidjs-community/solid-cli)
+## Design references
+
+- Figma-derived notes and base UI tokens: [`DESIGN.md`](./DESIGN.md)
+- Current base color system lives in: [`src/app/globals.css`](./src/app/globals.css)
+
+### Current color tokens
+
+These were extracted from the Figma file and added as the initial theme foundation:
+
+- `--color-background: #010101`
+- `--color-background-card: #060606`
+- `--color-background-focus: #111111`
+- `--color-foreground: #fafafa`
+- `--color-foreground-off: #676767`
+- `--color-accent: #000bde`
+
+## Project structure
+
+```text
+src/
+  app/
+    dashboard/
+    globals.css
+    layout.tsx
+    page.tsx
+  components/
+    layouts/
+    sidebar.tsx
+```
+
+## Status
+
+This repository currently contains the **basic app foundation**:
+
+- Next.js migration completed
+- pnpm setup completed
+- Bun removed
+- initial dashboard shell kept minimal
+- Figma-based color tokens added
+
+## Notes
+
+- Icons are expected to come from **Tabler Icons**.
+- The UI is intentionally still minimal so features and screens can be built incrementally.
