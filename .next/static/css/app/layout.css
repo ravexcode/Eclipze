@@ -24,8 +24,8 @@
       "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
-    --color-neutral-700: oklch(37.1% 0 0);
     --spacing: 0.25rem;
+    --container-3xl: 48rem;
     --text-sm: 0.875rem;
     --text-sm--line-height: calc(1.25 / 0.875);
     --text-2xl: 1.5rem;
@@ -227,6 +227,9 @@
   .w-6 {
     width: calc(var(--spacing) * 6);
   }
+  .w-25 {
+    width: calc(var(--spacing) * 25);
+  }
   .w-80 {
     width: calc(var(--spacing) * 80);
   }
@@ -236,17 +239,32 @@
   .w-max {
     width: max-content;
   }
+  .min-w-3xl {
+    min-width: var(--container-3xl);
+  }
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-in both;
+  }
+  .animate-fade-in-down {
+    animation: fade-in-down 0.6s ease-in-out both;
+  }
   .cursor-pointer {
     cursor: pointer;
   }
   .grid-cols-\[auto_1fr\] {
     grid-template-columns: auto 1fr;
   }
+  .grid-rows-\[auto_1fr_auto\] {
+    grid-template-rows: auto 1fr auto;
+  }
   .flex-col {
     flex-direction: column;
   }
   .items-center {
     align-items: center;
+  }
+  .justify-between {
+    justify-content: space-between;
   }
   .justify-center {
     justify-content: center;
@@ -259,6 +277,9 @@
   }
   .gap-2 {
     gap: calc(var(--spacing) * 2);
+  }
+  .gap-7 {
+    gap: calc(var(--spacing) * 7);
   }
   .rounded-full {
     border-radius: calc(infinity * 1px);
@@ -274,15 +295,11 @@
     border-bottom-style: var(--tw-border-style);
     border-bottom-width: 1px;
   }
-  .border-b-2 {
-    border-bottom-style: var(--tw-border-style);
-    border-bottom-width: 2px;
-  }
   .border-background-focus {
     border-color: var(--color-background-focus);
   }
-  .border-neutral-700 {
-    border-color: var(--color-neutral-700);
+  .bg-accent {
+    background-color: var(--color-accent);
   }
   .bg-background {
     background-color: var(--color-background);
@@ -292,6 +309,9 @@
   }
   .bg-background-focus {
     background-color: var(--color-background-focus);
+  }
+  .p-1\.5 {
+    padding: calc(var(--spacing) * 1.5);
   }
   .p-2 {
     padding: calc(var(--spacing) * 2);
@@ -305,14 +325,11 @@
   .px-3 {
     padding-inline: calc(var(--spacing) * 3);
   }
-  .px-4 {
-    padding-inline: calc(var(--spacing) * 4);
-  }
-  .py-2 {
-    padding-block: calc(var(--spacing) * 2);
-  }
   .py-4 {
     padding-block: calc(var(--spacing) * 4);
+  }
+  .text-center {
+    text-align: center;
   }
   .text-start {
     text-align: start;
@@ -339,6 +356,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  .duration-300 {
+    --tw-duration: 300ms;
+    transition-duration: 300ms;
+  }
   .select-none {
     -webkit-user-select: none;
     user-select: none;
@@ -355,6 +376,62 @@
         background-color: color-mix(in oklab, var(--color-background-focus) 30%, transparent);
       }
     }
+    .hover\:text-foreground:hover {
+      color: var(--color-foreground);
+    }
+    .hover\:brightness-75:hover {
+      --tw-brightness: brightness(75%);
+      filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
+    }
+  }
+  .animate-dialog {
+    opacity: var(--tw-anim-dialog-start-opacity, 0);
+    translate: var(--tw-anim-dialog-start-translate, 0 1.5rem);
+    scale: var(--tw-anim-dialog-start-scale, 0.96);
+    will-change: opacity, translate, scale;
+    transition: opacity var(--tw-anim-dialog-duration, 350ms) ease, translate var(--tw-anim-dialog-duration, 350ms) var(--tw-anim-dialog-easing, cubic-bezier(0.22, 1, 0.36, 1)), scale var(--tw-anim-dialog-duration, 350ms) var(--tw-anim-dialog-easing, cubic-bezier(0.22, 1, 0.36, 1)), overlay var(--tw-anim-dialog-duration, 350ms) ease allow-discrete, display var(--tw-anim-dialog-duration, 350ms) ease allow-discrete;
+  }
+  .animate-dialog[open] {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+  .animate-dialog[open].is-closing {
+    opacity: var(--tw-anim-dialog-start-opacity, 0);
+    translate: var(--tw-anim-dialog-start-translate, 0 1.5rem);
+    scale: var(--tw-anim-dialog-start-scale, 0.96);
+  }
+  .animate-dialog[open].is-opening {
+    opacity: var(--tw-anim-dialog-start-opacity, 0);
+    translate: var(--tw-anim-dialog-start-translate, 0 1.5rem);
+    scale: var(--tw-anim-dialog-start-scale, 0.96);
+  }
+  @starting-style {
+    .animate-dialog[open] {
+      opacity: var(--tw-anim-dialog-start-opacity, 0);
+      translate: var(--tw-anim-dialog-start-translate, 0 1.5rem);
+      scale: var(--tw-anim-dialog-start-scale, 0.96);
+    }
+  }
+  .animate-dialog::backdrop {
+    opacity: 0;
+    background: var(--tw-anim-dialog-backdrop-background, rgb(15 23 42 / 0.58));
+    backdrop-filter: var(--tw-anim-dialog-backdrop-filter, blur(8px));
+    transition: opacity var(--tw-anim-dialog-duration, 350ms) ease, overlay var(--tw-anim-dialog-duration, 350ms) ease allow-discrete, display var(--tw-anim-dialog-duration, 350ms) ease allow-discrete;
+  }
+  .animate-dialog[open]::backdrop {
+    opacity: 1;
+  }
+  .animate-dialog[open].is-closing::backdrop {
+    opacity: 0;
+  }
+  .animate-dialog[open].is-opening::backdrop {
+    opacity: 0;
+  }
+  @starting-style {
+    .animate-dialog[open]::backdrop {
+      opacity: 0;
+    }
   }
 }
 @property --tw-border-style {
@@ -366,11 +443,100 @@
   syntax: "*";
   inherits: false;
 }
+@property --tw-duration {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-blur {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-brightness {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-contrast {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-grayscale {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-hue-rotate {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-invert {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-opacity {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-saturate {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-sepia {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow-alpha {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+@property --tw-drop-shadow-size {
+  syntax: "*";
+  inherits: false;
+}
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes fade-in-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 @layer properties {
   @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
     *, ::before, ::after, ::backdrop {
       --tw-border-style: solid;
       --tw-font-weight: initial;
+      --tw-duration: initial;
+      --tw-blur: initial;
+      --tw-brightness: initial;
+      --tw-contrast: initial;
+      --tw-grayscale: initial;
+      --tw-hue-rotate: initial;
+      --tw-invert: initial;
+      --tw-opacity: initial;
+      --tw-saturate: initial;
+      --tw-sepia: initial;
+      --tw-drop-shadow: initial;
+      --tw-drop-shadow-color: initial;
+      --tw-drop-shadow-alpha: 100%;
+      --tw-drop-shadow-size: initial;
     }
   }
 }

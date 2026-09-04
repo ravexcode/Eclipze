@@ -20,6 +20,9 @@ importers:
       react-dom:
         specifier: ^19.0.0
         version: 19.2.8(react@19.2.8)
+      tailwind-animations:
+        specifier: ^1.0.2
+        version: 1.0.2(tailwindcss@4.2.1)
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4.0.7
@@ -698,6 +701,11 @@ packages:
       babel-plugin-macros:
         optional: true
 
+  tailwind-animations@1.0.2:
+    resolution: {integrity: sha512-CupN9WHBSKCd2ljmjKGyowVjDCUWDaIwCp4J+M1HlM1EfUHVOxnmWE0WE9g7vfLndWHMN8Sg+wa4RyZ3v3gd1w==}
+    peerDependencies:
+      tailwindcss: '4'
+
   tailwindcss@4.2.1:
     resolution: {integrity: sha512-/tBrSQ36vCleJkAOsy9kbNTgaxvGbyOamC30PRePTQe/o1MFwEKHQk4Cn7BNGaPtjp+PuUrByJehM1hgxfq4sw==}
 
@@ -1309,6 +1317,10 @@ snapshots:
       react: 19.2.8
     optionalDependencies:
       '@babel/core': 7.29.7
+
+  tailwind-animations@1.0.2(tailwindcss@4.2.1):
+    dependencies:
+      tailwindcss: 4.2.1
 
   tailwindcss@4.2.1: {}
 

@@ -1,3 +1,9 @@
+import MarketingLayout from "@/components/layouts/marketing";
+
 export default function HomePage() {
-  return <div />;
+  return (
+    <MarketingLayout>
+
+    </MarketingLayout>
+  )
 }
