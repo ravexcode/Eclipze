@@ -8,7 +8,7 @@ export default function HomePage() {
         className="flex flex-col w-full items-center justify-center px-10 text-center text-5xl font-heading font-bold animate-blurred-fade-in">
         <p>
           The app built for <br />
-          <span className="text-accent"> Upgrade </span> your team workflow
+          your team <span className="text-accent"> workflow </span>
         </p>
 
         <Image

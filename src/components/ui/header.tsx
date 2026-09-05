@@ -39,7 +39,7 @@ export default function Header() {
       </div>
 
       <Link
-        href="#"
+        href="/auth"
         className="rounded-sm w-25 bg-accent hover:brightness-75 duration-300 text-foreground text-center p-1.5 text-sm">
         Sign in
       </Link>

@@ -1,5 +1,19 @@
 {
-  "node": {},
+  "node": {
+    "0087760a7ec1bbe841208917a831cf6c440150df37": {
+      "workers": {
+        "app/auth/page": {
+          "moduleId": "(rsc)/./node_modules/.pnpm/next@15.5.25_@babel+core@7.29.7_@types+node@20.17.6_react-dom@19.2.8_react@19.2.8__react@19.2.8/node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fravexcode%2Feclipse%2Fsrc%2Fapp%2Fauth%2Fpage.tsx%22%2C%5B%7B%22id%22%3A%220087760a7ec1bbe841208917a831cf6c440150df37%22%2C%22exportedName%22%3A%22default%22%2C%22filename%22%3A%22app%2Fauth%2Fpage.tsx%22%7D%5D%5D%5D&__client_imported__=!",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/auth/page": "rsc"
+      },
+      "filename": "app/auth/page.tsx",
+      "exportedName": "default"
+    }
+  },
   "edge": {},
   "encryptionKey": "Ka0OHLmTVjWtEMs2ufv6QWBpGnPNdxc2wVbAXckJaks="
 }

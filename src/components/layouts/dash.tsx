@@ -18,7 +18,7 @@ const user = {
 
 export default function DashLayout(props: Props) {
   return (
-    <div className="min-h-dvh w-full grid grid-cols-[auto_1fr] bg-background text-foreground animate-fade-in">
+    <div className="min-h-dvh w-full grid grid-cols-[auto_1fr] bg-background text-foreground">
       <Sidebar
         selected={props.current}
         user={user}
