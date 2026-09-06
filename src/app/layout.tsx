@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 
 import "./globals.css";
-import "./fonts.css"
+import "./fonts.css";
+import "lenis/dist/lenis.css";
+
+import Lenis from "@/lib/lenis";
 
 import { Suspense } from "react";
 
@@ -22,7 +25,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-base bg-background text-foreground antialiased">
         <Suspense fallback={<div></div>}>
-          {children}
+          <Lenis>
+            {children}
+          </Lenis>
         </Suspense>
       </body>
     </html>

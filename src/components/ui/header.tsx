@@ -5,7 +5,7 @@ function HeaderLink({ href, children }: { href: string; children: React.ReactNod
   return (
     <Link
       href={href}
-      className="text-foreground-off hover:text-foreground duration-300 p-2">
+      className="text-foreground-off hover:text-foreground hover:scale-110 duration-300 p-2">
       {children}
     </Link>
   );
@@ -14,7 +14,7 @@ function HeaderLink({ href, children }: { href: string; children: React.ReactNod
 export default function Header() {
   return (
     <header
-      className="sticky top-0 min-w-3xl w-full max-w-5xs border-b border-background-focus p-4 animate-fade-in-down flex justify-between items-center backdrop-blur">
+      className="sticky top-3 mt-3 min-w-3xl w-full max-w-5xs rounded-sm p-4 animate-fade-in-down flex justify-between items-center backdrop-blur">
         <Image
           src="/logo.svg"
           alt="Eclipse Logo"

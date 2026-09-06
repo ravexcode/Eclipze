@@ -33,7 +33,7 @@ export default function AuthPage(
     <div
       className="w-full flex items-center justify-center p-10 min-h-dvh">
       <Link
-        className="fixed top-2 left-2 flex gap-1 text-sm items-center justify-center text-center"
+        className="fixed top-6 left-6 flex gap-1 text-sm items-center justify-center text-center"
         href="/">
         <IconArrowLeft
           size={15} />
