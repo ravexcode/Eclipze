@@ -8,13 +8,74 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum VerificationCodePurpose {
+  EMAIL_VERIFICATION
+  LOGIN_2FA
+}
+
+enum AuthProvider {
+  CREDENTIALS
+  GITHUB
+  GOOGLE
+  GITLAB
+}
+
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  username     String?  @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                String             @id @default(cuid())
+  email             String             @unique
+  username          String?            @unique
+  passwordHash      String?
+  emailVerifiedAt   DateTime?
+  avatarUrl         String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  sessions          AuthSession[]
+  verificationCodes VerificationCode[]
+  accounts          AuthAccount[]
 
   @@map("users")
+}
+
+model AuthSession {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  lastUsedAt DateTime?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("auth_sessions")
+}
+
+model VerificationCode {
+  id         String                   @id @default(cuid())
+  userId     String
+  purpose    VerificationCodePurpose
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime                 @default(now())
+  user       User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose, expiresAt])
+  @@index([consumedAt])
+  @@map("verification_codes")
+}
+
+model AuthAccount {
+  id                String       @id @default(cuid())
+  userId            String
+  provider          AuthProvider
+  providerAccountId String
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("auth_accounts")
 }

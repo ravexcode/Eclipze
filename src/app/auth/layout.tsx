@@ -1,15 +1,17 @@
-"use server";
-
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/auth";
 
-export default async function AuthRedirect() {
+export default async function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const user = await getCurrentUser();
 
   if (user) {
     redirect("/dashboard");
   }
 
-  redirect("/auth/signin");
+  return children;
 }

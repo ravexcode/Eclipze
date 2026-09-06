@@ -1,6 +1,6 @@
 interface Props {
-  onSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
-  onError: (e: React.SubmitEvent<HTMLFormElement>) => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void | Promise<void>;
+  onError: (e: React.FormEvent<HTMLFormElement>) => void;
   children?: React.ReactNode;
 };
 

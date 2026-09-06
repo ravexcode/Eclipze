@@ -14,6 +14,11 @@ interface Props {
   label: string;
   placeholder?: string;
   pattern?: string;
+  autoComplete?: string;
+  maxLength?: number;
+  minLength?: number;
+  required?: boolean;
+  disabled?: boolean;
 }
 
 export default function Input(props: Props) {
@@ -36,6 +41,11 @@ export default function Input(props: Props) {
             onChange={props.onChange}
             placeholder={props.placeholder}
             pattern={props.pattern}
+            autoComplete={props.autoComplete}
+            maxLength={props.maxLength}
+            minLength={props.minLength}
+            required={props.required}
+            disabled={props.disabled}
             className={inputClass}
           />
           <button
@@ -47,7 +57,7 @@ export default function Input(props: Props) {
                 <IconEyeOff
                   size={18} /> :
                 <IconEye
-                size={18} />
+                  size={18} />
             }
           </button>
         </>
@@ -58,6 +68,11 @@ export default function Input(props: Props) {
             onChange={props.onChange}
             placeholder={props.placeholder}
             pattern={props.pattern}
+            autoComplete={props.autoComplete}
+            maxLength={props.maxLength}
+            minLength={props.minLength}
+            required={props.required}
+            disabled={props.disabled}
             className={inputClass}
           />
         }
