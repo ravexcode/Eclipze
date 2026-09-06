@@ -13,6 +13,9 @@ app.config.timestamp_*.js
 # dependencies
 /node_modules
 
+# Prisma
+prisma/generated
+
 # IDEs and editors
 /.idea
 .project

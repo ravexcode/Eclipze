@@ -1,10 +1,10 @@
 "use client";
 
-import { IconBrain, IconChevronDown, IconFolders, IconLayoutDashboard, IconLayoutSidebar, IconMail, IconTarget } from "@tabler/icons-react";
+import { IconBrain, IconChevronDown, IconFolders, IconLayoutDashboard, IconLayoutSidebar, IconMail, IconPointer2, IconTarget } from "@tabler/icons-react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { useState } from "react";
 
-type SelectedSection = "overview" | "mails" | "issues" | "agents" | "projects";
+type SelectedSection = "overview" | "mails" | "issues" | "agents"| "agents-gestor" | "projects";
 
 interface Props {
   selected: SelectedSection;
@@ -70,9 +70,15 @@ export default function Sidebar(props: Props) {
     },
     {
       label: "Agent",
-      icon: <IconBrain size={16} strokeWidth={2} />,
+      icon: <IconPointer2 size={16} strokeWidth={2} />,
       action: () => { router.push("/agents") },
       selected: props.selected === "agents"
+    },
+    {
+      label: "Agents gestor",
+      icon: <IconBrain size={16} strokeWidth={2} />,
+      action: () => { router.push("/agents/gestor") },
+      selected: props.selected === "agents-gestor"
     },
     {
       label: "Projects",

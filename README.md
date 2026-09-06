@@ -36,6 +36,22 @@ This app is intended to help developers and clients stay aligned by giving them 
 pnpm install
 ```
 
+### Configure environment variables
+
+Copy `.env.example` to `.env` and set your database connection string:
+
+```bash
+cp .env.example .env
+```
+
+The default Prisma datasource is configured for PostgreSQL.
+
+### Generate Prisma Client
+
+```bash
+pnpm prisma:generate
+```
+
 ### Start the development server
 
 ```bash
@@ -50,6 +66,25 @@ Open `http://localhost:3000` in your browser.
 pnpm dev
 pnpm build
 pnpm start
+pnpm prisma:generate
+pnpm prisma:push
+pnpm prisma:migrate
+pnpm prisma:studio
+```
+
+## Database
+
+Prisma ORM is configured with:
+
+- schema: `prisma/schema.prisma`
+- generated client: `prisma/generated/client`
+- shared client: `src/lib/prisma.ts`
+- default model: `User`
+
+To apply the current schema to your database during development:
+
+```bash
+pnpm prisma:push
 ```
 
 ## Design references
