@@ -6,13 +6,13 @@ import Sidebar from "@/components/sidebar";
 import type { SessionUser } from "@/types/user";
 
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { usePathname } from "next/navigation";
 
 interface Props {
-  current: "overview" | "mails" | "issues" | "agents" | "projects";
+  current: "overview" | "mails" | "issues" | "agents" | "projects" | "settings";
   router: AppRouterInstance;
   children?: ReactNode;
 }
-
 
 const fallbackUser = {
   name: "Eclipse user",
@@ -20,8 +20,24 @@ const fallbackUser = {
   id: "",
 };
 
+const USER_UPDATED_EVENT = "user-updated";
+
 export default function DashLayout(props: Props) {
+  const pathname = usePathname();
   const [user, setUser] = useState(fallbackUser);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  useEffect(() => {
+    const handleUserUpdated = () => {
+      setReloadToken(previous => previous + 1);
+    };
+
+    window.addEventListener(USER_UPDATED_EVENT, handleUserUpdated);
+
+    return () => {
+      window.removeEventListener(USER_UPDATED_EVENT, handleUserUpdated);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,7 +72,7 @@ export default function DashLayout(props: Props) {
     return () => {
       cancelled = true;
     };
-  }, [props.router]);
+  }, [pathname, props.router, reloadToken]);
 
   return (
     <div className="min-h-dvh w-full grid grid-cols-[auto_1fr] bg-background text-foreground">

@@ -1,10 +1,21 @@
 "use client";
 
-import { IconBrain, IconChevronDown, IconFolders, IconLayoutDashboard, IconLayoutSidebar, IconMail, IconPointer2, IconTarget } from "@tabler/icons-react";
+import {
+  IconBrain,
+  IconChevronDown,
+  IconFolders,
+  IconLayoutDashboard,
+  IconLayoutSidebar,
+  IconLogout2,
+  IconMail,
+  IconPointer2,
+  IconSettings,
+  IconTarget
+} from "@tabler/icons-react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-type SelectedSection = "overview" | "mails" | "issues" | "agents"| "agents-gestor" | "projects";
+type SelectedSection = "overview" | "mails" | "issues" | "agents" | "agents-gestor" | "projects" | "settings";
 
 interface Props {
   selected: SelectedSection;
@@ -24,13 +35,13 @@ interface OptionsProps {
 }
 
 function Option(props: OptionsProps) {
-  const classes = props.selected ? "bg-background-focus text-foreground" : "text-foreground-off hover:bg-background-focus/30";
+  const classes = props.selected ? "bg-background-focus text-foreground cursor-default" : "text-foreground-off hover:bg-background-focus/70 cursor-pointer";
 
   return (
     <button
       type="button"
       onClick={props.action}
-      className={"text-sm flex gap-1 items-center justify-center p-2 px-3 rounded-sm w-full cursor-pointer " + classes}>
+      className={"text-sm flex gap-1 items-center justify-center p-2 px-3 rounded-sm w-full " + classes}>
       {props.icon}
       <p
         className="w-full text-start">
@@ -42,11 +53,49 @@ function Option(props: OptionsProps) {
 
 export default function Sidebar(props: Props) {
   const [visibility, setVisibility] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const router = props.router
+  const router = props.router;
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const toggle = () => {
     setVisibility(!visibility);
+  };
+
+  const goToProfileSettings = () => {
+    setMenuOpen(false);
+    router.push("/dashboard/settings");
+  };
+
+  const logout = async () => {
+    setIsSigningOut(true);
+
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } finally {
+      setMenuOpen(false);
+      setIsSigningOut(false);
+      router.replace("/auth/signin");
+      router.refresh();
+    }
   };
 
   const options = [
@@ -86,7 +135,7 @@ export default function Sidebar(props: Props) {
       action: () => { router.push("/projects") },
       selected: props.selected === "projects"
     },
-  ]
+  ];
 
   if (!visibility) {
     return (
@@ -103,24 +152,66 @@ export default function Sidebar(props: Props) {
   }
 
   return (
-    <aside className="h-full min-h-dvh w-80 bg-background-card p-4 flex flex-col justify-start items-center">
-      {/* Profile and toggler */}
-      <div className="flex gap-2 justify-center items-center w-full">
-        <div className="w-full flex items-center justify-start gap-2 hover:bg-background-focus p-2 select-none rounded-sm px-3">
-          <img
-            src={props.user.avatar}
-            alt={props.user.name}
-            className="w-6 h-6 rounded-full"
-          />
-          <p className="text-foreground text-sm">{props.user.name}</p>
-          <IconChevronDown size={16} strokeWidth={2} />
+    <aside
+      className="h-full min-h-dvh w-80 bg-background-card p-4 flex flex-col justify-start items-center">
+      <div
+        className="flex gap-2 justify-center items-start w-full">
+        <div
+          ref={menuRef}
+          className="relative w-full">
+          <button
+            type="button"
+            className="w-full flex items-center justify-start gap-2 hover:bg-background-focus p-2 select-none rounded-sm px-3"
+            onClick={() => setMenuOpen(previous => !previous)}
+            aria-expanded={menuOpen}
+            aria-haspopup="menu">
+            <img
+              src={props.user.avatar}
+              alt={props.user.name}
+              className="w-4 h-4 rounded-full"
+            />
+            <p
+              className="text-foreground text-sm w-full text-start">
+              {props.user.name}
+            </p>
+            <IconChevronDown
+              size={16}
+              strokeWidth={2} />
+          </button>
+
+          {
+            menuOpen ? (
+              <div className="absolute top-full left-0 mt-2 w-full rounded-sm border border-background-focus bg-background-card p-1 shadow-lg z-20">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-foreground-off hover:bg-background-focus hover:text-foreground"
+                  onClick={goToProfileSettings}>
+                  <IconSettings size={16} strokeWidth={2} />
+                  <span>Profile settings</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-foreground-off hover:bg-background-focus hover:text-foreground disabled:opacity-50"
+                  onClick={() => {
+                    void logout();
+                  }}
+                  disabled={isSigningOut}>
+                  <IconLogout2 size={16} strokeWidth={2} />
+                  <span>{isSigningOut ? "Signing out..." : "Logout"}</span>
+                </button>
+              </div>
+            ) : null
+          }
         </div>
 
         <button
           type="button"
           className="rounded-sm p-2 hover:bg-background-focus"
           onClick={toggle}>
-          <IconLayoutSidebar size={16} strokeWidth={2} />
+          <IconLayoutSidebar
+            size={16}
+            strokeWidth={2} />
         </button>
       </div>
 

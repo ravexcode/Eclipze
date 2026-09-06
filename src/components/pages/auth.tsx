@@ -46,7 +46,7 @@ export default function AuthPage(
     return type === "in" ? "Welcome back!" : "Get started!";
   }, [step, type]);
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     setError(null);
@@ -108,7 +108,7 @@ export default function AuthPage(
     }
   };
 
-  const onError = (e: React.FormEvent<HTMLFormElement>) => {
+  const onError = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("Please review the form fields and try again.");
   };
