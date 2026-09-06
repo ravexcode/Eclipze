@@ -4,15 +4,15 @@ import type { AuthCodePurpose } from "@/lib/auth";
 
 function getResendConfig() {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.AUTH_EMAIL_FROM;
+  const noReplyFrom = process.env.AUTH_EMAIL_NO_REPLY_FROM ?? process.env.AUTH_EMAIL_FROM;
 
-  if (!apiKey || !from) {
-    throw new Error("Email delivery is not configured. Add RESEND_API_KEY and AUTH_EMAIL_FROM to your environment.");
+  if (!apiKey || !noReplyFrom) {
+    throw new Error("Email delivery is not configured. Add RESEND_API_KEY and AUTH_EMAIL_NO_REPLY_FROM to your environment.");
   }
 
   return {
     apiKey,
-    from,
+    from: noReplyFrom,
     replyTo: process.env.AUTH_EMAIL_REPLY_TO,
   };
 }
