@@ -160,7 +160,7 @@ export default function AuthPage(
         onSubmit={onSubmit}
         onError={onError}>
 
-        <h1 className="font-heading text-3xl mb-2"> {greeting} </h1>
+        <h1 className="font-heading text-2xl mb-2"> {greeting} </h1>
 
         {
           step === "credentials" ? (

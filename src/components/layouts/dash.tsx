@@ -40,15 +40,6 @@ export default function DashLayout(props: Props) {
     let cancelled = false;
 
     const loadCurrentUser = async () => {
-      const response = await fetch("/api/auth/me", {
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        props.router.replace("/auth/signin");
-        return;
-      }
-
       const cached = CacheDB.get();
 
       if (cached.user) {
@@ -60,6 +51,14 @@ export default function DashLayout(props: Props) {
 
         return;
       } else {
+        const response = await fetch("/api/auth/me", {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          props.router.replace("/auth/signin");
+          return;
+        }
 
         const data = await response.json() as {
           user: SessionUser;

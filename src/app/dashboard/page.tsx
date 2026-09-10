@@ -14,7 +14,9 @@ export default function OverviewPage() {
   const router = useRouter();
 
   return (
-    <DashLayout current="overview" router={router}>
+    <DashLayout
+      current="overview"
+      router={router}>
       <main className="w-full flex flex-col items-center justify-start gap-10">
         <Heading label="Overview" />
 
