@@ -24,6 +24,12 @@ export type SessionUser = {
   emailVerified: boolean;
 };
 
+export type UserProfile = {
+  name: string;
+  avatar: string;
+  id: string;
+}
+
 export type AuthApiResponse = {
   message: string;
   nextStep?: AuthNextStep;

@@ -3,10 +3,13 @@
 import { useEffect, useState, type ReactNode } from "react";
 
 import Sidebar from "@/components/sidebar";
-import type { SessionUser } from "@/types/user";
+
+import type { SessionUser, UserProfile } from "@/types/user";
 
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname } from "next/navigation";
+
+import CacheDB from "@/utils/cache";
 
 interface Props {
   current: "overview" | "mails" | "issues" | "agents" | "projects" | "settings";
@@ -14,17 +17,11 @@ interface Props {
   children?: ReactNode;
 }
 
-const fallbackUser = {
-  name: "Eclipse user",
-  avatar: "/logo.svg",
-  id: "",
-};
-
 const USER_UPDATED_EVENT = "user-updated";
 
 export default function DashLayout(props: Props) {
   const pathname = usePathname();
-  const [user, setUser] = useState(fallbackUser);
+  const [user, setUser] = useState<UserProfile>();
   const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
@@ -52,19 +49,40 @@ export default function DashLayout(props: Props) {
         return;
       }
 
-      const data = await response.json() as {
-        user: SessionUser;
-      };
+      const cached = CacheDB.get();
 
-      if (cancelled) {
+      if (cached.user) {
+        setUser({
+          name: cached.user.name,
+          avatar: cached.user.avatar,
+          id: cached.user.id
+        });
+
+        return;
+      } else {
+
+        const data = await response.json() as {
+          user: SessionUser;
+        };
+
+        if (cancelled) {
+          return;
+        }
+
+        CacheDB.update({
+          name: data.user.displayName,
+          avatar: data.user.avatarUrl ?? "/logo.svg",
+          id: data.user.id,
+        });
+
+        setUser({
+          name: data.user.displayName,
+          avatar: data.user.avatarUrl ?? "/logo.svg",
+          id: data.user.id,
+        });
+
         return;
       }
-
-      setUser({
-        name: data.user.displayName,
-        avatar: data.user.avatarUrl ?? "/logo.svg",
-        id: data.user.id,
-      });
     };
 
     void loadCurrentUser();

@@ -12,14 +12,16 @@ import {
   IconSettings,
   IconTarget
 } from "@tabler/icons-react";
+
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+
 import { useEffect, useRef, useState } from "react";
 
 type SelectedSection = "overview" | "mails" | "issues" | "agents" | "agents-gestor" | "projects" | "settings";
 
 interface Props {
   selected: SelectedSection;
-  user: {
+  user?: {
     name: string;
     avatar: string;
     id: string;
@@ -165,15 +167,24 @@ export default function Sidebar(props: Props) {
             onClick={() => setMenuOpen(previous => !previous)}
             aria-expanded={menuOpen}
             aria-haspopup="menu">
-            <img
-              src={props.user.avatar}
-              alt={props.user.name}
-              className="w-4 h-4 rounded-full"
-            />
-            <p
-              className="text-foreground text-sm w-full text-start">
-              {props.user.name}
-            </p>
+            {
+              props.user ?
+                <>
+                  <img
+                  src={props.user.avatar}
+                  alt={props.user.name}
+                  className="w-4 h-4 rounded-full"
+                  />
+                  <p
+                    className="text-foreground text-sm w-full text-start">
+                    {props.user.name}
+                  </p>
+                </> :
+                <div className="animate-pulse flex w-full gap-2">
+                  <span className="w-6 rounded-full aspect-square block bg-background-focus" />
+                  <span className="w-full h-5 rounded-full block bg-background-focus" />
+                </div>
+            }
             <IconChevronDown
               size={16}
               strokeWidth={2} />
