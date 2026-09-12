@@ -14,6 +14,14 @@ function iso(value: Date | null) {
   return value?.toISOString() ?? null;
 }
 
+type WorkspaceUser = {
+  id: string;
+  email: string;
+  username: string | null;
+  avatarUrl: string | null;
+  emailVerifiedAt: Date | null;
+};
+
 export function serializeProject(project: {
   id: string;
   name: string;
@@ -146,14 +154,82 @@ export function buildDashboardMetrics(input: {
   };
 }
 
-export async function getWorkspaceSnapshot(userId: string): Promise<WorkspaceSnapshot> {
-  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+export async function getWorkspaceSnapshot(user: WorkspaceUser): Promise<WorkspaceSnapshot> {
+  const userId = user.id;
   const [projects, issues, mails, agents, agentSessions] = await Promise.all([
-    prisma.project.findMany({ where: { userId }, orderBy: { updatedAt: "desc" } }),
-    prisma.issue.findMany({ where: { userId }, orderBy: { createdAt: "desc" } }),
-    prisma.mail.findMany({ where: { userId }, orderBy: { createdAt: "desc" } }),
-    prisma.agent.findMany({ where: { userId }, orderBy: { updatedAt: "desc" } }),
-    prisma.agentSession.findMany({ where: { userId }, orderBy: { startedAt: "desc" } }),
+    prisma.project.findMany({
+      where: { userId },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        externalUrl: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    }),
+    prisma.issue.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        projectId: true,
+        title: true,
+        description: true,
+        severity: true,
+        status: true,
+        resolvedAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    }),
+    prisma.mail.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        projectId: true,
+        fromAddress: true,
+        toAddresses: true,
+        subject: true,
+        direction: true,
+        status: true,
+        sentAt: true,
+        receivedAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    }),
+    prisma.agent.findMany({
+      where: { userId },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        defaultModel: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    }),
+    prisma.agentSession.findMany({
+      where: { userId },
+      orderBy: { startedAt: "desc" },
+      select: {
+        id: true,
+        agentId: true,
+        projectId: true,
+        description: true,
+        model: true,
+        status: true,
+        startedAt: true,
+        endedAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    }),
   ]);
 
   return {
@@ -170,4 +246,3 @@ export async function getWorkspaceSnapshot(userId: string): Promise<WorkspaceSna
     }),
   };
 }
-

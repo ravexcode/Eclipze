@@ -18,6 +18,7 @@ import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.share
 import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/utils/api-fetch";
 import CacheDB from "@/utils/cache";
+import { clearSessionUser } from "@/utils/session";
 
 type SelectedSection = "overview" | "mails" | "issues" | "agents" | "agents-gestor" | "projects" | "settings";
 
@@ -129,6 +130,7 @@ export default function Sidebar(props: Props) {
         credentials: "include",
       });
     } finally {
+      clearSessionUser();
       CacheDB.delete(props.user?.id);
       closeMenu();
       setIsSigningOut(false);

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useState, useEffect } from "react";
-import { apiFetch } from "@/utils/api-fetch";
+import { getSessionUser } from "@/utils/session";
 
 function HeaderLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -38,13 +38,11 @@ export default function Header() {
     let cancelled = false;
 
     (async () => {
-      const response = await apiFetch("/api/auth/me", {
-        credentials: "include",
-      });
+      const user = await getSessionUser();
 
       if (cancelled) return;
 
-      if (response.ok) {
+      if (user) {
         setCta(SIGNED_IN_CTA);
       } else {
         setCta(SIGNED_OUT_CTA);

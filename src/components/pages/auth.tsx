@@ -13,6 +13,7 @@ import Form from "@/components/forms/auth/form";
 import Input from "@/components/forms/auth/input";
 import Button from "@/components/ui/button";
 import { apiFetch } from "@/utils/api-fetch";
+import { invalidateSessionUser } from "@/utils/session";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { IconArrowLeft } from "@tabler/icons-react";
@@ -77,6 +78,7 @@ export default function AuthPage(
         }
 
         if (type === "in") {
+          invalidateSessionUser();
           router.push(data.redirectTo ?? "/dashboard");
           router.refresh();
           return;
@@ -107,6 +109,7 @@ export default function AuthPage(
         return;
       }
 
+      invalidateSessionUser();
       router.push(data.redirectTo ?? "/dashboard");
       router.refresh();
     } finally {

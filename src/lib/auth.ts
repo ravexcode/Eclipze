@@ -19,6 +19,7 @@ const scryptAsync = promisify(scrypt);
 export const SESSION_COOKIE_NAME = "token";
 
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
+const SESSION_ACTIVITY_WRITE_INTERVAL_MS = 1000 * 60 * 5;
 const VERIFICATION_CODE_TTL_MS = 1000 * 60 * 10;
 
 export type AuthCodePurpose = "EMAIL_VERIFICATION" | "PASSWORD_RESET";
@@ -287,14 +288,19 @@ export async function getCurrentSession() {
     return null;
   }
 
-  await prisma.authSession.update({
-    where: {
-      id: session.id,
-    },
-    data: {
-      lastUsedAt: new Date(),
-    },
-  });
+  const shouldUpdateActivity = !session.lastUsedAt ||
+    Date.now() - session.lastUsedAt.getTime() >= SESSION_ACTIVITY_WRITE_INTERVAL_MS;
+
+  if (shouldUpdateActivity) {
+    await prisma.authSession.update({
+      where: {
+        id: session.id,
+      },
+      data: {
+        lastUsedAt: new Date(),
+      },
+    });
+  }
 
   return session;
 }

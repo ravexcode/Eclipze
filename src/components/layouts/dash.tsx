@@ -4,13 +4,12 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import Sidebar from "@/components/sidebar";
 
-import type { SessionUser, UserProfile, WorkspaceSnapshot } from "@/types/user";
+import type { UserProfile } from "@/types/user";
 
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname } from "next/navigation";
 
-import CacheDB from "@/utils/cache";
-import { apiFetch } from "@/utils/api-fetch";
+import { getSessionUser } from "@/utils/session";
 
 interface Props {
   current: "overview" | "mails" | "issues" | "agents" | "projects" | "settings";
@@ -41,40 +40,19 @@ export default function DashLayout(props: Props) {
     let cancelled = false;
 
     const loadCurrentUser = async () => {
-      const authResponse = await apiFetch("/api/auth/me", {
-        credentials: "include",
-      });
+      const sessionUser = await getSessionUser();
 
-      if (!authResponse.ok) {
-        CacheDB.delete();
+      if (!sessionUser) {
         props.router.replace("/auth/signin");
         return;
-      }
-
-      const authData = await authResponse.json() as { user: SessionUser };
-      const cached = CacheDB.get(authData.user.id);
-      let workspace = cached.workspace;
-
-      if (!workspace) {
-        const workspaceResponse = await apiFetch("/api/workspace", {
-          credentials: "include",
-        });
-
-        if (!workspaceResponse.ok) {
-          props.router.replace("/auth/signin");
-          return;
-        }
-
-        workspace = await workspaceResponse.json() as WorkspaceSnapshot;
-        CacheDB.update(workspace);
       }
 
       if (cancelled) return;
 
       setUser({
-        name: workspace.user.displayName,
-        avatar: workspace.user.avatarUrl ?? "/logo.svg",
-        id: workspace.user.id,
+        name: sessionUser.displayName,
+        avatar: sessionUser.avatarUrl ?? "/logo.svg",
+        id: sessionUser.id,
       });
     };
 

@@ -13,6 +13,7 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
   const response = await fetch(input, {
     ...init,
     headers,
+    cache: init.cache ?? "no-store",
   });
 
   const method = (init.method ?? "GET").toUpperCase();

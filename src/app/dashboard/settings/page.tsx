@@ -8,6 +8,7 @@ import Heading from "@/components/ui/heading";
 import type { SessionUser } from "@/types/user";
 import { isValidAvatarUrl, normalizeAvatarUrl } from "@/utils/avatar-url";
 import { apiFetch } from "@/utils/api-fetch";
+import { getSessionUser, setSessionUser } from "@/utils/session";
 
 import { useRouter } from "next/navigation";
 
@@ -26,25 +27,19 @@ export default function ProfileSettingsPage() {
     let cancelled = false;
 
     const loadCurrentUser = async () => {
-      const response = await apiFetch("/api/auth/me", {
-        credentials: "include",
-      });
+      const currentUser = await getSessionUser();
 
-      if (!response.ok) {
+      if (!currentUser) {
         router.replace("/auth/signin");
         return;
       }
-
-      const data = await response.json() as {
-        user: SessionUser;
-      };
 
       if (cancelled) {
         return;
       }
 
-      setUser(data.user);
-      setAvatarUrl(data.user.avatarUrl ?? "");
+      setUser(currentUser);
+      setAvatarUrl(currentUser.avatarUrl ?? "");
       setIsLoading(false);
     };
 
@@ -102,6 +97,7 @@ export default function ProfileSettingsPage() {
       }
 
       if (data.user) {
+        setSessionUser(data.user);
         setUser(data.user);
         setAvatarUrl(data.user.avatarUrl ?? "");
       }
