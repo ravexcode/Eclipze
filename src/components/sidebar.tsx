@@ -181,7 +181,7 @@ export default function Sidebar(props: Props) {
   if (!visibility) {
     return (
       <section
-        className="w-max px-2 py-4 h-dvh sticky top-0">
+        className="sticky top-0 h-dvh w-max px-2 py-4">
         <button
           type="button"
           className="rounded-sm p-2 hover:bg-background-focus"
@@ -200,7 +200,7 @@ export default function Sidebar(props: Props) {
           setIsSidebarClosing(false);
         }
       }}
-      className={"h-full min-h-dvh w-80 bg-background-card p-4 flex flex-col justify-start items-center " +
+      className={"sticky top-0 h-dvh w-[324px] bg-background-card p-4 flex flex-col justify-start items-center " +
         (isSidebarClosing
           ? "animate-slide-out-left animate-duration-180 animate-ease-out [--tw-anim-slide-distance:8px]"
           : "animate-slide-in-left animate-duration-180 animate-ease-out [--tw-anim-slide-distance:8px]") +

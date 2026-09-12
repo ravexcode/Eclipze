@@ -15,6 +15,8 @@ export type AuthNextStep = Exclude<AuthStep, "credentials">;
 
 export type AuthCodePurpose = "EMAIL_VERIFICATION" | "PASSWORD_RESET";
 
+export const ACCOUNT_DELETION_DELAY_DAYS = 30;
+
 export type SessionUser = {
   id: string;
   email: string;
@@ -22,6 +24,7 @@ export type SessionUser = {
   displayName: string;
   avatarUrl: string | null;
   emailVerified: boolean;
+  createdAt: string;
 };
 
 export type UserProfile = {

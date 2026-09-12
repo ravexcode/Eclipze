@@ -21,6 +21,15 @@ enum AuthProvider {
   GITLAB
 }
 
+enum AiProvider {
+  CLAUDE
+  GPT
+  OPENROUTER
+  ZAI
+  XAI
+  GPT_SUBSCRIPTION
+}
+
 enum ProjectStatus {
   ACTIVE
   AT_RISK
@@ -64,36 +73,37 @@ enum AgentSessionStatus {
 }
 
 model User {
-  id                String             @id @default(cuid())
-  email             String             @unique
-  username          String?            @unique
-  passwordHash      String?
-  emailVerifiedAt   DateTime?
-  avatarUrl         String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  sessions          AuthSession[]
-  verificationCodes VerificationCode[]
-  accounts          AuthAccount[]
-  projects          Project[]
-  issues            Issue[]
-  mails             Mail[]
-  agents            Agent[]
-  agentSessions     AgentSession[]
+  id                    String                 @id @default(cuid())
+  email                 String                 @unique
+  username              String?                @unique
+  passwordHash          String?
+  emailVerifiedAt       DateTime?
+  avatarUrl             String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  sessions              AuthSession[]
+  verificationCodes     VerificationCode[]
+  accounts              AuthAccount[]
+  aiProviderConnections AiProviderConnection[]
+  projects              Project[]
+  issues                Issue[]
+  mails                 Mail[]
+  agents                Agent[]
+  agentSessions         AgentSession[]
 
   @@map("users")
 }
 
 model Project {
-  id          String        @id @default(cuid())
+  id          String         @id @default(cuid())
   userId      String
   name        String
   description String?
   externalUrl String?
-  status      ProjectStatus @default(ACTIVE)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      ProjectStatus  @default(ACTIVE)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   issues      Issue[]
   mails       Mail[]
   sessions    AgentSession[]
@@ -122,21 +132,21 @@ model Issue {
 }
 
 model Mail {
-  id           String        @id @default(cuid())
-  userId       String
-  projectId    String?
-  fromAddress  String
-  toAddresses  String[]
-  subject      String
-  body         String
-  direction    MailDirection
-  status       MailStatus    @default(DRAFT)
-  sentAt       DateTime?
-  receivedAt   DateTime?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project      Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  id          String        @id @default(cuid())
+  userId      String
+  projectId   String?
+  fromAddress String
+  toAddresses String[]
+  subject     String
+  body        String
+  direction   MailDirection
+  status      MailStatus    @default(DRAFT)
+  sentAt      DateTime?
+  receivedAt  DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project     Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([userId, status, createdAt])
   @@index([projectId])
@@ -144,15 +154,15 @@ model Mail {
 }
 
 model Agent {
-  id            String          @id @default(cuid())
-  userId        String
-  name          String
-  defaultModel  String
-  status        AgentStatus     @default(ACTIVE)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sessions      AgentSession[]
+  id           String         @id @default(cuid())
+  userId       String
+  name         String
+  defaultModel String
+  status       AgentStatus    @default(ACTIVE)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions     AgentSession[]
 
   @@index([userId, status])
   @@map("agents")
@@ -181,13 +191,13 @@ model AgentSession {
 }
 
 model AuthSession {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   userId     String
-  tokenHash  String   @unique
+  tokenHash  String    @unique
   expiresAt  DateTime
   lastUsedAt DateTime?
-  createdAt  DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
@@ -195,14 +205,14 @@ model AuthSession {
 }
 
 model VerificationCode {
-  id         String                   @id @default(cuid())
+  id         String                  @id @default(cuid())
   userId     String
   purpose    VerificationCodePurpose
   codeHash   String
   expiresAt  DateTime
   consumedAt DateTime?
-  createdAt  DateTime                 @default(now())
-  user       User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime                @default(now())
+  user       User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, purpose, expiresAt])
   @@index([consumedAt])
@@ -222,4 +232,19 @@ model AuthAccount {
   @@unique([userId, provider])
   @@index([userId])
   @@map("auth_accounts")
+}
+
+model AiProviderConnection {
+  id              String     @id @default(cuid())
+  userId          String
+  provider        AiProvider
+  encryptedApiKey String?
+  keyHint         String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("ai_provider_connections")
 }

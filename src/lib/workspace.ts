@@ -20,6 +20,7 @@ type WorkspaceUser = {
   username: string | null;
   avatarUrl: string | null;
   emailVerifiedAt: Date | null;
+  createdAt: Date;
 };
 
 export function serializeProject(project: {

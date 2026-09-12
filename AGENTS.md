@@ -35,6 +35,8 @@
 - Auth routes include `/api/auth/signin`, `/api/auth/signup`, `/api/auth/verify-email`, `/api/auth/resend-code`, `/api/auth/forgot-password`, `/api/auth/reset-password`, `/api/auth/me`, and `/api/auth/logout`. `verify-2fa` is retired. `AuthApiResponse` includes optional action links for blocked unverified accounts.
 - **API routes** (`src/app/api/*`) are plain Next route handlers returning `NextResponse.json({ message, ... })`; server-only auth helpers live in `src/lib/auth.ts` (scrypt hashing, verification codes, request-origin parsing, session management). Password reset revokes all existing sessions after updating the hash.
 - Components split: `src/components/ui/` (button, heading, header), `src/components/layouts/` (dash, marketing), `src/components/sidebar.tsx`, `src/components/forms/auth/`, `src/components/pages/auth.tsx`.
+- Settings is composed from shared client components in `src/components/settings/`; `src/app/dashboard/settings/page.tsx` only loads the authenticated user, composes the sections, and coordinates sidebar/session updates. The sections own their local form state: profile, password, AI providers/provider cards, and account deletion.
+- AI provider connections use the private `/api/ai-providers` GET/PUT/DELETE contract. User keys are encrypted server-side with `AI_CREDENTIALS_ENCRYPTION_KEY`; responses are private/no-store and must never expose or log plaintext keys. The internal `GPT` provider is displayed as OpenAI. OpenAI keys are validated against the OpenAI API before being stored; ChatGPT subscriptions, browser cookies, and internal ChatGPT tokens are not API credentials.
 - Types in `src/types/`, utils (pure fns, e.g. `avatar-url.ts`, `greeting.ts`) in `src/utils/`.
 - UI conventions: `rounded-sm`, `bg-background-card`, `bg-background-focus`, `text-foreground-off`, accent `#000bde`; animation utilities from `tailwind-animations` (`animate-fade-in-up`, etc.); buttons via `src/components/ui/button.tsx` variants `main`/`secondary`/`ghost`.
 - Placeholder pages (issues/mails/agents/projects) are thin `DashLayout` + `Heading` shells; dashboard/home use hardcoded empty-state content.
@@ -45,3 +47,4 @@
 - Follow the `layout.tsx` guard + `DashLayout` + `Heading` pattern for any new dashboard page.
 - Reuse existing ui components and theme tokens; don't hardcode new hex colors.
 - Pure helpers go in `src/utils/`, server-only logic in `src/lib/`, shared types in `src/types/`.
+- Keep Settings UI blocks reusable and keep provider credential handling server-only. Do not add a simulated ChatGPT-subscription connection or persist credentials that have not passed provider validation.
