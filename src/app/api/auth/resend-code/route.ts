@@ -10,7 +10,7 @@ import {
 import { sendAuthCodeEmail } from "@/lib/auth-email";
 
 function isSupportedPurpose(value: string): value is AuthCodePurpose {
-  return value === "EMAIL_VERIFICATION" || value === "LOGIN_2FA";
+  return value === "EMAIL_VERIFICATION";
 }
 
 export async function POST(request: Request) {
@@ -42,10 +42,6 @@ export async function POST(request: Request) {
 
   if (purpose === "EMAIL_VERIFICATION" && user.emailVerifiedAt) {
     return NextResponse.json({ message: "This email is already verified." }, { status: 400 });
-  }
-
-  if (purpose === "LOGIN_2FA" && !user.emailVerifiedAt) {
-    return NextResponse.json({ message: "You must verify your email before requesting a sign-in code." }, { status: 400 });
   }
 
   const verification = await createVerificationCode({

@@ -33,14 +33,11 @@ export default function AuthPage(
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorAction, setErrorAction] = useState<{ href: string; label: string } | null>(null);
 
   const greeting = useMemo(() => {
     if (step === "verify_email") {
       return "Verify your email";
-    }
-
-    if (step === "verify_2fa") {
-      return "Confirm your sign-in";
     }
 
     return type === "in" ? "Welcome back!" : "Get started!";
@@ -50,6 +47,7 @@ export default function AuthPage(
     e.preventDefault();
 
     setError(null);
+    setErrorAction(null);
     setMessage(null);
     setIsSubmitting(true);
 
@@ -73,6 +71,7 @@ export default function AuthPage(
 
         if (!response.ok) {
           setError(data.message);
+          if (data.actionHref && data.actionLabel) setErrorAction({ href: data.actionHref, label: data.actionLabel });
           return;
         }
 
@@ -83,7 +82,7 @@ export default function AuthPage(
         return;
       }
 
-      const response = await fetch(step === "verify_email" ? "/api/auth/verify-email" : "/api/auth/verify-2fa", {
+      const response = await fetch("/api/auth/verify-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -126,7 +125,7 @@ export default function AuthPage(
         },
         body: JSON.stringify({
           email: pendingEmail || user.email,
-          purpose: (step === "verify_email" ? "EMAIL_VERIFICATION" : "LOGIN_2FA") as AuthCodePurpose,
+          purpose: "EMAIL_VERIFICATION" as AuthCodePurpose,
         }),
       });
 
@@ -304,6 +303,7 @@ export default function AuthPage(
           error &&
           <p className="w-full rounded-sm border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
             {error}
+            {errorAction && <Link className="ml-2 underline" href={errorAction.href}>{errorAction.label}</Link>}
           </p>
         }
 
@@ -345,6 +345,11 @@ export default function AuthPage(
               Resend code
             </button>
           </div>
+        }
+
+        {
+          step === "credentials" && type === "in" &&
+          <Link href="/auth/forgot-password" className="text-sm text-foreground-off underline hover:text-accent duration-300">Forgot your password?</Link>
         }
 
         {

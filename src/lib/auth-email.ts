@@ -16,6 +16,10 @@ const emailTheme = {
   alertRed: "#ff383c",
 };
 
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character] ?? character);
+}
+
 function getResendConfig() {
   const apiKey = process.env.RESEND_API_KEY;
   const noReplyFrom = process.env.AUTH_EMAIL_NO_REPLY_FROM ?? process.env.AUTH_EMAIL_FROM;
@@ -44,12 +48,12 @@ function getEmailCopy(purpose: AuthCodePurpose) {
   }
 
   return {
-    subject: "Your Eclipse sign-in code",
-    eyebrow: "Secure sign-in",
-    title: "Confirm your sign-in",
-    body: "Use the verification code below to complete your sign-in. This extra check protects your account with email-based 2FA.",
-    statusLabel: "2FA confirmation required",
-    accentLabel: "Protected access",
+    subject: "Reset your Eclipse password",
+    eyebrow: "Password recovery",
+    title: "Reset your password",
+    body: "Use the verification code below to choose a new password for your Eclipse account.",
+    statusLabel: "Password reset requested",
+    accentLabel: "Secure recovery",
   };
 }
 
@@ -288,4 +292,30 @@ export async function sendAuthCodeEmail(input: {
 
     throw new Error(`Resend request failed with ${response.status}: ${errorText}`);
   }
+}
+
+export async function sendNewSignInEmail(input: {
+  to: string;
+  ip: string;
+  device: string;
+  occurredAt: string;
+}) {
+  const config = getResendConfig();
+  const body = `A new sign-in to your Eclipse profile was detected.\n\nIP address: ${input.ip}\nDevice: ${input.device}\nDate and time (UTC): ${input.occurredAt}\n\nIf this was not you, reset your password immediately and contact support.`;
+  const ip = escapeHtml(input.ip);
+  const device = escapeHtml(input.device);
+  const occurredAt = escapeHtml(input.occurredAt);
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${config.apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: config.from,
+      to: [input.to],
+      reply_to: config.replyTo,
+      subject: "New access to your profile",
+      text: `ECLIPSE — New access to your profile\n\n${body}`,
+      html: `<div style="font-family:Arial,sans-serif;line-height:1.6"><h1>New access to your profile</h1><p>A new sign-in to your Eclipse profile was detected.</p><ul><li><strong>IP address:</strong> ${ip}</li><li><strong>Device:</strong> ${device}</li><li><strong>Date and time (UTC):</strong> ${occurredAt}</li></ul><p>If this was not you, reset your password immediately and contact support.</p></div>`,
+    }),
+  });
+  if (!response.ok) throw new Error(`Resend request failed with ${response.status}`);
 }

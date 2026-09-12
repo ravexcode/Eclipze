@@ -11,6 +11,7 @@ datasource db {
 enum VerificationCodePurpose {
   EMAIL_VERIFICATION
   LOGIN_2FA
+  PASSWORD_RESET
 }
 
 enum AuthProvider {

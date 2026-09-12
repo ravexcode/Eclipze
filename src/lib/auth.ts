@@ -21,7 +21,7 @@ export const SESSION_COOKIE_NAME = "token";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 const VERIFICATION_CODE_TTL_MS = 1000 * 60 * 10;
 
-export type AuthCodePurpose = "EMAIL_VERIFICATION" | "LOGIN_2FA";
+export type AuthCodePurpose = "EMAIL_VERIFICATION" | "PASSWORD_RESET";
 
 function hashSecret(secret: string) {
   return createHash("sha256").update(secret).digest("hex");
@@ -182,6 +182,23 @@ export async function consumeVerificationCode(input: {
   return user;
 }
 
+export async function resetPasswordWithCode(input: { email: string; code: string; passwordHash: string }) {
+  const email = normalizeEmail(input.email);
+  return prisma.$transaction(async (transaction) => {
+    const user = await transaction.user.findUnique({ where: { email } });
+    if (!user?.emailVerifiedAt) return false;
+    const verificationCode = await transaction.verificationCode.findFirst({
+      where: { userId: user.id, purpose: "PASSWORD_RESET", consumedAt: null, expiresAt: { gt: new Date() }, codeHash: createCodeHash(user.id, "PASSWORD_RESET", input.code) },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!verificationCode) return false;
+    await transaction.verificationCode.update({ where: { id: verificationCode.id }, data: { consumedAt: new Date() } });
+    await transaction.user.update({ where: { id: user.id }, data: { passwordHash: input.passwordHash } });
+    await transaction.authSession.deleteMany({ where: { userId: user.id } });
+    return true;
+  });
+}
+
 export async function createSession(userId: string) {
   const token = createSessionToken();
   const tokenHash = hashSecret(token);
@@ -204,6 +221,18 @@ export async function createSession(userId: string) {
     path: "/",
     expires: expiresAt,
   });
+}
+
+export function getRequestIp(request: Request) {
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || request.headers.get("x-real-ip")?.trim() || "Unknown";
+}
+
+export function describeDevice(userAgent: string | null) {
+  if (!userAgent) return "Unknown device";
+  const device = /mobile|android|iphone|ipad/i.test(userAgent) ? "Mobile device" : "Desktop device";
+  const browser = /edg\//i.test(userAgent) ? "Microsoft Edge" : /firefox\//i.test(userAgent) ? "Mozilla Firefox" : /chrome\//i.test(userAgent) ? "Google Chrome" : /safari\//i.test(userAgent) ? "Safari" : "Unknown browser";
+  return `${device} · ${browser}`;
 }
 
 export async function clearSession() {

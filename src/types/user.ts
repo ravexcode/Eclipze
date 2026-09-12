@@ -9,11 +9,11 @@ export type SigninCredentials = Pick<UserCredentials, "email" | "password">;
 
 export type SignupCredentials = Required<UserCredentials>;
 
-export type AuthStep = "credentials" | "verify_email" | "verify_2fa";
+export type AuthStep = "credentials" | "verify_email" | "password_reset";
 
 export type AuthNextStep = Exclude<AuthStep, "credentials">;
 
-export type AuthCodePurpose = "EMAIL_VERIFICATION" | "LOGIN_2FA";
+export type AuthCodePurpose = "EMAIL_VERIFICATION" | "PASSWORD_RESET";
 
 export type SessionUser = {
   id: string;
@@ -36,6 +36,8 @@ export type AuthApiResponse = {
   email?: string;
   redirectTo?: string;
   warning?: boolean;
+  actionHref?: string;
+  actionLabel?: string;
 };
 
 export default UserCredentials;
