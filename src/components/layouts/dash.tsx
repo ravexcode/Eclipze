@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import Sidebar from "@/components/sidebar";
 
-import type { SessionUser, UserProfile } from "@/types/user";
+import type { SessionUser, UserProfile, WorkspaceSnapshot } from "@/types/user";
 
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname } from "next/navigation";
@@ -41,48 +41,41 @@ export default function DashLayout(props: Props) {
     let cancelled = false;
 
     const loadCurrentUser = async () => {
-      const cached = CacheDB.get();
+      const authResponse = await apiFetch("/api/auth/me", {
+        credentials: "include",
+      });
 
-      if (cached.user) {
-        setUser({
-          name: cached.user.name,
-          avatar: cached.user.avatar,
-          id: cached.user.id
-        });
-
+      if (!authResponse.ok) {
+        CacheDB.delete();
+        props.router.replace("/auth/signin");
         return;
-      } else {
-        const response = await apiFetch("/api/auth/me", {
+      }
+
+      const authData = await authResponse.json() as { user: SessionUser };
+      const cached = CacheDB.get(authData.user.id);
+      let workspace = cached.workspace;
+
+      if (!workspace) {
+        const workspaceResponse = await apiFetch("/api/workspace", {
           credentials: "include",
         });
 
-        if (!response.ok) {
+        if (!workspaceResponse.ok) {
           props.router.replace("/auth/signin");
           return;
         }
 
-        const data = await response.json() as {
-          user: SessionUser;
-        };
-
-        if (cancelled) {
-          return;
-        }
-
-        CacheDB.update({
-          name: data.user.displayName,
-          avatar: data.user.avatarUrl ?? "/logo.svg",
-          id: data.user.id,
-        });
-
-        setUser({
-          name: data.user.displayName,
-          avatar: data.user.avatarUrl ?? "/logo.svg",
-          id: data.user.id,
-        });
-
-        return;
+        workspace = await workspaceResponse.json() as WorkspaceSnapshot;
+        CacheDB.update(workspace);
       }
+
+      if (cancelled) return;
+
+      setUser({
+        name: workspace.user.displayName,
+        avatar: workspace.user.avatarUrl ?? "/logo.svg",
+        id: workspace.user.id,
+      });
     };
 
     void loadCurrentUser();

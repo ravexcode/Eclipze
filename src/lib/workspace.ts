@@ -1,0 +1,173 @@
+import type {
+  DashboardMetrics,
+  WorkspaceAgent,
+  WorkspaceAgentSession,
+  WorkspaceIssue,
+  WorkspaceMail,
+  WorkspaceProject,
+  WorkspaceSnapshot,
+} from "@/types/user";
+import { serializeUser } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+
+function iso(value: Date | null) {
+  return value?.toISOString() ?? null;
+}
+
+export function serializeProject(project: {
+  id: string;
+  name: string;
+  description: string | null;
+  externalUrl: string | null;
+  status: WorkspaceProject["status"];
+  createdAt: Date;
+  updatedAt: Date;
+}): WorkspaceProject {
+  return { ...project, createdAt: project.createdAt.toISOString(), updatedAt: project.updatedAt.toISOString() };
+}
+
+export function serializeIssue(issue: {
+  id: string;
+  projectId: string | null;
+  title: string;
+  description: string | null;
+  severity: WorkspaceIssue["severity"];
+  status: WorkspaceIssue["status"];
+  resolvedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}): WorkspaceIssue {
+  return { ...issue, resolvedAt: iso(issue.resolvedAt), createdAt: issue.createdAt.toISOString(), updatedAt: issue.updatedAt.toISOString() };
+}
+
+export function serializeMail(mail: {
+  id: string;
+  projectId: string | null;
+  fromAddress: string;
+  toAddresses: string[];
+  subject: string;
+  direction: WorkspaceMail["direction"];
+  status: WorkspaceMail["status"];
+  sentAt: Date | null;
+  receivedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}): WorkspaceMail {
+  return {
+    ...mail,
+    sentAt: iso(mail.sentAt),
+    receivedAt: iso(mail.receivedAt),
+    createdAt: mail.createdAt.toISOString(),
+    updatedAt: mail.updatedAt.toISOString(),
+  };
+}
+
+export function serializeAgent(agent: {
+  id: string;
+  name: string;
+  defaultModel: string;
+  status: WorkspaceAgent["status"];
+  createdAt: Date;
+  updatedAt: Date;
+}): WorkspaceAgent {
+  return { ...agent, createdAt: agent.createdAt.toISOString(), updatedAt: agent.updatedAt.toISOString() };
+}
+
+export function serializeAgentSession(session: {
+  id: string;
+  agentId: string;
+  projectId: string | null;
+  description: string;
+  model: string;
+  status: WorkspaceAgentSession["status"];
+  startedAt: Date;
+  endedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}): WorkspaceAgentSession {
+  return {
+    ...session,
+    startedAt: session.startedAt.toISOString(),
+    endedAt: iso(session.endedAt),
+    createdAt: session.createdAt.toISOString(),
+    updatedAt: session.updatedAt.toISOString(),
+  };
+}
+
+function dateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function getLastSevenDates() {
+  const dates: string[] = [];
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+
+  for (let index = 6; index >= 0; index -= 1) {
+    const date = new Date(today);
+    date.setUTCDate(today.getUTCDate() - index);
+    dates.push(dateKey(date));
+  }
+
+  return dates;
+}
+
+export function buildDashboardMetrics(input: {
+  issues: Array<{ severity: WorkspaceIssue["severity"]; status: WorkspaceIssue["status"]; createdAt: Date }>;
+  projectsTotal: number;
+  activeSessionsTotal: number;
+}): DashboardMetrics {
+  const issuesBySeverity: DashboardMetrics["issuesBySeverity"] = {
+    IMPORTANT: 0,
+    MEDIUM: 0,
+    LOW: 0,
+  };
+  const openIssues = input.issues.filter(issue => issue.status !== "RESOLVED");
+
+  for (const issue of openIssues) {
+    issuesBySeverity[issue.severity] += 1;
+  }
+
+  const countByDay = new Map(getLastSevenDates().map(date => [date, 0]));
+
+  for (const issue of input.issues) {
+    const date = dateKey(issue.createdAt);
+    if (countByDay.has(date)) {
+      countByDay.set(date, (countByDay.get(date) ?? 0) + 1);
+    }
+  }
+
+  return {
+    issuesTotal: openIssues.length,
+    issuesBySeverity,
+    issuesByDay: [...countByDay].map(([date, count]) => ({ date, count })),
+    projectsTotal: input.projectsTotal,
+    activeSessionsTotal: input.activeSessionsTotal,
+  };
+}
+
+export async function getWorkspaceSnapshot(userId: string): Promise<WorkspaceSnapshot> {
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  const [projects, issues, mails, agents, agentSessions] = await Promise.all([
+    prisma.project.findMany({ where: { userId }, orderBy: { updatedAt: "desc" } }),
+    prisma.issue.findMany({ where: { userId }, orderBy: { createdAt: "desc" } }),
+    prisma.mail.findMany({ where: { userId }, orderBy: { createdAt: "desc" } }),
+    prisma.agent.findMany({ where: { userId }, orderBy: { updatedAt: "desc" } }),
+    prisma.agentSession.findMany({ where: { userId }, orderBy: { startedAt: "desc" } }),
+  ]);
+
+  return {
+    user: serializeUser(user),
+    projects: projects.map(serializeProject),
+    issues: issues.map(serializeIssue),
+    mails: mails.map(serializeMail),
+    agents: agents.map(serializeAgent),
+    agentSessions: agentSessions.map(serializeAgentSession),
+    metrics: buildDashboardMetrics({
+      issues,
+      projectsTotal: projects.length,
+      activeSessionsTotal: agentSessions.filter(session => session.status === "ACTIVE").length,
+    }),
+  };
+}
+

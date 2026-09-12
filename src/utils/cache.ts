@@ -1,19 +1,42 @@
 import { AES, enc } from "crypto-ts";
 
-import type { UserProfile } from "@/types/user";
+import type { WorkspaceSnapshot } from "@/types/user";
 
 const CRYPTO_SK = process.env.NEXT_PUBLIC_CRYPTO_SECRET_KEY!;
 
-const CACHE_KEY = "user-profile";
+const CACHE_KEY_PREFIX = "eclipse-workspace";
+const CACHE_VERSION = 2;
 const CACHE_DURATION = 3 * 60 * 60 * 1000;
 
 interface CacheData {
-  user: UserProfile;
+  version: number;
+  userId: string;
+  workspace: WorkspaceSnapshot;
   expiration: number;
 }
 
+function cacheKey(userId: string) {
+  return `${CACHE_KEY_PREFIX}:${userId}:v${CACHE_VERSION}`;
+}
+
+function isWorkspaceSnapshot(value: unknown): value is WorkspaceSnapshot {
+  if (!value || typeof value !== "object") return false;
+  const workspace = value as Partial<WorkspaceSnapshot>;
+  return Boolean(
+    workspace.user &&
+    typeof workspace.user.id === "string" &&
+    Array.isArray(workspace.projects) &&
+    Array.isArray(workspace.issues) &&
+    Array.isArray(workspace.mails) &&
+    Array.isArray(workspace.agents) &&
+    Array.isArray(workspace.agentSessions) &&
+    workspace.metrics &&
+    typeof workspace.metrics === "object"
+  );
+}
+
 export default class CacheDB {
-  static update(user: UserProfile) {
+  static update(workspace: WorkspaceSnapshot) {
     if (!CRYPTO_SK) {
       throw new Error("CRYPTO_SECRET_KEY is not configured");
     }
@@ -25,7 +48,9 @@ export default class CacheDB {
     }
 
     const content: CacheData = {
-      user,
+      version: CACHE_VERSION,
+      userId: workspace.user.id,
+      workspace,
       expiration: Date.now() + CACHE_DURATION,
     };
 
@@ -34,30 +59,41 @@ export default class CacheDB {
       CRYPTO_SK
     ).toString();
 
-    window.localStorage.setItem(CACHE_KEY, encrypted);
+    window.localStorage.setItem(cacheKey(workspace.user.id), encrypted);
 
     return {
       message: "ok",
     };
   }
 
-  static delete() {
+  static delete(userId?: string) {
     if (typeof window === "undefined") {
       return {
         message: "error",
       };
     }
 
-    window.localStorage.removeItem(CACHE_KEY);
+    if (userId) {
+      window.localStorage.removeItem(cacheKey(userId));
+    } else {
+      const keysToDelete: string[] = [];
+      for (let index = 0; index < window.localStorage.length; index += 1) {
+        const key = window.localStorage.key(index);
+        if (key?.startsWith(`${CACHE_KEY_PREFIX}:`)) {
+          keysToDelete.push(key);
+        }
+      }
+      keysToDelete.forEach(key => window.localStorage.removeItem(key));
+    }
 
     return {
       message: "ok",
     };
   }
 
-  static get(): {
+  static get(userId: string): {
     message: string;
-    user?: UserProfile;
+    workspace?: WorkspaceSnapshot;
   } {
     if (!CRYPTO_SK || typeof window === "undefined") {
       return {
@@ -65,7 +101,7 @@ export default class CacheDB {
       };
     }
 
-    const encrypted = window.localStorage.getItem(CACHE_KEY);
+    const encrypted = window.localStorage.getItem(cacheKey(userId));
 
     if (!encrypted) {
       return {
@@ -80,31 +116,23 @@ export default class CacheDB {
       );
 
       const decrypted = decryptedRaw.toString(enc.Utf8);
+      const cache = JSON.parse(decrypted) as Partial<CacheData>;
 
-      if (!decrypted) {
-        this.delete();
-
-        return {
-          message: "error",
-        };
+      if (
+        cache.version !== CACHE_VERSION ||
+        cache.userId !== userId ||
+        typeof cache.expiration !== "number" ||
+        Date.now() >= cache.expiration ||
+        !isWorkspaceSnapshot(cache.workspace) ||
+        cache.workspace.user.id !== userId
+      ) {
+        this.delete(userId);
+        return { message: "error" };
       }
 
-      const cache: CacheData = JSON.parse(decrypted);
-
-      if (Date.now() >= cache.expiration) {
-        this.delete();
-
-        return {
-          message: "error",
-        };
-      }
-
-      return {
-        message: "ok",
-        user: cache.user as UserProfile,
-      };
+      return { message: "ok", workspace: cache.workspace };
     } catch {
-      this.delete();
+      this.delete(userId);
 
       return {
         message: "error",

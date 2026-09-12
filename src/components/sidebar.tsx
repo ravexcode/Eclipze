@@ -17,6 +17,7 @@ import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.share
 
 import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/utils/api-fetch";
+import CacheDB from "@/utils/cache";
 
 type SelectedSection = "overview" | "mails" | "issues" | "agents" | "agents-gestor" | "projects" | "settings";
 
@@ -128,6 +129,7 @@ export default function Sidebar(props: Props) {
         credentials: "include",
       });
     } finally {
+      CacheDB.delete(props.user?.id);
       closeMenu();
       setIsSigningOut(false);
       router.replace("/auth/signin");
