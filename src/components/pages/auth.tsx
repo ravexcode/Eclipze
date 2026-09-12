@@ -12,6 +12,7 @@ import type {
 import Form from "@/components/forms/auth/form";
 import Input from "@/components/forms/auth/input";
 import Button from "@/components/ui/button";
+import { apiFetch } from "@/utils/api-fetch";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { IconArrowLeft } from "@tabler/icons-react";
@@ -59,7 +60,7 @@ export default function AuthPage(
         }
 
         const endpoint = type === "in" ? "/api/auth/signin" : "/api/auth/signup";
-        const response = await fetch(endpoint, {
+        const response = await apiFetch(endpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -88,7 +89,7 @@ export default function AuthPage(
         return;
       }
 
-      const response = await fetch("/api/auth/verify-email", {
+      const response = await apiFetch("/api/auth/verify-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -124,7 +125,7 @@ export default function AuthPage(
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/auth/resend-code", {
+      const response = await apiFetch("/api/auth/resend-code", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

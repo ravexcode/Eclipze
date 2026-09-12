@@ -16,6 +16,7 @@ import {
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 import { useEffect, useRef, useState } from "react";
+import { apiFetch } from "@/utils/api-fetch";
 
 type SelectedSection = "overview" | "mails" | "issues" | "agents" | "agents-gestor" | "projects" | "settings";
 
@@ -122,7 +123,7 @@ export default function Sidebar(props: Props) {
     setIsSigningOut(true);
 
     try {
-      await fetch("/api/auth/logout", {
+      await apiFetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });

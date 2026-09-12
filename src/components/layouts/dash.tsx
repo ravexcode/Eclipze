@@ -10,6 +10,7 @@ import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.share
 import { usePathname } from "next/navigation";
 
 import CacheDB from "@/utils/cache";
+import { apiFetch } from "@/utils/api-fetch";
 
 interface Props {
   current: "overview" | "mails" | "issues" | "agents" | "projects" | "settings";
@@ -51,7 +52,7 @@ export default function DashLayout(props: Props) {
 
         return;
       } else {
-        const response = await fetch("/api/auth/me", {
+        const response = await apiFetch("/api/auth/me", {
           credentials: "include",
         });
 

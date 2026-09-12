@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Form from "@/components/forms/auth/form";
 import Input from "@/components/forms/auth/input";
 import Button from "@/components/ui/button";
+import { apiFetch } from "@/utils/api-fetch";
 
 function AuthShell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -35,7 +36,7 @@ export function ForgotPasswordPage() {
   const submit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault(); setBusy(true); setError("");
     try {
-      const response = await fetch("/api/auth/forgot-password", {
+      const response = await apiFetch("/api/auth/forgot-password", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }),
       });
       const data = await response.json();
@@ -71,7 +72,7 @@ export function ResetPasswordPage({ initialEmail = "" }: { initialEmail?: string
   const submit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault(); setBusy(true); setError("");
     try {
-      const response = await fetch("/api/auth/reset-password", {
+      const response = await apiFetch("/api/auth/reset-password", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, code, password, password_confirm: confirm }),
       });
@@ -103,7 +104,7 @@ export function VerifyEmailPage() {
   const submit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault(); setBusy(true); setError("");
     try {
-      const response = await fetch("/api/auth/verify-email", {
+      const response = await apiFetch("/api/auth/verify-email", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, code }),
       });
       const data = await response.json();
@@ -115,7 +116,7 @@ export function VerifyEmailPage() {
   const resend = async () => {
     setBusy(true); setError("");
     try {
-      const response = await fetch("/api/auth/resend-code", {
+      const response = await apiFetch("/api/auth/resend-code", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, purpose: "EMAIL_VERIFICATION" }),
       });
       const data = await response.json(); setMessage(data.message); if (!response.ok) setError(data.message);

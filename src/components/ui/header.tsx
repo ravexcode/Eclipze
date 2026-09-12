@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useState, useEffect } from "react";
+import { apiFetch } from "@/utils/api-fetch";
 
 function HeaderLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -37,7 +38,7 @@ export default function Header() {
     let cancelled = false;
 
     (async () => {
-      const response = await fetch("/api/auth/me", {
+      const response = await apiFetch("/api/auth/me", {
         credentials: "include",
       });
 

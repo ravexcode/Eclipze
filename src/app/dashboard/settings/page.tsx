@@ -7,6 +7,7 @@ import Button from "@/components/ui/button";
 import Heading from "@/components/ui/heading";
 import type { SessionUser } from "@/types/user";
 import { isValidAvatarUrl, normalizeAvatarUrl } from "@/utils/avatar-url";
+import { apiFetch } from "@/utils/api-fetch";
 
 import { useRouter } from "next/navigation";
 
@@ -25,7 +26,7 @@ export default function ProfileSettingsPage() {
     let cancelled = false;
 
     const loadCurrentUser = async () => {
-      const response = await fetch("/api/auth/me", {
+      const response = await apiFetch("/api/auth/me", {
         credentials: "include",
       });
 
@@ -79,7 +80,7 @@ export default function ProfileSettingsPage() {
         return;
       }
 
-      const response = await fetch("/api/auth/me", {
+      const response = await apiFetch("/api/auth/me", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
