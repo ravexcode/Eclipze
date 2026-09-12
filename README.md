@@ -1,4 +1,4 @@
-# Eclipse
+![logo](./public/images/app_image.png)
 
 Eclipse is a **developer ↔ client contact tool** designed to centralize communication, project context, and workflow visibility in one interface.
 
