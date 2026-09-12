@@ -126,8 +126,3 @@ This repository currently contains the **basic app foundation**:
 - Bun removed
 - initial dashboard shell kept minimal
 - Figma-based color tokens added
-
-## Notes
-
-- Icons are expected to come from **Tabler Icons**.
-- The UI is intentionally still minimal so features and screens can be built incrementally.

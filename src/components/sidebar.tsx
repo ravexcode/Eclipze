@@ -56,6 +56,8 @@ function Option(props: OptionsProps) {
 export default function Sidebar(props: Props) {
   const [visibility, setVisibility] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isSidebarClosing, setIsSidebarClosing] = useState(false);
+  const [isMenuClosing, setIsMenuClosing] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -64,7 +66,7 @@ export default function Sidebar(props: Props) {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (!menuRef.current?.contains(event.target as Node)) {
-        setMenuOpen(false);
+        closeMenu();
       }
     };
 
@@ -73,14 +75,46 @@ export default function Sidebar(props: Props) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [menuOpen]);
 
   const toggle = () => {
-    setVisibility(!visibility);
+    if (!visibility) {
+      setVisibility(true);
+      setIsSidebarClosing(false);
+      return;
+    }
+
+    if (isSidebarClosing) {
+      setIsSidebarClosing(false);
+      return;
+    }
+
+    closeMenu();
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setVisibility(false);
+      return;
+    }
+
+    setIsSidebarClosing(true);
+  };
+
+  const closeMenu = () => {
+    if (!menuOpen) {
+      return;
+    }
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setMenuOpen(false);
+      setIsMenuClosing(false);
+      return;
+    }
+
+    setIsMenuClosing(true);
   };
 
   const goToProfileSettings = () => {
-    setMenuOpen(false);
+    closeMenu();
     router.push("/dashboard/settings");
   };
 
@@ -93,7 +127,7 @@ export default function Sidebar(props: Props) {
         credentials: "include",
       });
     } finally {
-      setMenuOpen(false);
+      closeMenu();
       setIsSigningOut(false);
       router.replace("/auth/signin");
       router.refresh();
@@ -155,7 +189,17 @@ export default function Sidebar(props: Props) {
 
   return (
     <aside
-      className="h-full min-h-dvh w-80 bg-background-card p-4 flex flex-col justify-start items-center">
+      onAnimationEnd={(event) => {
+        if (isSidebarClosing && event.animationName === "slide-out-left") {
+          setVisibility(false);
+          setIsSidebarClosing(false);
+        }
+      }}
+      className={"h-full min-h-dvh w-80 bg-background-card p-4 flex flex-col justify-start items-center " +
+        (isSidebarClosing
+          ? "animate-slide-out-left animate-duration-180 animate-ease-out [--tw-anim-slide-distance:8px]"
+          : "animate-slide-in-left animate-duration-180 animate-ease-out [--tw-anim-slide-distance:8px]") +
+        " motion-reduce:animate-none"}>
       <div
         className="flex gap-2 justify-center items-start w-full">
         <div
@@ -164,8 +208,15 @@ export default function Sidebar(props: Props) {
           <button
             type="button"
             className="w-full flex items-center justify-start gap-2 hover:bg-background-focus p-2 select-none rounded-sm px-3"
-            onClick={() => setMenuOpen(previous => !previous)}
-            aria-expanded={menuOpen}
+            onClick={() => {
+              if (menuOpen) {
+                closeMenu();
+              } else {
+                setMenuOpen(true);
+                setIsMenuClosing(false);
+              }
+            }}
+            aria-expanded={menuOpen && !isMenuClosing}
             aria-haspopup="menu">
             {
               props.user ?
@@ -192,7 +243,20 @@ export default function Sidebar(props: Props) {
 
           {
             menuOpen ? (
-              <div className="absolute top-full left-0 mt-2 w-full rounded-sm border border-background-focus bg-background-card p-1 shadow-lg z-20">
+              <div
+                onAnimationEnd={(event) => {
+                  if (isMenuClosing && event.animationName === "slide-out-top") {
+                    setMenuOpen(false);
+                    setIsMenuClosing(false);
+                  }
+                }}
+                aria-hidden={isMenuClosing}
+                className={"absolute top-full left-0 mt-2 w-full rounded-sm border border-background-focus bg-background-card p-1 shadow-lg z-20 " +
+                  (isMenuClosing
+                    ? "animate-slide-out-top animate-duration-150 animate-ease-out"
+                    : "animate-slide-in-top animate-duration-150 animate-ease-out") +
+                  " [--tw-anim-slide-distance:6px] motion-reduce:animate-none " +
+                  (isMenuClosing ? "pointer-events-none" : "")}>
                 <button
                   type="button"
                   className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-foreground-off hover:bg-background-focus hover:text-foreground"
