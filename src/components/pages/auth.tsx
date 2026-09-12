@@ -75,6 +75,12 @@ export default function AuthPage(
           return;
         }
 
+        if (type === "in") {
+          router.push(data.redirectTo ?? "/dashboard");
+          router.refresh();
+          return;
+        }
+
         setPendingEmail(data.email ?? user.email);
         setStep(data.nextStep ?? "credentials");
         setVerificationCode("");
