@@ -126,3 +126,8 @@ This repository currently contains the **basic app foundation**:
 - Bun removed
 - initial dashboard shell kept minimal
 - Figma-based color tokens added
+
+## Security
+
+To report a security vulnerability privately, follow the process in
+[SECURITY.md](./SECURITY.md). Do not open public issues for security reports.
