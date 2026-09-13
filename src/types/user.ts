@@ -38,6 +38,7 @@ export type IssueSeverity = "IMPORTANT" | "MEDIUM" | "LOW";
 export type IssueStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED";
 export type MailDirection = "INBOUND" | "OUTBOUND";
 export type MailStatus = "DRAFT" | "SENT" | "RECEIVED" | "ARCHIVED";
+export type MailImportance = "HIGH" | "MEDIUM" | "LOW";
 export type AgentStatus = "ACTIVE" | "INACTIVE";
 export type AgentSessionStatus = "ACTIVE" | "COMPLETED" | "FAILED" | "CANCELLED";
 

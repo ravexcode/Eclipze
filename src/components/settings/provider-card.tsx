@@ -19,8 +19,10 @@ export default function ProviderCard(props: {
   provider: AiProviderConfig;
   connection?: AiProviderConnection;
   apiKey: string;
+  model: string;
   isBusy: boolean;
   onApiKeyChange(provider: AiProvider, value: string): void;
+  onModelChange(provider: AiProvider, value: string): void;
   onConnect(provider: AiProviderConfig): void;
   onDisconnect(provider: AiProviderConfig): void;
 }) {
@@ -100,6 +102,19 @@ export default function ProviderCard(props: {
             </span>
           </label>
         ) : null}
+        <label className="flex flex-col gap-1.5 text-sm" htmlFor={`${props.provider.id}-model`}>
+          Model
+          <SettingsInput
+            id={`${props.provider.id}-model`}
+            value={props.model}
+            onChange={(event) => props.onModelChange(props.provider.id, event.target.value)}
+            placeholder="e.g. gpt-5-mini"
+            autoComplete="off"
+            disabled={props.isBusy}
+            spellCheck={false}
+          />
+          <span className="text-xs text-foreground-off">Used for email importance reviews.</span>
+        </label>
         <div className="flex flex-wrap items-center justify-end gap-2">
           {isConnected ? (
             <Button

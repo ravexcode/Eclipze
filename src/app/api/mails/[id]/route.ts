@@ -36,7 +36,7 @@ export async function PATCH(request: Request, context: Context) {
   if (!(await findMail(user.id, id))) return notFound("Mail not found.");
   const body = await parseBody(request);
   if (!body) return badRequest("Invalid JSON body.");
-  const data: { fromAddress?: string; toAddresses?: string[]; subject?: string; body?: string; projectId?: string | null; direction?: typeof DIRECTIONS[number]; status?: typeof STATUSES[number]; sentAt?: Date | null; receivedAt?: Date | null } = {};
+  const data: { fromAddress?: string; toAddresses?: string; subject?: string; body?: string; projectId?: string | null; direction?: typeof DIRECTIONS[number]; status?: typeof STATUSES[number]; sentAt?: Date | null; receivedAt?: Date | null } = {};
   if (body.fromAddress !== undefined) {
     const value = requiredString(body.fromAddress, "fromAddress");
     if (value.error) return value.error;
@@ -45,7 +45,7 @@ export async function PATCH(request: Request, context: Context) {
   if (body.toAddresses !== undefined) {
     const value = toAddresses(body.toAddresses);
     if (value.error) return value.error;
-    data.toAddresses = value.value;
+    data.toAddresses = JSON.stringify(value.value);
   }
   if (body.subject !== undefined) {
     const value = requiredString(body.subject, "subject");

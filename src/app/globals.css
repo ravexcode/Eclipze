@@ -10,4 +10,7 @@
   --color-background: #010101;
   --color-background-card: #060606;
   --color-background-focus: #111111;
+  --color-priority-high: #ff383c;
+  --color-priority-medium: #ffcc00;
+  --color-priority-low: #38bdf8;
 }

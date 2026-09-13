@@ -60,6 +60,12 @@ enum MailStatus {
   ARCHIVED
 }
 
+enum MailImportance {
+  HIGH
+  MEDIUM
+  LOW
+}
+
 enum AgentStatus {
   ACTIVE
   INACTIVE
@@ -90,6 +96,9 @@ model User {
   mails                 Mail[]
   agents                Agent[]
   agentSessions         AgentSession[]
+  gmailConnection       GmailConnection?
+  mailImportanceReviews MailImportanceReview[]
+  mailReviewPreference  MailReviewPreference?
 
   @@map("users")
 }
@@ -136,7 +145,7 @@ model Mail {
   userId      String
   projectId   String?
   fromAddress String
-  toAddresses String[]
+  toAddresses String
   subject     String
   body        String
   direction   MailDirection
@@ -240,6 +249,7 @@ model AiProviderConnection {
   provider        AiProvider
   encryptedApiKey String?
   keyHint         String?
+  model           String?
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
   user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -247,4 +257,43 @@ model AiProviderConnection {
   @@unique([userId, provider])
   @@index([userId])
   @@map("ai_provider_connections")
+}
+
+model GmailConnection {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  email                 String
+  encryptedRefreshToken String
+  scopes                String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("gmail_connections")
+}
+
+model MailImportanceReview {
+  id             String         @id @default(cuid())
+  userId         String
+  gmailMessageId String
+  importance     MailImportance
+  provider       AiProvider
+  model          String
+  reviewedAt     DateTime       @default(now())
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gmailMessageId])
+  @@index([userId, reviewedAt])
+  @@map("mail_importance_reviews")
+}
+
+model MailReviewPreference {
+  id        String               @id @default(cuid())
+  userId    String               @unique
+  provider  AiProvider
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("mail_review_preferences")
 }

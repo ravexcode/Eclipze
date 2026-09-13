@@ -38,6 +38,7 @@ export type AiProviderConnection = {
   provider: AiProvider;
   connected: boolean;
   keyHint: string | null;
+  model: string | null;
   updatedAt: string;
 };
 

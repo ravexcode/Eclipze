@@ -53,7 +53,7 @@ export function serializeMail(mail: {
   id: string;
   projectId: string | null;
   fromAddress: string;
-  toAddresses: string[];
+  toAddresses: string;
   subject: string;
   direction: WorkspaceMail["direction"];
   status: WorkspaceMail["status"];
@@ -64,6 +64,7 @@ export function serializeMail(mail: {
 }): WorkspaceMail {
   return {
     ...mail,
+    toAddresses: (() => { try { return JSON.parse(mail.toAddresses) as string[]; } catch { return []; } })(),
     sentAt: iso(mail.sentAt),
     receivedAt: iso(mail.receivedAt),
     createdAt: mail.createdAt.toISOString(),

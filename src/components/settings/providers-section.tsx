@@ -25,10 +25,19 @@ const initialApiKeys = AI_PROVIDERS.reduce(
   {} as Record<AiProvider, string>,
 );
 
+const initialModels = AI_PROVIDERS.reduce(
+  (models, provider) => {
+    models[provider.id] = "";
+    return models;
+  },
+  {} as Record<AiProvider, string>,
+);
+
 export default function ProvidersSection() {
   const [connections, setConnections] = useState<AiProviderConnection[]>([]);
   const [apiKeys, setApiKeys] =
     useState<Record<AiProvider, string>>(initialApiKeys);
+  const [models, setModels] = useState<Record<AiProvider, string>>(initialModels);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +57,16 @@ export default function ProvidersSection() {
         if (cancelled) return;
         if (!response.ok)
           setError(data.message ?? "Unable to load AI providers.");
-        else setConnections(data.connections ?? []);
+        else {
+          setConnections(data.connections ?? []);
+          setModels((current) => ({
+            ...current,
+            ...(data.connections ?? []).reduce((values, connection) => {
+              values[connection.provider] = connection.model ?? "";
+              return values;
+            }, {} as Record<AiProvider, string>),
+          }));
+        }
       })
       .catch(() => {
         if (!cancelled) setError("Unable to load AI providers.");
@@ -74,8 +92,9 @@ export default function ProvidersSection() {
     setMessage(null);
     setBusyProvider(provider.id);
     try {
-      const body: { provider: AiProvider; apiKey?: string } = {
+      const body: { provider: AiProvider; apiKey?: string; model?: string } = {
         provider: provider.id,
+        model: models[provider.id],
       };
       if (provider.kind === "api-key") body.apiKey = apiKeys[provider.id];
       const response = await apiFetch("/api/ai-providers", {
@@ -95,6 +114,7 @@ export default function ProvidersSection() {
           data.connection!,
         ]);
       setApiKeys((current) => ({ ...current, [provider.id]: "" }));
+      setModels((current) => ({ ...current, [provider.id]: data.connection?.model ?? current[provider.id] }));
       setMessage(data.message);
     } catch {
       setError(`Unable to connect ${provider.label}.`);
@@ -162,9 +182,13 @@ export default function ProvidersSection() {
               provider={provider}
               connection={connectionMap.get(provider.id)}
               apiKey={apiKeys[provider.id]}
+              model={models[provider.id]}
               isBusy={busyProvider === provider.id}
               onApiKeyChange={(id, value) =>
                 setApiKeys((current) => ({ ...current, [id]: value }))
+              }
+              onModelChange={(id, value) =>
+                setModels((current) => ({ ...current, [id]: value }))
               }
               onConnect={onConnect}
               onDisconnect={onDisconnect}

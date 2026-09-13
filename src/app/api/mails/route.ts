@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     data: {
       userId: user.id,
       fromAddress: fromAddress.value,
-      toAddresses,
+      toAddresses: JSON.stringify(toAddresses),
       subject: subject.value,
       body: mailBody.value,
       projectId,

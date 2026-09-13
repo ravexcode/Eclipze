@@ -27,6 +27,9 @@ function hasValidApiKey(request: Request) {
 }
 
 export function middleware(request: Request) {
+  if (new URL(request.url).pathname === "/api/gmail/callback") {
+    return NextResponse.next();
+  }
   if (isBrowserNavigation(request)) {
     return NextResponse.redirect(new URL("/not-authorized", request.url), 302);
   }

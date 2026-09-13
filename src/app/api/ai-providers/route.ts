@@ -54,12 +54,14 @@ async function validateOpenAiApiKey(apiKey: string) {
 function serializeConnection(connection: {
   provider: AiProvider;
   keyHint: string | null;
+  model: string | null;
   updatedAt: Date;
 }) {
   return {
     provider: connection.provider,
     connected: true,
     keyHint: connection.keyHint,
+    model: connection.model,
     updatedAt: connection.updatedAt.toISOString(),
   };
 }
@@ -77,6 +79,7 @@ export async function GET() {
     select: {
       provider: true,
       keyHint: true,
+      model: true,
       updatedAt: true,
     },
   });
@@ -116,6 +119,11 @@ export async function PUT(request: Request) {
 
   let encryptedApiKey: string | null = null;
   let keyHint: string | null = null;
+  const model = typeof body.model === "string" ? body.model.trim() : "";
+
+  if (model.length > 200) {
+    return NextResponse.json({ message: "Model name is too long." }, { status: 400 });
+  }
 
   if (providerConfig.kind === "api-key") {
     if (typeof body.apiKey !== "string") {
@@ -135,6 +143,7 @@ export async function PUT(request: Request) {
         select: {
           provider: true,
           keyHint: true,
+          model: true,
           updatedAt: true,
         },
       });
@@ -143,9 +152,14 @@ export async function PUT(request: Request) {
         return NextResponse.json({ message: "API key is required." }, { status: 400 });
       }
 
+      const connection = await prisma.aiProviderConnection.update({
+        where: { userId_provider: { userId: user.id, provider } },
+        data: { model: model || null },
+        select: { provider: true, keyHint: true, model: true, updatedAt: true },
+      });
       return NextResponse.json({
-        message: `${PROVIDER_LABELS[provider]} connection unchanged.`,
-        connection: serializeConnection({ ...existingConnection, provider }),
+        message: `${PROVIDER_LABELS[provider]} connection updated.`,
+        connection: serializeConnection({ ...connection, provider }),
       }, { headers: PRIVATE_NO_STORE_HEADERS });
     }
 
@@ -186,14 +200,17 @@ export async function PUT(request: Request) {
       provider,
       encryptedApiKey,
       keyHint,
+      model: model || null,
     },
     update: {
       encryptedApiKey,
       keyHint,
+      model: model || null,
     },
     select: {
       provider: true,
       keyHint: true,
+      model: true,
       updatedAt: true,
     },
   });
