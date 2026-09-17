@@ -26,7 +26,8 @@ export default function DangerZone(props: {
       ),
     [props.user.createdAt],
   );
-  const canDelete = Date.now() >= deletionDate.getTime();
+  const [currentTime] = useState(() => Date.now());
+  const canDelete = currentTime >= deletionDate.getTime();
   const dateLabel = deletionDate.toLocaleDateString(undefined, {
     year: "numeric",
     month: "long",

@@ -15,7 +15,7 @@ import {
 
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/utils/api-fetch";
 import CacheDB from "@/utils/cache";
 import { clearSessionUser } from "@/utils/session";
@@ -66,6 +66,20 @@ export default function Sidebar(props: Props) {
 
   const router = props.router;
 
+  const closeMenu = useCallback(() => {
+    if (!menuOpen) {
+      return;
+    }
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setMenuOpen(false);
+      setIsMenuClosing(false);
+      return;
+    }
+
+    setIsMenuClosing(true);
+  }, [menuOpen]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (!menuRef.current?.contains(event.target as Node)) {
@@ -78,7 +92,7 @@ export default function Sidebar(props: Props) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [menuOpen]);
+  }, [closeMenu]);
 
   const toggle = () => {
     if (!visibility) {
@@ -100,20 +114,6 @@ export default function Sidebar(props: Props) {
     }
 
     setIsSidebarClosing(true);
-  };
-
-  const closeMenu = () => {
-    if (!menuOpen) {
-      return;
-    }
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setMenuOpen(false);
-      setIsMenuClosing(false);
-      return;
-    }
-
-    setIsMenuClosing(true);
   };
 
   const goToProfileSettings = () => {
