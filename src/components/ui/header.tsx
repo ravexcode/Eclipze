@@ -56,7 +56,7 @@ export default function Header() {
 
   return (
     <header
-      className="sticky top-3 mt-3 min-w-3xl w-full max-w-5xs rounded-sm p-4 animate-fade-in-down flex justify-between items-center backdrop-blur z-2">
+      className="sticky top-3 mt-3 mx-auto w-full max-w-5xl rounded-sm p-4 animate-fade-in-down flex justify-between items-center backdrop-blur z-2">
         <Image
           src="/logo.svg"
           alt="Eclipse Logo"

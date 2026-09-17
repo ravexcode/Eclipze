@@ -44,7 +44,11 @@ export default function MailsPage() {
         const p = await apiFetch("/api/ai-providers");
         const pd = await p.json();
 
-        setProviders((pd.connections ?? []).map((x: any) => x.provider));
+        setProviders(
+          (pd.connections ?? []).map(
+            (connection: { provider: AiProvider }) => connection.provider,
+          ),
+        );
       } catch (e) {
         setError(e instanceof Error ? e.message : "Unable to load mails.");
       }

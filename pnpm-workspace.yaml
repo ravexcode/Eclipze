@@ -1,2 +1,3 @@
 allowBuilds:
-  '@prisma/client': set this to true or false
+  '@prisma/client': true
+  unrs-resolver: false
