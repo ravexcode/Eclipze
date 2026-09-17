@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type SyntheticEvent } from "react";
+import { useState, type SyntheticEvent } from "react";
 import { IconPencil } from "@tabler/icons-react";
 
 import Button from "@/components/ui/button";

@@ -14,6 +14,7 @@ import {
 } from "@tabler/icons-react";
 
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import Image from "next/image";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/utils/api-fetch";
@@ -226,10 +227,13 @@ export default function Sidebar(props: Props) {
             {
               props.user ?
                 <>
-                  <img
+                  <Image
                   src={props.user.avatar}
                   alt={props.user.name}
+                  width={16}
+                  height={16}
                   className="w-4 h-4 rounded-full"
+                  unoptimized
                   />
                   <p
                     className="text-foreground text-sm w-full text-start">

@@ -1,4 +1,5 @@
 import type { SessionUser } from "@/types/user";
+import Image from "next/image";
 
 export default function ProfileHeader(props: {
   user: SessionUser | null;
@@ -7,10 +8,13 @@ export default function ProfileHeader(props: {
   return (
     props.user ?
       <section className="flex min-h-28 items-center gap-4 rounded-sm bg-background-card px-5 md:px-6">
-        <img
+        <Image
           src={props.avatarUrl || '/logo.svg'}
           alt={props.user?.displayName ?? "User avatar"}
+          width={56}
+          height={56}
           className="h-14 w-14 shrink-0 rounded-full bg-background-focus object-cover"
+          unoptimized
         />
         <div className="min-w-0">
           <p className="truncate font-heading text-2xl leading-7 text-foreground">

@@ -12,6 +12,7 @@ import type {
 import Form from "@/components/forms/auth/form";
 import Input from "@/components/forms/auth/input";
 import Button from "@/components/ui/button";
+import { useAnnouncements } from "@/components/announcements/announcement-provider";
 import { apiFetch } from "@/utils/api-fetch";
 import { invalidateSessionUser } from "@/utils/session";
 import Link from "next/link";
@@ -23,6 +24,7 @@ export default function AuthPage(
   { type: "in" | "up" }
 ) {
   const router = useRouter();
+  const { announce } = useAnnouncements();
   const defaultUser = type === "in"
     ? { email: "", password: "" }
     : { email: "", username: "", password: "", password_confirm: "" };
@@ -33,7 +35,6 @@ export default function AuthPage(
   const [pendingEmail, setPendingEmail] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorAction, setErrorAction] = useState<{ href: string; label: string } | null>(null);
 
@@ -50,7 +51,6 @@ export default function AuthPage(
 
     setError(null);
     setErrorAction(null);
-    setMessage(null);
     setIsSubmitting(true);
 
     try {
@@ -78,6 +78,7 @@ export default function AuthPage(
         }
 
         if (type === "in") {
+          announce({ message: "Login successful!", variant: "success" });
           invalidateSessionUser();
           router.push(data.redirectTo ?? "/dashboard");
           router.refresh();
@@ -87,7 +88,7 @@ export default function AuthPage(
         setPendingEmail(data.email ?? user.email);
         setStep(data.nextStep ?? "credentials");
         setVerificationCode("");
-        setMessage(data.message);
+        announce({ message: data.message, variant: "info" });
         return;
       }
 
@@ -110,6 +111,7 @@ export default function AuthPage(
       }
 
       invalidateSessionUser();
+      announce({ message: "Email verified. You are now signed in.", variant: "success" });
       router.push(data.redirectTo ?? "/dashboard");
       router.refresh();
     } finally {
@@ -124,7 +126,6 @@ export default function AuthPage(
 
   const resendCode = async () => {
     setError(null);
-    setMessage(null);
     setIsSubmitting(true);
 
     try {
@@ -146,7 +147,7 @@ export default function AuthPage(
         return;
       }
 
-      setMessage(data.message);
+      announce({ message: data.message, variant: "success" });
     } finally {
       setIsSubmitting(false);
     }
@@ -317,13 +318,6 @@ export default function AuthPage(
           </p>
         }
 
-        {
-          message &&
-          <p className="w-full rounded-sm border border-accent/40 bg-accent/10 px-3 py-2 text-sm text-foreground">
-            {message}
-          </p>
-        }
-
         <Button
           type="submit"
           variant="main"
@@ -341,7 +335,6 @@ export default function AuthPage(
                 setStep("credentials");
                 setVerificationCode("");
                 setError(null);
-                setMessage(null);
               }}
               className="underline hover:text-accent duration-300 cursor-pointer">
               Go back

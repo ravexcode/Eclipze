@@ -5,6 +5,7 @@ import "./fonts.css";
 import "lenis/dist/lenis.css";
 
 import Lenis from "@/lib/lenis";
+import { AnnouncementProvider } from "@/components/announcements/announcement-provider";
 
 import { Suspense } from "react";
 
@@ -35,9 +36,11 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-base bg-background text-foreground antialiased">
         <Suspense fallback={<div></div>}>
-          <Lenis>
-            {children}
-          </Lenis>
+          <AnnouncementProvider>
+            <Lenis>
+              {children}
+            </Lenis>
+          </AnnouncementProvider>
         </Suspense>
       </body>
     </html>
