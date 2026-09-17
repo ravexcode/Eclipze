@@ -23,6 +23,7 @@ export type SessionUser = {
   username: string | null;
   displayName: string;
   avatarUrl: string | null;
+  role: UserRole;
   emailVerified: boolean;
   createdAt: string;
 };
@@ -31,14 +32,14 @@ export type UserProfile = {
   name: string;
   avatar: string;
   id: string;
+  role: UserRole;
 }
 
 export type ProjectStatus = "ACTIVE" | "AT_RISK" | "COMPLETED";
-export type IssueSeverity = "IMPORTANT" | "MEDIUM" | "LOW";
-export type IssueStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED";
-export type MailDirection = "INBOUND" | "OUTBOUND";
-export type MailStatus = "DRAFT" | "SENT" | "RECEIVED" | "ARCHIVED";
-export type MailImportance = "HIGH" | "MEDIUM" | "LOW";
+export type UserRole = "USER" | "DEVELOPER";
+export type IssueType = "BUG" | "FEATURE" | "SUPPORT";
+export type IssuePriority = "LOW" | "MEDIUM" | "HIGH";
+export type IssueStatus = "OPEN" | "IN_PROGRESS" | "WAITING_FOR_USER" | "RESOLVED" | "CLOSED";
 export type AgentStatus = "ACTIVE" | "INACTIVE";
 export type AgentSessionStatus = "ACTIVE" | "COMPLETED" | "FAILED" | "CANCELLED";
 
@@ -57,23 +58,12 @@ export type WorkspaceIssue = {
   projectId: string | null;
   title: string;
   description: string | null;
-  severity: IssueSeverity;
+  type: IssueType;
+  priority: IssuePriority;
   status: IssueStatus;
   resolvedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type WorkspaceMail = {
-  id: string;
-  projectId: string | null;
-  fromAddress: string;
-  toAddresses: string[];
-  subject: string;
-  direction: MailDirection;
-  status: MailStatus;
-  sentAt: string | null;
-  receivedAt: string | null;
+  closedAt: string | null;
+  lastActivityAt: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -102,7 +92,7 @@ export type WorkspaceAgentSession = {
 
 export type DashboardMetrics = {
   issuesTotal: number;
-  issuesBySeverity: Record<IssueSeverity, number>;
+  issuesByPriority: Record<IssuePriority, number>;
   issuesByDay: Array<{ date: string; count: number }>;
   projectsTotal: number;
   activeSessionsTotal: number;
@@ -112,7 +102,6 @@ export type WorkspaceSnapshot = {
   user: SessionUser;
   projects: WorkspaceProject[];
   issues: WorkspaceIssue[];
-  mails: WorkspaceMail[];
   agents: WorkspaceAgent[];
   agentSessions: WorkspaceAgentSession[];
   metrics: DashboardMetrics;

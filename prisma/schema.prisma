@@ -36,34 +36,36 @@ enum ProjectStatus {
   COMPLETED
 }
 
-enum IssueSeverity {
-  IMPORTANT
-  MEDIUM
+enum UserRole {
+  USER
+  DEVELOPER
+}
+
+enum IssueType {
+  BUG
+  FEATURE
+  SUPPORT
+}
+
+enum IssuePriority {
   LOW
+  MEDIUM
+  HIGH
 }
 
 enum IssueStatus {
   OPEN
   IN_PROGRESS
+  WAITING_FOR_USER
   RESOLVED
+  CLOSED
 }
 
-enum MailDirection {
-  INBOUND
-  OUTBOUND
-}
-
-enum MailStatus {
-  DRAFT
-  SENT
-  RECEIVED
-  ARCHIVED
-}
-
-enum MailImportance {
-  HIGH
-  MEDIUM
-  LOW
+enum NotificationType {
+  ISSUE_CREATED
+  ISSUE_MESSAGE
+  ISSUE_STATUS_CHANGED
+  ISSUE_PRIORITY_CHANGED
 }
 
 enum AgentStatus {
@@ -85,6 +87,7 @@ model User {
   passwordHash          String?
   emailVerifiedAt       DateTime?
   avatarUrl             String?
+  role                  UserRole               @default(USER)
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   sessions              AuthSession[]
@@ -93,12 +96,10 @@ model User {
   aiProviderConnections AiProviderConnection[]
   projects              Project[]
   issues                Issue[]
-  mails                 Mail[]
+  issueMessages         IssueMessage[]
+  notifications         Notification[]
   agents                Agent[]
   agentSessions         AgentSession[]
-  gmailConnection       GmailConnection?
-  mailImportanceReviews MailImportanceReview[]
-  mailReviewPreference  MailReviewPreference?
 
   @@map("users")
 }
@@ -114,7 +115,6 @@ model Project {
   updatedAt   DateTime       @updatedAt
   user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   issues      Issue[]
-  mails       Mail[]
   sessions    AgentSession[]
 
   @@index([userId, status])
@@ -127,39 +127,52 @@ model Issue {
   projectId   String?
   title       String
   description String?
-  severity    IssueSeverity @default(MEDIUM)
+  type        IssueType     @default(SUPPORT)
+  priority    IssuePriority @default(MEDIUM)
   status      IssueStatus   @default(OPEN)
   resolvedAt  DateTime?
+  closedAt    DateTime?
+  lastActivityAt DateTime   @default(now())
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   project     Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  messages    IssueMessage[]
+  notifications Notification[]
 
   @@index([userId, status, createdAt])
   @@index([projectId])
   @@map("issues")
 }
 
-model Mail {
-  id          String        @id @default(cuid())
-  userId      String
-  projectId   String?
-  fromAddress String
-  toAddresses String
-  subject     String
-  body        String
-  direction   MailDirection
-  status      MailStatus    @default(DRAFT)
-  sentAt      DateTime?
-  receivedAt  DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project     Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+model IssueMessage {
+  id        String   @id @default(cuid())
+  issueId   String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
-  @@index([userId, status, createdAt])
-  @@index([projectId])
-  @@map("mails")
+  @@index([issueId, createdAt])
+  @@index([authorId, createdAt])
+  @@map("issue_messages")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  issueId   String?
+  type      NotificationType
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issue     Issue?           @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@index([issueId, createdAt])
+  @@map("notifications")
 }
 
 model Agent {
@@ -257,43 +270,4 @@ model AiProviderConnection {
   @@unique([userId, provider])
   @@index([userId])
   @@map("ai_provider_connections")
-}
-
-model GmailConnection {
-  id                    String   @id @default(cuid())
-  userId                String   @unique
-  email                 String
-  encryptedRefreshToken String
-  scopes                String
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("gmail_connections")
-}
-
-model MailImportanceReview {
-  id             String         @id @default(cuid())
-  userId         String
-  gmailMessageId String
-  importance     MailImportance
-  provider       AiProvider
-  model          String
-  reviewedAt     DateTime       @default(now())
-  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, gmailMessageId])
-  @@index([userId, reviewedAt])
-  @@map("mail_importance_reviews")
-}
-
-model MailReviewPreference {
-  id        String               @id @default(cuid())
-  userId    String               @unique
-  provider  AiProvider
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
-  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("mail_review_preferences")
 }

@@ -1,4 +1,4 @@
-const configuredApiKey = process.env.NEXT_PUBLIC_API_KEY ?? process.env.API_KEY;
+export const configuredApiKey = process.env.NEXT_PUBLIC_API_KEY ?? process.env.API_KEY;
 
 export function isBrowserNavigation(request: Request) {
   const fetchMode = request.headers.get("sec-fetch-mode");

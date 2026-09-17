@@ -12,7 +12,7 @@ import { usePathname } from "next/navigation";
 import { getSessionUser } from "@/utils/session";
 
 interface Props {
-  current: "overview" | "mails" | "issues" | "agents" | "projects" | "settings";
+  current: "overview" | "requests" | "agents" | "projects" | "settings";
   router: AppRouterInstance;
   children?: ReactNode;
 }
@@ -53,6 +53,7 @@ export default function DashLayout(props: Props) {
         name: sessionUser.displayName,
         avatar: sessionUser.avatarUrl ?? "/logo.svg",
         id: sessionUser.id,
+        role: sessionUser.role,
       });
     };
 

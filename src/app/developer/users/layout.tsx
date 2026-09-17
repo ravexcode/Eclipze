@@ -1,11 +1,6 @@
 import { requireAuthenticatedUser } from "@/lib/auth";
 
-export default async function MailsLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function DeveloperUsersLayout({ children }: { children: React.ReactNode }) {
   await requireAuthenticatedUser();
-
   return children;
 }

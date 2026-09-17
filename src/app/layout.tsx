@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     template: "%s | Eclipse",
   },
   description:
-    "Eclipse gives developer teams a focused workspace for projects, issues, mail, and AI agents.",
+    "Eclipse gives developer teams a focused workspace for projects, requests, and AI agents.",
   applicationName: "Eclipse",
   keywords: ["developer workflow", "project management", "AI agents", "developer teams"],
   icons: {

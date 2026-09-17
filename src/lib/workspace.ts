@@ -3,7 +3,6 @@ import type {
   WorkspaceAgent,
   WorkspaceAgentSession,
   WorkspaceIssue,
-  WorkspaceMail,
   WorkspaceProject,
   WorkspaceSnapshot,
 } from "@/types/user";
@@ -19,6 +18,7 @@ type WorkspaceUser = {
   email: string;
   username: string | null;
   avatarUrl: string | null;
+  role: "USER" | "DEVELOPER";
   emailVerifiedAt: Date | null;
   createdAt: Date;
 };
@@ -40,35 +40,22 @@ export function serializeIssue(issue: {
   projectId: string | null;
   title: string;
   description: string | null;
-  severity: WorkspaceIssue["severity"];
+  type: WorkspaceIssue["type"];
+  priority: WorkspaceIssue["priority"];
   status: WorkspaceIssue["status"];
   resolvedAt: Date | null;
+  closedAt: Date | null;
+  lastActivityAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }): WorkspaceIssue {
-  return { ...issue, resolvedAt: iso(issue.resolvedAt), createdAt: issue.createdAt.toISOString(), updatedAt: issue.updatedAt.toISOString() };
-}
-
-export function serializeMail(mail: {
-  id: string;
-  projectId: string | null;
-  fromAddress: string;
-  toAddresses: string;
-  subject: string;
-  direction: WorkspaceMail["direction"];
-  status: WorkspaceMail["status"];
-  sentAt: Date | null;
-  receivedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}): WorkspaceMail {
   return {
-    ...mail,
-    toAddresses: (() => { try { return JSON.parse(mail.toAddresses) as string[]; } catch { return []; } })(),
-    sentAt: iso(mail.sentAt),
-    receivedAt: iso(mail.receivedAt),
-    createdAt: mail.createdAt.toISOString(),
-    updatedAt: mail.updatedAt.toISOString(),
+    ...issue,
+    resolvedAt: iso(issue.resolvedAt),
+    closedAt: iso(issue.closedAt),
+    lastActivityAt: issue.lastActivityAt.toISOString(),
+    createdAt: issue.createdAt.toISOString(),
+    updatedAt: issue.updatedAt.toISOString(),
   };
 }
 
@@ -123,33 +110,27 @@ function getLastSevenDates() {
 }
 
 export function buildDashboardMetrics(input: {
-  issues: Array<{ severity: WorkspaceIssue["severity"]; status: WorkspaceIssue["status"]; createdAt: Date }>;
+  issues: Array<{ priority: WorkspaceIssue["priority"]; status: WorkspaceIssue["status"]; createdAt: Date }>;
   projectsTotal: number;
   activeSessionsTotal: number;
 }): DashboardMetrics {
-  const issuesBySeverity: DashboardMetrics["issuesBySeverity"] = {
-    IMPORTANT: 0,
-    MEDIUM: 0,
-    LOW: 0,
-  };
-  const openIssues = input.issues.filter(issue => issue.status !== "RESOLVED");
+  const issuesByPriority: DashboardMetrics["issuesByPriority"] = { HIGH: 0, MEDIUM: 0, LOW: 0 };
+  const openIssues = input.issues.filter(issue => issue.status !== "RESOLVED" && issue.status !== "CLOSED");
 
   for (const issue of openIssues) {
-    issuesBySeverity[issue.severity] += 1;
+    issuesByPriority[issue.priority] += 1;
   }
 
   const countByDay = new Map(getLastSevenDates().map(date => [date, 0]));
 
   for (const issue of input.issues) {
     const date = dateKey(issue.createdAt);
-    if (countByDay.has(date)) {
-      countByDay.set(date, (countByDay.get(date) ?? 0) + 1);
-    }
+    if (countByDay.has(date)) countByDay.set(date, (countByDay.get(date) ?? 0) + 1);
   }
 
   return {
     issuesTotal: openIssues.length,
-    issuesBySeverity,
+    issuesByPriority,
     issuesByDay: [...countByDay].map(([date, count]) => ({ date, count })),
     projectsTotal: input.projectsTotal,
     activeSessionsTotal: input.activeSessionsTotal,
@@ -158,79 +139,26 @@ export function buildDashboardMetrics(input: {
 
 export async function getWorkspaceSnapshot(user: WorkspaceUser): Promise<WorkspaceSnapshot> {
   const userId = user.id;
-  const [projects, issues, mails, agents, agentSessions] = await Promise.all([
+  const [projects, issues, agents, agentSessions] = await Promise.all([
     prisma.project.findMany({
       where: { userId },
       orderBy: { updatedAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        externalUrl: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: { id: true, name: true, description: true, externalUrl: true, status: true, createdAt: true, updatedAt: true },
     }),
     prisma.issue.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        projectId: true,
-        title: true,
-        description: true,
-        severity: true,
-        status: true,
-        resolvedAt: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    }),
-    prisma.mail.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        projectId: true,
-        fromAddress: true,
-        toAddresses: true,
-        subject: true,
-        direction: true,
-        status: true,
-        sentAt: true,
-        receivedAt: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: { id: true, projectId: true, title: true, description: true, type: true, priority: true, status: true, resolvedAt: true, closedAt: true, lastActivityAt: true, createdAt: true, updatedAt: true },
     }),
     prisma.agent.findMany({
       where: { userId },
       orderBy: { updatedAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        defaultModel: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: { id: true, name: true, defaultModel: true, status: true, createdAt: true, updatedAt: true },
     }),
     prisma.agentSession.findMany({
       where: { userId },
       orderBy: { startedAt: "desc" },
-      select: {
-        id: true,
-        agentId: true,
-        projectId: true,
-        description: true,
-        model: true,
-        status: true,
-        startedAt: true,
-        endedAt: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: { id: true, agentId: true, projectId: true, description: true, model: true, status: true, startedAt: true, endedAt: true, createdAt: true, updatedAt: true },
     }),
   ]);
 
@@ -238,13 +166,8 @@ export async function getWorkspaceSnapshot(user: WorkspaceUser): Promise<Workspa
     user: serializeUser(user),
     projects: projects.map(serializeProject),
     issues: issues.map(serializeIssue),
-    mails: mails.map(serializeMail),
     agents: agents.map(serializeAgent),
     agentSessions: agentSessions.map(serializeAgentSession),
-    metrics: buildDashboardMetrics({
-      issues,
-      projectsTotal: projects.length,
-      activeSessionsTotal: agentSessions.filter(session => session.status === "ACTIVE").length,
-    }),
+    metrics: buildDashboardMetrics({ issues, projectsTotal: projects.length, activeSessionsTotal: agentSessions.filter(session => session.status === "ACTIVE").length }),
   };
 }

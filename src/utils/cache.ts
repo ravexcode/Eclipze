@@ -5,7 +5,7 @@ import type { WorkspaceSnapshot } from "@/types/user";
 const CRYPTO_SK = process.env.NEXT_PUBLIC_CRYPTO_SECRET_KEY!;
 
 const CACHE_KEY_PREFIX = "eclipse-workspace";
-const CACHE_VERSION = 2;
+const CACHE_VERSION = 3;
 const CACHE_DURATION = 3 * 60 * 60 * 1000;
 
 interface CacheData {
@@ -27,7 +27,6 @@ function isWorkspaceSnapshot(value: unknown): value is WorkspaceSnapshot {
     typeof workspace.user.id === "string" &&
     Array.isArray(workspace.projects) &&
     Array.isArray(workspace.issues) &&
-    Array.isArray(workspace.mails) &&
     Array.isArray(workspace.agents) &&
     Array.isArray(workspace.agentSessions) &&
     workspace.metrics &&

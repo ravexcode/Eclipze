@@ -9,7 +9,7 @@ The current project is set up as a **Next.js** app with **pnpm**, using a dark v
 This app is intended to help developers and clients stay aligned by giving them a shared place to:
 
 - review project status
-- track issues and ongoing work
+- submit and track requests, bugs, and feature ideas
 - keep communication organized
 - monitor agent/development sessions
 - build a clearer handoff between technical and non-technical stakeholders

@@ -7,7 +7,6 @@ import {
   IconLayoutDashboard,
   IconLayoutSidebar,
   IconLogout2,
-  IconMail,
   IconPointer2,
   IconSettings,
   IconTarget
@@ -21,7 +20,7 @@ import { apiFetch } from "@/utils/api-fetch";
 import CacheDB from "@/utils/cache";
 import { clearSessionUser } from "@/utils/session";
 
-type SelectedSection = "overview" | "mails" | "issues" | "agents" | "agents-gestor" | "projects" | "settings";
+type SelectedSection = "overview" | "requests" | "agents" | "agents-gestor" | "projects" | "settings";
 
 interface Props {
   selected: SelectedSection;
@@ -29,6 +28,7 @@ interface Props {
     name: string;
     avatar: string;
     id: string;
+    role: "USER" | "DEVELOPER";
   };
   router: AppRouterInstance
 }
@@ -148,16 +148,10 @@ export default function Sidebar(props: Props) {
       selected: props.selected === "overview"
     },
     {
-      label: "My mails",
-      icon: <IconMail size={16} strokeWidth={2} />,
-      action: () => { router.push("/mails") },
-      selected: props.selected === "mails"
-    },
-    {
-      label: "Issues",
+      label: "Requests",
       icon: <IconTarget size={16} strokeWidth={2} />,
-      action: () => { router.push("/issues") },
-      selected: props.selected === "issues"
+      action: () => { router.push("/requests") },
+      selected: props.selected === "requests"
     },
     {
       label: "Agent",

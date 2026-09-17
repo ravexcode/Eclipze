@@ -113,7 +113,6 @@ export default function ProviderCard(props: {
             disabled={props.isBusy}
             spellCheck={false}
           />
-          <span className="text-xs text-foreground-off">Used for email importance reviews.</span>
         </label>
         <div className="flex flex-wrap items-center justify-end gap-2">
           {isConnected ? (

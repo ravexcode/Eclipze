@@ -24,7 +24,7 @@ export default function OverviewPage() {
           className="flex flex-col w-full max-w-350 items-center justify-center gap-2 animate-fade-in-up">
           <p
             className="text-2xl font-medium w-full text-start">
-            Current issues
+            Current requests
           </p>
 
           <article
@@ -34,22 +34,22 @@ export default function OverviewPage() {
               <div
                 className="flex gap-2 items-center justify-start text-sm text-foreground-off">
                 <IconBellRinging size={15} />
-                <p>Current issues</p>
+                <p>Current requests</p>
               </div>
 
               <p className="text-lg font-medium">
-                No issues yet
+                No requests yet
               </p>
 
               <p className="text-sm text-foreground-off">
-                When issue data is available, it will appear here.
+                When request data is available, it will appear here.
               </p>
             </div>
 
             <div
               className="flex flex-col gap-2 w-full rounded-sm bg-background-focus p-4 justify-between">
               <p className="text-foreground-off text-sm">
-                Total issues
+                Total requests
               </p>
 
               <p className="text-4xl font-semibold">
@@ -57,7 +57,7 @@ export default function OverviewPage() {
               </p>
 
               <p className="text-sm text-foreground-off">
-                No issue metrics to display right now.
+                No request metrics to display right now.
               </p>
             </div>
           </article>

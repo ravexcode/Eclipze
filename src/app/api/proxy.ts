@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { isBrowserNavigation, hasValidApiKey } from "@/utils/api-proxy";
+import { configuredApiKey, isBrowserNavigation, hasValidApiKey } from "@/utils/api-proxy";
 
 export function proxy(request: Request) {
   if (isBrowserNavigation(request)) {
