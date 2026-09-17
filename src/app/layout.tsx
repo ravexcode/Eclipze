@@ -11,12 +11,12 @@ import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: {
-    default: "Eclipse | Developer Workflow Platform",
-    template: "%s | Eclipse",
+    default: "Eclipze | Developer Workflow Platform",
+    template: "%s | Eclipze",
   },
   description:
-    "Eclipse gives developer teams a focused workspace for projects, requests, and AI agents.",
-  applicationName: "Eclipse",
+    "Eclipze gives developer teams a focused workspace for projects, issues, and AI agents.",
+  applicationName: "Eclipze",
   keywords: ["developer workflow", "project management", "AI agents", "developer teams"],
   icons: {
     icon: [

@@ -11,14 +11,12 @@ const PRIORITIES = ["LOW", "MEDIUM", "HIGH"] as const;
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
   const issues = await prisma.issue.findMany({
     where: user.role === "DEVELOPER" ? {} : { userId: user.id },
     orderBy: { lastActivityAt: "desc" },
     include: { user: { select: { id: true, username: true, email: true } } },
   });
-
-  return NextResponse.json({ requests: issues.map(issue => ({ ...serializeIssue(issue), requester: issue.user })) });
+  return NextResponse.json({ issues: issues.map(issue => ({ ...serializeIssue(issue), requester: issue.user })) });
 }
 
 export async function POST(request: Request) {
@@ -26,7 +24,6 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   const body = await parseBody(request);
   if (!body) return badRequest("Invalid JSON body.");
-
   const title = requiredString(body.title, "title");
   if (title.error) return title.error;
   const description = requiredString(body.description, "description");
@@ -38,25 +35,8 @@ export async function POST(request: Request) {
   const projectId = optionalString(body.projectId, "projectId");
   if (projectId.error) return projectId.error;
   if (projectId.value && !(await ownedProject(user.id, projectId.value))) return notFound("Project not found.");
-
-  const issue = await prisma.issue.create({
-    data: {
-      userId: user.id,
-      projectId: projectId.value,
-      title: title.value,
-      description: description.value,
-      type: type.value,
-      priority: priority.value,
-      lastActivityAt: new Date(),
-    },
-  });
-
+  const issue = await prisma.issue.create({ data: { userId: user.id, projectId: projectId.value, title: title.value, description: description.value, type: type.value, priority: priority.value, lastActivityAt: new Date() } });
   const developers = await prisma.user.findMany({ where: { role: "DEVELOPER", id: { not: user.id } }, select: { id: true } });
-  if (developers.length) {
-    await prisma.notification.createMany({
-      data: developers.map(developer => ({ userId: developer.id, issueId: issue.id, type: "ISSUE_CREATED" as const })),
-    });
-  }
-
-  return NextResponse.json({ request: serializeIssue(issue) }, { status: 201 });
+  if (developers.length) await prisma.notification.createMany({ data: developers.map(developer => ({ userId: developer.id, issueId: issue.id, type: "ISSUE_CREATED" as const })) });
+  return NextResponse.json({ issue: serializeIssue(issue) }, { status: 201 });
 }

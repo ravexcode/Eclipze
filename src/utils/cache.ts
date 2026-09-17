@@ -4,9 +4,12 @@ import type { WorkspaceSnapshot } from "@/types/user";
 
 const CRYPTO_SK = process.env.NEXT_PUBLIC_CRYPTO_SECRET_KEY!;
 
-const CACHE_KEY_PREFIX = "eclipse-workspace";
+const CACHE_KEY_PREFIX = "eclipze-workspace";
 const CACHE_VERSION = 3;
 const CACHE_DURATION = 3 * 60 * 60 * 1000;
+const ISSUES_CACHE_KEY_PREFIX = "eclipze-issues";
+const ISSUES_CACHE_VERSION = 1;
+const ISSUES_CACHE_DURATION = 3 * 60 * 1000;
 
 interface CacheData {
   version: number;
@@ -137,5 +140,76 @@ export default class CacheDB {
         message: "error",
       };
     }
+  }
+}
+
+type IssuesCacheData<T> = {
+  version: number;
+  userId: string;
+  role: "USER" | "DEVELOPER";
+  issues: T[];
+  unread: number;
+  expiration: number;
+};
+
+function issuesCacheKey(userId: string) {
+  return `${ISSUES_CACHE_KEY_PREFIX}:${userId}:v${ISSUES_CACHE_VERSION}`;
+}
+
+export class IssuesCache {
+  static update<T>(userId: string, role: "USER" | "DEVELOPER", issues: T[], unread: number) {
+    if (!CRYPTO_SK || typeof window === "undefined") return;
+
+    const content: IssuesCacheData<T> = {
+      version: ISSUES_CACHE_VERSION,
+      userId,
+      role,
+      issues,
+      unread,
+      expiration: Date.now() + ISSUES_CACHE_DURATION,
+    };
+
+    window.localStorage.setItem(issuesCacheKey(userId), AES.encrypt(JSON.stringify(content), CRYPTO_SK).toString());
+  }
+
+  static get<T>(userId: string, role: "USER" | "DEVELOPER") {
+    if (!CRYPTO_SK || typeof window === "undefined") return null;
+    const encrypted = window.localStorage.getItem(issuesCacheKey(userId));
+    if (!encrypted) return null;
+
+    try {
+      const raw = AES.decrypt(encrypted, CRYPTO_SK).toString(enc.Utf8);
+      const cache = JSON.parse(raw) as Partial<IssuesCacheData<T>>;
+      if (
+        cache.version !== ISSUES_CACHE_VERSION ||
+        cache.userId !== userId ||
+        cache.role !== role ||
+        !Array.isArray(cache.issues) ||
+        typeof cache.unread !== "number" ||
+        typeof cache.expiration !== "number" ||
+        Date.now() >= cache.expiration
+      ) {
+        this.delete(userId);
+        return null;
+      }
+      return { issues: cache.issues, unread: cache.unread };
+    } catch {
+      this.delete(userId);
+      return null;
+    }
+  }
+
+  static delete(userId?: string) {
+    if (typeof window === "undefined") return;
+    if (userId) {
+      window.localStorage.removeItem(issuesCacheKey(userId));
+      return;
+    }
+    const keysToDelete: string[] = [];
+    for (let index = 0; index < window.localStorage.length; index += 1) {
+      const key = window.localStorage.key(index);
+      if (key?.startsWith(`${ISSUES_CACHE_KEY_PREFIX}:`)) keysToDelete.push(key);
+    }
+    keysToDelete.forEach(key => window.localStorage.removeItem(key));
   }
 }

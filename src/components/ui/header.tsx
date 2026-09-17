@@ -59,7 +59,7 @@ export default function Header() {
       className="sticky top-3 mt-3 mx-auto w-full max-w-5xl rounded-sm p-4 animate-fade-in-down flex justify-between items-center backdrop-blur z-2">
         <Image
           src="/logo.svg"
-          alt="Eclipse Logo"
+          alt="Eclipze Logo"
           width={25}
           height={25}
       />

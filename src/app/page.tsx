@@ -28,7 +28,7 @@ export default async function HomePage() {
             </h1>
 
             <p className="mt-7 max-w-md text-base leading-7 text-foreground-off sm:text-lg">
-              A focused workspace for projects, requests, and AI agents —
+              A focused workspace for projects, issues, and AI agents —
               built to keep your team moving.
             </p>
 
@@ -54,7 +54,7 @@ export default async function HomePage() {
 
           <Image
             src="/images/dashboard.webp"
-            alt="Eclipse dashboard showing issues, projects, and agent sessions"
+            alt="Eclipze dashboard showing issues, projects, and agent sessions"
             className="h-auto w-full animate-fade-in-up animate-duration-700"
             width={1000}
             height={600}

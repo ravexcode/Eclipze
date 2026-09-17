@@ -38,20 +38,20 @@ function getResendConfig() {
 function getEmailCopy(purpose: AuthCodePurpose) {
   if (purpose === "EMAIL_VERIFICATION") {
     return {
-      subject: "Verify your Eclipse account",
+      subject: "Verify your Eclipze account",
       eyebrow: "Account setup",
       title: "Verify your email",
-      body: "Use the verification code below to finish creating your Eclipse account and activate access to your workspace.",
+      body: "Use the verification code below to finish creating your Eclipze account and activate access to your workspace.",
       statusLabel: "Email verification pending",
       accentLabel: "Secure activation",
     };
   }
 
   return {
-    subject: "Reset your Eclipse password",
+    subject: "Reset your Eclipze password",
     eyebrow: "Password recovery",
     title: "Reset your password",
-    body: "Use the verification code below to choose a new password for your Eclipse account.",
+    body: "Use the verification code below to choose a new password for your Eclipze account.",
     statusLabel: "Password reset requested",
     accentLabel: "Secure recovery",
   };
@@ -123,7 +123,7 @@ function renderAuthEmailTemplate(input: {
                           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                             <tr>
                               <td align="left">
-                                <span style="display: inline-block; font-family: 'Roboto Mono', 'SFMono-Regular', Consolas, monospace; font-size: 12px; letter-spacing: 2px; color: ${emailTheme.textPrimary};">ECLIPSE</span>
+                                <span style="display: inline-block; font-family: 'Roboto Mono', 'SFMono-Regular', Consolas, monospace; font-size: 12px; letter-spacing: 2px; color: ${emailTheme.textPrimary};">ECLIPZE</span>
                               </td>
                               <td align="right">
                                 <span style="display: inline-block; padding: 6px 10px; border-radius: 999px; background: ${emailTheme.surfaceRaised}; color: ${emailTheme.textSecondary}; font-size: 11px;">${input.eyebrow}</span>
@@ -221,7 +221,7 @@ function renderAuthEmailTemplate(input: {
 
                 <tr>
                   <td style="padding: 4px 12px 0; text-align: center; font-size: 12px; line-height: 1.7; color: ${emailTheme.textSecondary};">
-                    Sent by Eclipse security services.<br />
+                    Sent by Eclipze security services.<br />
                     For your safety, never share this code with anyone.
                   </td>
                 </tr>
@@ -240,7 +240,7 @@ function renderPlainTextEmail(input: {
   code: string;
 }) {
   return [
-    `ECLIPSE — ${input.title}`,
+    `ECLIPZE — ${input.title}`,
     "",
     input.body,
     "",
@@ -301,7 +301,7 @@ export async function sendNewSignInEmail(input: {
   occurredAt: string;
 }) {
   const config = getResendConfig();
-  const body = `A new sign-in to your Eclipse profile was detected.\n\nIP address: ${input.ip}\nDevice: ${input.device}\nDate and time (UTC): ${input.occurredAt}\n\nIf this was not you, reset your password immediately and contact support.`;
+  const body = `A new sign-in to your Eclipze profile was detected.\n\nIP address: ${input.ip}\nDevice: ${input.device}\nDate and time (UTC): ${input.occurredAt}\n\nIf this was not you, reset your password immediately and contact support.`;
   const ip = escapeHtml(input.ip);
   const device = escapeHtml(input.device);
   const occurredAt = escapeHtml(input.occurredAt);
@@ -313,8 +313,8 @@ export async function sendNewSignInEmail(input: {
       to: [input.to],
       reply_to: config.replyTo,
       subject: "New access to your profile",
-      text: `ECLIPSE — New access to your profile\n\n${body}`,
-      html: `<div style="font-family:Arial,sans-serif;line-height:1.6"><h1>New access to your profile</h1><p>A new sign-in to your Eclipse profile was detected.</p><ul><li><strong>IP address:</strong> ${ip}</li><li><strong>Device:</strong> ${device}</li><li><strong>Date and time (UTC):</strong> ${occurredAt}</li></ul><p>If this was not you, reset your password immediately and contact support.</p></div>`,
+      text: `ECLIPZE — New access to your profile\n\n${body}`,
+      html: `<div style="font-family:Arial,sans-serif;line-height:1.6"><h1>New access to your profile</h1><p>A new sign-in to your Eclipze profile was detected.</p><ul><li><strong>IP address:</strong> ${ip}</li><li><strong>Device:</strong> ${device}</li><li><strong>Date and time (UTC):</strong> ${occurredAt}</li></ul><p>If this was not you, reset your password immediately and contact support.</p></div>`,
     }),
   });
   if (!response.ok) throw new Error(`Resend request failed with ${response.status}`);

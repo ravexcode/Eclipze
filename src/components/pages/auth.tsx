@@ -187,7 +187,7 @@ export default function AuthPage(
                 }}
                 label="Insert your email"
                 type="email"
-                placeholder="eclipse@mail.com"
+                placeholder="eclipze@mail.com"
                 autoComplete="email"
                 required
               />
@@ -223,7 +223,7 @@ export default function AuthPage(
                 }}
                 label="Create a username"
                 type="text"
-                placeholder="Eclipse"
+                placeholder="Eclipze"
                 autoComplete="username"
                 minLength={3}
                 maxLength={24}
@@ -242,7 +242,7 @@ export default function AuthPage(
                 }}
                 label="Insert your email"
                 type="email"
-                placeholder="eclipse@mail.com"
+                placeholder="eclipze@mail.com"
                 autoComplete="email"
                 required
               />

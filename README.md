@@ -1,6 +1,6 @@
 ![logo](./public/images/app_image.png)
 
-Eclipse is a **developer ↔ client contact tool** designed to centralize communication, project context, and workflow visibility in one interface.
+Eclipze is a **developer ↔ client contact tool** designed to centralize communication, project context, and workflow visibility in one interface.
 
 The current project is set up as a **Next.js** app with **pnpm**, using a dark visual system based on the Figma design documented in the [Designer skill](./.agents/skills/designer/SKILL.md).
 
@@ -9,7 +9,7 @@ The current project is set up as a **Next.js** app with **pnpm**, using a dark v
 This app is intended to help developers and clients stay aligned by giving them a shared place to:
 
 - review project status
-- submit and track requests, bugs, and feature ideas
+- submit and track issues, bugs, and feature ideas
 - keep communication organized
 - monitor agent/development sessions
 - build a clearer handoff between technical and non-technical stakeholders

@@ -20,7 +20,7 @@ import { apiFetch } from "@/utils/api-fetch";
 import CacheDB from "@/utils/cache";
 import { clearSessionUser } from "@/utils/session";
 
-type SelectedSection = "overview" | "requests" | "agents" | "agents-gestor" | "projects" | "settings";
+type SelectedSection = "overview" | "issues" | "agents" | "agents-gestor" | "projects" | "settings";
 
 interface Props {
   selected: SelectedSection;
@@ -119,7 +119,7 @@ export default function Sidebar(props: Props) {
 
   const goToProfileSettings = () => {
     closeMenu();
-    router.push("/dashboard/settings");
+    router.push("/profile/settings");
   };
 
   const logout = async () => {
@@ -148,10 +148,10 @@ export default function Sidebar(props: Props) {
       selected: props.selected === "overview"
     },
     {
-      label: "Requests",
+      label: "Issues",
       icon: <IconTarget size={16} strokeWidth={2} />,
-      action: () => { router.push("/requests") },
-      selected: props.selected === "requests"
+      action: () => { router.push("/issues") },
+      selected: props.selected === "issues"
     },
     {
       label: "Agent",

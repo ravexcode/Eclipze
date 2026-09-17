@@ -12,7 +12,7 @@ import { usePathname } from "next/navigation";
 import { getSessionUser } from "@/utils/session";
 
 interface Props {
-  current: "overview" | "requests" | "agents" | "projects" | "settings";
+  current: "overview" | "issues" | "agents" | "projects" | "settings";
   router: AppRouterInstance;
   children?: ReactNode;
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import DashLayout from "@/components/layouts/dash";
 import DangerZone from "@/components/settings/danger-zone";
+import DeveloperAccountSection from "@/components/settings/developer-account-section";
 import PasswordSection from "@/components/settings/password-section";
 import ProfileHeader from "@/components/settings/profile-header";
 import ProfileSection from "@/components/settings/profile-section";
@@ -78,6 +79,9 @@ export default function SettingsPage() {
                     router.replace("/auth/signin");
                     router.refresh();
                   }} />
+              <DeveloperAccountSection
+                user={user}
+                onChanged={setUser} />
             </>
             ) : null
           }
