@@ -14,4 +14,3 @@
 
 - [Rules](./.agents/RULES.md)
 - [Project Structure](./.agents/STRUCTURE.md)
-- [Design](./.agents/DESIGN.md)

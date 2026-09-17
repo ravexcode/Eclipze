@@ -1,0 +1,8 @@
+interface:
+  display_name: "Eclipse Designer"
+  short_description: "Apply Eclipse UI and Tailwind v4 rules"
+  brand_color: "#000BDE"
+  default_prompt: "Use $designer to build or refine an Eclipse frontend interface."
+
+policy:
+  allow_implicit_invocation: true

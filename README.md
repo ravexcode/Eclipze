@@ -2,7 +2,7 @@
 
 Eclipse is a **developer ↔ client contact tool** designed to centralize communication, project context, and workflow visibility in one interface.
 
-The current project is set up as a **Next.js** app with **pnpm**, using a dark visual system based on the Figma design documented in [`DESIGN.md`](./DESIGN.md).
+The current project is set up as a **Next.js** app with **pnpm**, using a dark visual system based on the Figma design documented in the [Designer skill](./.agents/skills/designer/SKILL.md).
 
 ## Purpose
 
@@ -89,7 +89,7 @@ pnpm prisma:push
 
 ## Design references
 
-- Figma-derived notes and base UI tokens: [`DESIGN.md`](./DESIGN.md)
+- Figma-derived design rules and Tailwind v4 conventions: [Designer skill](./.agents/skills/designer/SKILL.md)
 - Current base color system lives in: [`src/app/globals.css`](./src/app/globals.css)
 
 ### Current color tokens

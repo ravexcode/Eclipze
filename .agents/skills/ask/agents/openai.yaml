@@ -1,0 +1,8 @@
+interface:
+  display_name: "Ask"
+  short_description: "Only ask, not coding"
+  brand_color: "#000BDE"
+  default_prompt: "Use $ask to ask a question."
+
+policy:
+  allow_implicit_invocation: true
