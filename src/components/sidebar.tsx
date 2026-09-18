@@ -19,6 +19,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/utils/api-fetch";
 import CacheDB from "@/utils/cache";
 import { clearSessionUser } from "@/utils/session";
+import { Option } from "./ui/sidebar-option";
 
 type SelectedSection = "overview" | "issues" | "agents" | "agents-gestor" | "projects" | "settings";
 
@@ -31,30 +32,6 @@ interface Props {
     role: "USER" | "DEVELOPER";
   };
   router: AppRouterInstance
-}
-
-interface OptionsProps {
-  label: string;
-  icon: React.ReactNode;
-  action: () => void;
-  selected: boolean;
-}
-
-function Option(props: OptionsProps) {
-  const classes = props.selected ? "bg-background-focus text-foreground cursor-default" : "text-foreground-off hover:bg-background-focus/70 cursor-pointer";
-
-  return (
-    <button
-      type="button"
-      onClick={props.action}
-      className={"text-sm flex gap-1 items-center justify-center p-2 px-3 rounded-sm w-full " + classes}>
-      {props.icon}
-      <p
-        className="w-full text-start">
-        {props.label}
-      </p>
-    </button>
-  );
 }
 
 export default function Sidebar(props: Props) {
@@ -195,10 +172,10 @@ export default function Sidebar(props: Props) {
           setIsSidebarClosing(false);
         }
       }}
-      className={"sticky top-0 h-dvh w-[324px] bg-background-card p-4 flex flex-col justify-start items-center " +
+      className={"sticky top-0 h-dvh w-81 bg-background-card p-4 flex flex-col justify-start items-center " +
         (isSidebarClosing
-          ? "animate-slide-out-left animate-duration-180 animate-ease-out [--tw-anim-slide-distance:8px]"
-          : "animate-slide-in-left animate-duration-180 animate-ease-out [--tw-anim-slide-distance:8px]") +
+          ? "animate-slide-out-left animate-duration-180 animate-ease-out animate-slide-distance-[8px]"
+          : "animate-slide-in-left animate-duration-180 animate-ease-out animate-slide-distance-[8px]") +
         " motion-reduce:animate-none"}>
       <div
         className="flex gap-2 justify-center items-start w-full">
@@ -258,7 +235,7 @@ export default function Sidebar(props: Props) {
                   (isMenuClosing
                     ? "animate-slide-out-top animate-duration-150 animate-ease-out"
                     : "animate-slide-in-top animate-duration-150 animate-ease-out") +
-                  " [--tw-anim-slide-distance:6px] motion-reduce:animate-none " +
+                  " animate-slide-distance-[6px] motion-reduce:animate-none " +
                   (isMenuClosing ? "pointer-events-none" : "")}>
                 <button
                   type="button"
