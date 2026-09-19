@@ -16,10 +16,10 @@ export default async function HomePage() {
 
   return (
     <MarketingLayout>
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden w-full px-10">
 
-        <div className="mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-9xl flex-col justify-center gap-14 px-6 py-16 sm:px-10 lg:grid lg:grid-cols-[minmax(21rem,0.78fr)_minmax(0,1.22fr)] lg:items-center lg:gap-16 lg:px-12 lg:py-20">
-          <div className="relative z-10 max-w-xl animate-blurred-fade-in">
+        <div className="mx-auto flex w-full justify-between items-center">
+          <div className="relative z-10 animate-blurred-fade-in">
 
             <h1 className="max-w-120 font-heading text-5xl font-bold leading-[0.98] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-[4rem] 2xl:text-[4.4rem]">
               Build faster. <br />
@@ -55,7 +55,7 @@ export default async function HomePage() {
           <Image
             src="/images/dashboard.webp"
             alt="Eclipze dashboard showing issues, projects, and agent sessions"
-            className="h-auto w-full animate-fade-in-up animate-duration-700"
+            className="h-auto w-300 animate-fade-in-up animate-duration-700"
             width={1000}
             height={600}
             priority
