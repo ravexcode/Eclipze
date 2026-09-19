@@ -15,7 +15,7 @@ export default async function HomePage() {
   if (hasToken) redirect("/dashboard");
 
   return (
-    <MarketingLayout>
+    <MarketingLayout hasToken={hasToken}>
       <section className="relative overflow-hidden w-full px-10">
 
         <div className="mx-auto flex w-full justify-between items-center">

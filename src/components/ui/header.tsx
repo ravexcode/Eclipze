@@ -3,9 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { useState, useEffect } from "react";
-import { getSessionUser } from "@/utils/session";
-
 function HeaderLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <Link
@@ -31,28 +28,8 @@ const SIGNED_IN_CTA: CtaValues = {
   label: "Dashboard",
 };
 
-export default function Header() {
-  const [cta, setCta] = useState<CtaValues>(SIGNED_OUT_CTA);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      const user = await getSessionUser();
-
-      if (cancelled) return;
-
-      if (user) {
-        setCta(SIGNED_IN_CTA);
-      } else {
-        setCta(SIGNED_OUT_CTA);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+export default function Header({ hasToken = false }: { hasToken?: boolean }) {
+  const cta = hasToken ? SIGNED_IN_CTA : SIGNED_OUT_CTA;
 
   return (
     <header
