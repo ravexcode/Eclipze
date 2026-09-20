@@ -153,10 +153,10 @@ export default function Sidebar(props: Props) {
   if (!visibility) {
     return (
       <section
-        className="sticky top-0 h-dvh w-max px-2 py-4">
+        className="sticky top-0 z-10 h-auto w-full border-b border-background-focus px-3 py-3 md:h-dvh md:w-max md:border-b-0 md:px-2 md:py-4">
         <button
           type="button"
-          className="rounded-sm p-2 hover:bg-background-focus"
+          className="rounded-xs p-2 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground"
           onClick={toggle}>
           <IconLayoutSidebar size={16} strokeWidth={2} />
         </button>
@@ -172,19 +172,19 @@ export default function Sidebar(props: Props) {
           setIsSidebarClosing(false);
         }
       }}
-      className={"sticky top-0 h-dvh w-81 bg-background-card p-4 flex flex-col justify-start items-center " +
+      className={"sticky top-0 z-10 flex h-auto w-full flex-col items-center justify-start border-b border-background-focus bg-surface p-3 md:h-dvh md:w-81 md:border-b-0 md:p-4 " +
         (isSidebarClosing
           ? "animate-slide-out-left animate-duration-180 animate-ease-out animate-slide-distance-[8px]"
           : "animate-slide-in-left animate-duration-180 animate-ease-out animate-slide-distance-[8px]") +
         " motion-reduce:animate-none"}>
       <div
-        className="flex gap-2 justify-center items-start w-full">
+        className="flex w-full items-start justify-center gap-2">
         <div
           ref={menuRef}
           className="relative w-full">
           <button
             type="button"
-            className="w-full flex items-center justify-start gap-2 hover:bg-background-focus p-2 select-none rounded-sm px-3"
+            className="flex w-full select-none items-center justify-start gap-2 rounded-xs px-3 py-2 transition-colors hover:bg-surface-raised"
             onClick={() => {
               if (menuOpen) {
                 closeMenu();
@@ -207,7 +207,7 @@ export default function Sidebar(props: Props) {
                   unoptimized
                   />
                   <p
-                    className="text-foreground text-sm w-full text-start">
+                    className="w-full text-start font-heading text-xs text-foreground">
                     {props.user.name}
                   </p>
                 </> :
@@ -231,7 +231,7 @@ export default function Sidebar(props: Props) {
                   }
                 }}
                 aria-hidden={isMenuClosing}
-                className={"absolute top-full left-0 mt-2 w-full rounded-sm border border-background-focus bg-background-card p-1 shadow-lg z-20 " +
+                className={"absolute left-0 top-full z-20 mt-2 w-full rounded-xs border border-background-focus bg-surface p-1 shadow-lg " +
                   (isMenuClosing
                     ? "animate-slide-out-top animate-duration-150 animate-ease-out"
                     : "animate-slide-in-top animate-duration-150 animate-ease-out") +
@@ -239,7 +239,7 @@ export default function Sidebar(props: Props) {
                   (isMenuClosing ? "pointer-events-none" : "")}>
                 <button
                   type="button"
-                  className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-foreground-off hover:bg-background-focus hover:text-foreground"
+                  className="flex w-full items-center gap-2 rounded-xs px-3 py-2 text-xs text-foreground-off hover:bg-surface-raised hover:text-foreground"
                   onClick={goToProfileSettings}>
                   <IconSettings size={16} strokeWidth={2} />
                   <span>Profile settings</span>
@@ -247,7 +247,7 @@ export default function Sidebar(props: Props) {
 
                 <button
                   type="button"
-                  className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-foreground-off hover:bg-background-focus hover:text-foreground disabled:opacity-50"
+                  className="flex w-full items-center gap-2 rounded-xs px-3 py-2 text-xs text-foreground-off hover:bg-surface-raised hover:text-foreground disabled:opacity-50"
                   onClick={() => {
                     void logout();
                   }}
@@ -262,7 +262,7 @@ export default function Sidebar(props: Props) {
 
         <button
           type="button"
-          className="rounded-sm p-2 hover:bg-background-focus"
+          className="rounded-xs p-2 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground"
           onClick={toggle}>
           <IconLayoutSidebar
             size={16}
@@ -271,11 +271,11 @@ export default function Sidebar(props: Props) {
       </div>
 
       <div
-        className="flex flex-col items-center justify-center w-full mt-5">
+        className="mt-5 flex w-full flex-row items-center justify-start gap-1 overflow-x-auto md:flex-col md:items-center md:justify-center">
         {
           options.map((option, index) => (
             <Option
-              key={index}
+              key={option.label}
               label={option.label}
               icon={option.icon}
               selected={option.selected}

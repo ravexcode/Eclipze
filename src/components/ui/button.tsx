@@ -21,10 +21,10 @@ function isButtonLinkProps(props: ButtonProps): props is ButtonLinkProps {
 }
 
 const baseStyles =
-  "inline-flex items-center justify-center rounded-sm px-4 py-1.5 text-sm duration-300 outline-none disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex min-h-9 items-center justify-center rounded-xs px-4 py-2 text-xs font-medium tracking-[0.01em] duration-200 outline-hidden transition-colors disabled:pointer-events-none disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
 const variantStyles: Record<ButtonVariant, string> = {
-  main: "bg-accent text-foreground hover:brightness-75",
+  main: "bg-accent text-foreground hover:bg-accent-strong",
   secondary:
     "border border-background-focus bg-background-card text-foreground hover:bg-background-focus",
   ghost:

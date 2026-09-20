@@ -7,7 +7,7 @@ function HeaderLink({ href, children }: { href: string; children: React.ReactNod
   return (
     <Link
       href={href}
-      className="text-foreground-off hover:text-foreground hover:scale-110 duration-300 p-2">
+      className="rounded-xs px-2 py-1 text-xs text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
       {children}
     </Link>
   );
@@ -33,16 +33,21 @@ export default function Header({ hasToken = false }: { hasToken?: boolean }) {
 
   return (
     <header
-      className="sticky top-3 mt-3 mx-auto w-full max-w-5xl rounded-sm p-4 animate-fade-in-down flex justify-between items-center backdrop-blur z-2">
+      className="mx-auto flex w-full max-w-[1320px] items-center justify-between border-b border-background-focus px-5 py-4 animate-fade-in-down sm:px-8 lg:px-10">
+      <Link
+        href="/"
+        aria-label="Eclipze home"
+        className="rounded-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
         <Image
           src="/logo.svg"
           alt="Eclipze Logo"
           width={25}
           height={25}
-      />
+        />
+      </Link>
 
       <div
-        className="flex items-center justify-center gap-7 text-sm">
+        className="hidden items-center justify-center gap-3 text-sm sm:flex">
         <HeaderLink
           href="#">
           Product
@@ -59,7 +64,7 @@ export default function Header({ hasToken = false }: { hasToken?: boolean }) {
 
       <Link
         href={cta.link}
-        className="rounded-sm w-25 bg-accent hover:brightness-75 duration-300 text-foreground text-center p-1.5 text-sm">
+        className="rounded-xs bg-accent px-4 py-2 text-center text-xs font-medium text-foreground transition-colors hover:bg-accent-strong focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent">
         {cta.label}
       </Link>
     </header>

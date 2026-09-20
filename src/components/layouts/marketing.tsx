@@ -8,10 +8,10 @@ type MarketingLayoutProps = {
 export default function MarketingLayout({ children, hasToken = false }: MarketingLayoutProps) {
   return (
     <div
-      className="w-full min-h-dvh grid grid-rows-[auto_1fr_auto] items-center justify-center z-2 relative">
+      className="relative grid min-h-dvh w-full grid-rows-[auto_1fr_auto] items-center justify-center bg-background text-foreground">
       <Header hasToken={hasToken} />
       <main
-        className="min-w-dvw">
+        className="w-full min-w-0">
         {children}
       </main>
     </div>

@@ -16,18 +16,21 @@ export default async function HomePage() {
 
   return (
     <MarketingLayout hasToken={hasToken}>
-      <section className="relative overflow-hidden w-full px-10">
+      <section className="relative w-full overflow-hidden px-5 py-16 sm:px-8 sm:py-24 lg:px-10 lg:py-28">
+        <div className="mx-auto grid w-full max-w-[1320px] items-center gap-14 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-16">
+          <div className="relative z-10 max-w-xl animate-blurred-fade-in">
 
-        <div className="mx-auto flex w-full justify-between items-center">
-          <div className="relative z-10 animate-blurred-fade-in">
+            <p className="mb-5 font-heading text-xs uppercase tracking-[0.18em] text-foreground-off">
+              Developer workflow, without the noise
+            </p>
 
-            <h1 className="max-w-120 font-heading text-5xl font-bold leading-[0.98] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-[4rem] 2xl:text-[4.4rem]">
+            <h1 className="max-w-[520px] font-heading text-5xl font-normal leading-[0.98] tracking-[-0.06em] text-foreground sm:text-6xl lg:text-[4.4rem]">
               Build faster. <br />
               Deploy with <br />
-              <span className="text-accent">confidence.</span>
+              <span className="text-accent-strong">confidence.</span>
             </h1>
 
-            <p className="mt-7 max-w-md text-base leading-7 text-foreground-off sm:text-lg">
+            <p className="mt-7 max-w-md text-sm leading-6 text-foreground-off sm:text-base">
               A focused workspace for projects, issues, and AI agents —
               built to keep your team moving.
             </p>
@@ -55,7 +58,7 @@ export default async function HomePage() {
           <Image
             src="/images/dashboard.webp"
             alt="Eclipze dashboard showing issues, projects, and agent sessions"
-            className="h-auto w-300 animate-fade-in-up animate-duration-700"
+            className="h-auto w-full rounded-xs border border-background-focus object-cover animate-fade-in-up animate-duration-700"
             width={1000}
             height={600}
             priority

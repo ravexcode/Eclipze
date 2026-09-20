@@ -3,22 +3,21 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <div
-      className="flex flex-col items-center justify-center gap-2 min-h-dvh text-center animate-blurred-fade-in">
+      className="flex min-h-dvh flex-col items-center justify-center gap-3 px-6 text-center animate-blurred-fade-in">
       <p
-        className="font-heading text-8xl font-bold">
+        className="font-heading text-8xl font-normal tracking-[-0.08em] text-foreground">
         404
       </p>
       <p
-        className="text-3xl font-medium font-base">
-          Page not found
+        className="font-base text-2xl font-medium tracking-[-0.03em]">
+        Page not found
       </p>
 
       <p
-        className="text-foreground-off">
-        The page for that was you searching doesn’t exists <br />
-        or an error ocurred. Go back or return to <Link
+        className="max-w-md text-sm leading-6 text-foreground-off">
+        The page you were looking for does not exist or an error occurred. Go back or return to <Link
           href="/"
-          className="underline duration-300 font-medium hover:text-accent" >
+          className="font-medium text-foreground underline transition-colors hover:text-accent" >
           Home
         </Link>
       </p>

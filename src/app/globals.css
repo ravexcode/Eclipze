@@ -2,16 +2,41 @@
 @import "tailwind-animations";
 
 @theme {
-  --color-foreground: #fafafa;
+  --color-foreground: #FAFAFA;
   --color-foreground-off: #676767;
-
-  --color-accent: #000bde;
-
+  --color-accent: #0C47B4;
+  --color-accent-strong: #000BDE;
   --color-background: #010101;
   --color-background-card: #060606;
   --color-background-focus: #111111;
-  --color-priority-high: #ff383c;
-  --color-priority-medium: #ffcc00;
-  --color-priority-low: #38bdf8;
-  --color-warning: #f59e0b;
+  --color-surface: #060606;
+  --color-surface-raised: #111111;
+  --color-text-primary: #FAFAFA;
+  --color-text-secondary: #676767;
+  --color-priority-high: #FF383C;
+  --color-priority-medium: #FFCC00;
+  --color-priority-low: #38BDF8;
+  --color-warning: #F59E0B;
+  --color-status-purple: #CB30E0;
+  --color-status-cyan: #00C0E8;
+  --color-status-green: #34C759;
+  --color-alert-red: #FF383C;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  background: var(--color-background);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 80%, transparent);
+  color: var(--color-foreground);
 }

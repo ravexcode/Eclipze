@@ -5,7 +5,7 @@ interface Props {
 export default function Heading(props: Props) {
   return (
     <header
-      className="w-full border-b border-background-focus px-4 py-3 font-base text-2xl font-normal leading-8 tracking-[-0.02em] text-start h-max">
+      className="flex h-max w-full items-center border-b border-background-focus px-5 py-4 font-base text-2xl font-normal leading-8 tracking-[-0.02em] text-start sm:px-8">
       {props.label}
     </header>
   )

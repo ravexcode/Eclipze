@@ -6,13 +6,13 @@ interface OptionsProps {
 }
 
 export function Option(props: OptionsProps) {
-  const classes = props.selected ? "bg-background-focus text-foreground cursor-default" : "text-foreground-off hover:bg-background-focus/70 cursor-pointer";
+  const classes = props.selected ? "bg-surface-raised text-foreground cursor-default" : "text-foreground-off hover:bg-surface-raised/70 cursor-pointer";
 
   return (
     <button
       type="button"
       onClick={props.action}
-      className={"text-sm flex gap-1 items-center justify-center p-2 px-3 rounded-sm w-full " + classes}>
+      className={"flex w-auto shrink-0 items-center justify-center gap-2 rounded-xs px-3 py-2 text-xs transition-colors md:w-full md:text-left " + classes}>
       {props.icon}
       <p
         className="w-full text-start">
