@@ -80,6 +80,35 @@ enum AgentSessionStatus {
   CANCELLED
 }
 
+enum WorkspaceRepositoryProvider {
+  GITHUB
+  GITLAB
+  BITBUCKET
+  OTHER
+}
+
+enum WorkspaceRepositoryStatus {
+  CONNECTED
+  UNAVAILABLE
+}
+
+enum AgentRunStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  BLOCKED
+}
+
+enum AgentRunEventType {
+  SYSTEM
+  COMMAND
+  OUTPUT
+  ERROR
+  RESULT
+}
+
 model User {
   id                    String                 @id @default(cuid())
   email                 String                 @unique
@@ -100,6 +129,8 @@ model User {
   notifications         Notification[]
   agents                Agent[]
   agentSessions         AgentSession[]
+  workspaceRepositories WorkspaceRepository[]
+  agentRuns              AgentRun[]
 
   @@map("users")
 }
@@ -116,6 +147,7 @@ model Project {
   user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   issues      Issue[]
   sessions    AgentSession[]
+  workspaceRepositories WorkspaceRepository[]
 
   @@index([userId, status])
   @@map("projects")
@@ -185,6 +217,7 @@ model Agent {
   updatedAt    DateTime       @updatedAt
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   sessions     AgentSession[]
+  skillSelections AgentSkillSelection[]
 
   @@index([userId, status])
   @@map("agents")
@@ -205,11 +238,91 @@ model AgentSession {
   user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   agent       Agent              @relation(fields: [agentId], references: [id], onDelete: Cascade)
   project     Project?           @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  runs        AgentRun[]
 
   @@index([userId, createdAt])
   @@index([agentId])
   @@index([projectId])
   @@map("agent_sessions")
+}
+
+model WorkspaceRepository {
+  id            String                       @id @default(cuid())
+  userId        String
+  projectId     String?
+  provider      WorkspaceRepositoryProvider
+  repositoryUrl String
+  defaultBranch String                       @default("main")
+  status        WorkspaceRepositoryStatus    @default(CONNECTED)
+  createdAt     DateTime                     @default(now())
+  updatedAt     DateTime                     @updatedAt
+  user          User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project       Project?                    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  runs          AgentRun[]
+
+  @@unique([userId, repositoryUrl])
+  @@index([userId, updatedAt])
+  @@index([projectId])
+  @@map("workspace_repositories")
+}
+
+model AgentSkillSelection {
+  id        String   @id @default(cuid())
+  agentId   String
+  slug      String
+  version   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, slug])
+  @@index([agentId, updatedAt])
+  @@map("agent_skill_selections")
+}
+
+model AgentRun {
+  id                 String             @id @default(cuid())
+  userId             String
+  agentSessionId     String
+  repositoryId       String
+  status             AgentRunStatus     @default(QUEUED)
+  model              String
+  commandKey         String
+  instructionsDigest String
+  skillSnapshot      Json
+  workspaceKey       String             @unique
+  errorCode          String?
+  resultSummary      String?
+  cancelRequestedAt  DateTime?
+  startedAt          DateTime?
+  finishedAt         DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentSession       AgentSession       @relation(fields: [agentSessionId], references: [id], onDelete: Cascade)
+  repository         WorkspaceRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  events             AgentRunEvent[]
+
+  @@index([userId, createdAt])
+  @@index([agentSessionId, createdAt])
+  @@index([repositoryId])
+  @@index([status, updatedAt])
+  @@map("agent_runs")
+}
+
+model AgentRunEvent {
+  id        String            @id @default(cuid())
+  runId     String
+  sequence  Int
+  type      AgentRunEventType
+  message   String
+  metadata  Json?
+  createdAt DateTime          @default(now())
+  run       AgentRun          @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, sequence])
+  @@index([runId, createdAt])
+  @@map("agent_run_events")
 }
 
 model AuthSession {
