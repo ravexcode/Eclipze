@@ -2,7 +2,43 @@
 
 import DashLayout from "@/components/layouts/dash";
 import Heading from "@/components/ui/heading";
-import { apiFetch } from "@/utils/api-fetch";
+import {
+  type Agent,
+  type AgentSession,
+  type AgentStatus,
+  type Project,
+  type ProjectStatus,
+  type Repository,
+  type RunSnapshot,
+  type RunState,
+  type Skill,
+  MODEL_OPTIONS,
+  COMMAND_OPTIONS,
+  RUN_ENDPOINT,
+  SKILLS_ENDPOINT,
+} from "@/constants/agents";
+import {
+  normalizeAgent,
+  normalizeProject,
+  normalizeRepository,
+  normalizeSession,
+  normalizeSkill,
+  normalizeRun,
+  asRecord,
+  readCollection,
+  readMessage,
+  requestJson,
+  jsonInit,
+  formatDate,
+} from "@/utils/agents/normalizers";
+import {
+  FieldLabel,
+  Panel,
+  PanelHeading,
+  SmallButton,
+  StatusIndicator,
+  fieldClassName,
+} from "@/components/agents/primitives";
 
 import {
   IconAlertCircle,
@@ -26,351 +62,6 @@ import {
 } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-
-type AgentStatus = "ACTIVE" | "INACTIVE";
-type ProjectStatus = "ACTIVE" | "AT_RISK" | "COMPLETED";
-type SessionStatus = "ACTIVE" | "COMPLETED" | "FAILED" | "CANCELLED";
-type RunState = "idle" | "starting" | "running" | "completed" | "failed" | "cancelled" | "unavailable";
-
-type Agent = {
-  id: string;
-  name: string;
-  defaultModel: string;
-  status: AgentStatus;
-  createdAt?: string;
-  updatedAt?: string;
-};
-
-type Project = {
-  id: string;
-  name: string;
-  description: string | null;
-  externalUrl: string | null;
-  status: ProjectStatus;
-  createdAt?: string;
-  updatedAt?: string;
-};
-
-type Repository = {
-  id: string;
-  projectId: string | null;
-  provider: string;
-  repositoryUrl: string;
-  defaultBranch: string;
-  status: string;
-  createdAt?: string;
-  updatedAt?: string;
-};
-
-type AgentSession = {
-  id: string;
-  agentId: string;
-  projectId: string | null;
-  description: string;
-  model: string;
-  status: SessionStatus;
-  startedAt: string;
-  endedAt: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-};
-
-type Skill = {
-  id: string;
-  name: string;
-  description: string;
-  version?: string | null;
-  enabled?: boolean;
-};
-
-type RunEvent = {
-  id: string;
-  type: string;
-  message: string;
-  createdAt?: string;
-  level?: "info" | "success" | "warning" | "error";
-};
-
-type RunSnapshot = {
-  id: string;
-  sessionId?: string | null;
-  status?: string;
-  error?: string | null;
-  result?: string | null;
-  events: RunEvent[];
-  files: string[];
-  diff: string | null;
-};
-
-type ApiResult = {
-  response: Response;
-  payload: unknown;
-};
-
-const MODEL_OPTIONS = [
-  "openai/gpt-5",
-  "anthropic/claude-sonnet-4",
-  "openrouter/auto",
-];
-
-const COMMAND_OPTIONS = [
-  { key: "git-status", label: "Git status" },
-  { key: "git-diff-stat", label: "Git diff stat" },
-  { key: "git-rev-parse", label: "Git repository check" },
-  { key: "pnpm-test", label: "pnpm test" },
-  { key: "pnpm-build", label: "pnpm build" },
-  { key: "pnpm-typecheck", label: "pnpm typecheck" },
-  { key: "npm-test", label: "npm test" },
-  { key: "npm-build", label: "npm build" },
-  { key: "npm-typecheck", label: "npm typecheck" },
-  { key: "pytest", label: "pytest" },
-  { key: "go-test", label: "go test" },
-];
-
-const RUN_ENDPOINT = "/api/agent-runs";
-const SKILLS_ENDPOINT = "/api/skills";
-
-function asRecord(value: unknown): Record<string, unknown> {
-  return typeof value === "object" && value !== null ? value as Record<string, unknown> : {};
-}
-
-function readString(value: unknown, fallback = "") {
-  return typeof value === "string" ? value : fallback;
-}
-
-function readNullableString(value: unknown) {
-  return typeof value === "string" && value.trim() ? value : null;
-}
-
-function readCollection(payload: unknown, key: string) {
-  const value = asRecord(payload)[key];
-  return Array.isArray(value) ? value : [];
-}
-
-function readMessage(payload: unknown, fallback: string) {
-  const message = asRecord(payload).message;
-  return typeof message === "string" && message.trim() ? message : fallback;
-}
-
-function normalizeAgent(value: unknown): Agent | null {
-  const item = asRecord(value);
-  const id = readString(item.id);
-  const name = readString(item.name);
-  if (!id || !name) return null;
-
-  return {
-    id,
-    name,
-    defaultModel: readString(item.defaultModel, MODEL_OPTIONS[0]),
-    status: item.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
-    createdAt: readString(item.createdAt) || undefined,
-    updatedAt: readString(item.updatedAt) || undefined,
-  };
-}
-
-function normalizeProject(value: unknown): Project | null {
-  const item = asRecord(value);
-  const id = readString(item.id);
-  const name = readString(item.name);
-  if (!id || !name) return null;
-
-  return {
-    id,
-    name,
-    description: readNullableString(item.description),
-    externalUrl: readNullableString(item.externalUrl ?? item.repositoryUrl),
-    status: item.status === "AT_RISK" || item.status === "COMPLETED" ? item.status : "ACTIVE",
-    createdAt: readString(item.createdAt) || undefined,
-    updatedAt: readString(item.updatedAt) || undefined,
-  };
-}
-
-function normalizeRepository(value: unknown): Repository | null {
-  const item = asRecord(value);
-  const id = readString(item.id);
-  const repositoryUrl = readString(item.repositoryUrl);
-  if (!id || !repositoryUrl) return null;
-
-  return {
-    id,
-    projectId: readNullableString(item.projectId),
-    provider: readString(item.provider, "OTHER"),
-    repositoryUrl,
-    defaultBranch: readString(item.defaultBranch, "main"),
-    status: readString(item.status, "CONNECTED"),
-    createdAt: readString(item.createdAt) || undefined,
-    updatedAt: readString(item.updatedAt) || undefined,
-  };
-}
-
-function normalizeSession(value: unknown): AgentSession | null {
-  const item = asRecord(value);
-  const id = readString(item.id);
-  const agentId = readString(item.agentId);
-  if (!id || !agentId) return null;
-
-  const status = item.status === "COMPLETED" || item.status === "FAILED" || item.status === "CANCELLED"
-    ? item.status
-    : "ACTIVE";
-
-  return {
-    id,
-    agentId,
-    projectId: readNullableString(item.projectId),
-    description: readString(item.description, "Agent session"),
-    model: readString(item.model, MODEL_OPTIONS[0]),
-    status,
-    startedAt: readString(item.startedAt, new Date().toISOString()),
-    endedAt: readNullableString(item.endedAt),
-    createdAt: readString(item.createdAt) || undefined,
-    updatedAt: readString(item.updatedAt) || undefined,
-  };
-}
-
-function normalizeSkill(value: unknown): Skill | null {
-  const item = asRecord(value);
-  const id = readString(item.id ?? item.slug);
-  const name = readString(item.name ?? item.title);
-  if (!id || !name) return null;
-
-  return {
-    id,
-    name,
-    description: readString(item.description, "Available for code runs."),
-    version: readNullableString(item.version),
-    enabled: item.enabled !== false,
-  };
-}
-
-function normalizeEvent(value: unknown, index: number): RunEvent | null {
-  const item = asRecord(value);
-  const message = readString(item.message ?? item.text ?? item.output);
-  if (!message) return null;
-
-  const level = item.level === "success" || item.level === "warning" || item.level === "error"
-    ? item.level
-    : item.type === "ERROR"
-      ? "error"
-      : item.type === "RESULT"
-        ? "success"
-        : "info";
-
-  return {
-    id: readString(item.id, `event-${index}`),
-    type: readString(item.type, "activity"),
-    message,
-    createdAt: readString(item.createdAt) || undefined,
-    level,
-  };
-}
-
-function normalizeRun(value: unknown): RunSnapshot | null {
-  const item = asRecord(value);
-  const id = readString(item.id ?? item.runId ?? item.sessionId);
-  if (!id) return null;
-
-  const rawEvents = Array.isArray(item.events) ? item.events : [];
-  const rawFiles = Array.isArray(item.files) ? item.files : [];
-
-  return {
-    id,
-    sessionId: readNullableString(item.sessionId ?? item.agentSessionId),
-    status: readString(item.status),
-    error: readNullableString(item.error ?? item.errorCode),
-    result: readNullableString(item.result ?? item.output ?? item.resultSummary),
-    events: rawEvents.map(normalizeEvent).filter((event): event is RunEvent => event !== null),
-    files: rawFiles.filter((file): file is string => typeof file === "string"),
-    diff: readNullableString(item.diff),
-  };
-}
-
-async function requestJson(input: RequestInfo | URL, init: RequestInit = {}): Promise<ApiResult> {
-  const response = await apiFetch(input, init);
-  const payload = await response.json().catch(() => null);
-  return { response, payload };
-}
-
-function jsonInit(method: string, body: Record<string, unknown>): RequestInit {
-  return {
-    method,
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify(body),
-  };
-}
-
-function formatDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Unknown time";
-
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
-}
-
-function statusColor(status: string) {
-  if (status === "COMPLETED" || status === "SUCCEEDED" || status === "ACTIVE") return "bg-status-green";
-  if (status === "FAILED" || status === "AT_RISK") return "bg-alert-red";
-  if (status === "CANCELLED") return "bg-warning";
-  return "bg-foreground-off";
-}
-
-function statusLabel(status: string) {
-  return status.replaceAll("_", " ").toLowerCase();
-}
-
-function Panel(props: { children: React.ReactNode; className?: string }) {
-  return (
-    <section className={`rounded-sm bg-surface ${props.className ?? ""}`}>
-      {props.children}
-    </section>
-  );
-}
-
-function PanelHeading(props: { icon: React.ReactNode; label: string; action?: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-background-focus px-4 py-3 sm:px-5">
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="text-foreground-off">{props.icon}</span>
-        <h2 className="truncate text-sm font-semibold text-foreground">{props.label}</h2>
-      </div>
-      {props.action}
-    </div>
-  );
-}
-
-function StatusIndicator(props: { status: string }) {
-  return (
-    <span className="inline-flex items-center gap-2 text-xs text-foreground-off">
-      <span className={`h-2 w-2 rounded-full ${statusColor(props.status)}`} />
-      {statusLabel(props.status)}
-    </span>
-  );
-}
-
-function SmallButton(props: React.ButtonHTMLAttributes<HTMLButtonElement> & { tone?: "default" | "accent" | "danger" }) {
-  const tone = props.tone ?? "default";
-  const toneClass = tone === "accent"
-    ? "bg-accent text-foreground hover:bg-accent-strong"
-    : tone === "danger"
-      ? "text-alert-red hover:bg-alert-red/10"
-      : "text-foreground-off hover:bg-background-focus hover:text-foreground";
-
-  return (
-    <button
-      {...props}
-      className={`inline-flex items-center justify-center gap-2 rounded-xs px-3 py-2 text-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-40 ${toneClass} ${props.className ?? ""}`} />
-  );
-}
-
-function FieldLabel(props: { children: React.ReactNode }) {
-  return <span className="mb-2 block text-[11px] uppercase tracking-[0.12em] text-foreground-off">{props.children}</span>;
-}
-
-const fieldClassName = "w-full rounded-xs border border-background-focus bg-background px-3 py-2.5 text-sm text-foreground outline-hidden transition-colors placeholder:text-foreground-off/60 focus:border-accent focus:ring-1 focus:ring-accent";
 
 export default function AgentsPage() {
   const router = useRouter();
@@ -787,7 +478,7 @@ export default function AgentsPage() {
       <main className="min-w-0 w-full">
         <Heading label="Agents" />
 
-        <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
+        <div className="mx-auto flex w-full max-w-360 flex-col gap-5 px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">Workspace / code runner</p>
@@ -805,7 +496,7 @@ export default function AgentsPage() {
               <IconAlertCircle size={18} className="mt-0.5 shrink-0 text-alert-red" />
               <div className="min-w-0">
                 <p className="font-medium">Workspace unavailable</p>
-                <p className="mt-1 break-words text-foreground-off">{loadError}</p>
+                <p className="mt-1 wrap-break-words text-foreground-off">{loadError}</p>
               </div>
             </div>
           ) : null}
@@ -814,7 +505,7 @@ export default function AgentsPage() {
             <div className="flex items-start justify-between gap-3 rounded-sm border border-alert-red bg-alert-red/10 px-4 py-3 text-sm text-foreground">
               <div className="flex min-w-0 items-start gap-3">
                 <IconAlertCircle size={18} className="mt-0.5 shrink-0 text-alert-red" />
-                <p className="break-words text-foreground-off">{actionError}</p>
+                <p className="wrap-break-words text-foreground-off">{actionError}</p>
               </div>
               <button type="button" onClick={() => setActionError(null)} className="text-foreground-off hover:text-foreground" aria-label="Dismiss error">
                 <IconX size={16} />
@@ -898,7 +589,7 @@ export default function AgentsPage() {
                 {runError ? (
                   <div className="flex items-start gap-3 rounded-xs border border-alert-red bg-alert-red/10 px-3 py-3 text-xs text-foreground">
                     <IconAlertCircle size={16} className="mt-0.5 shrink-0 text-alert-red" />
-                    <p className="break-words">{runError}</p>
+                    <p className="wrap-break-words">{runError}</p>
                   </div>
                 ) : null}
               </div>
@@ -914,7 +605,7 @@ export default function AgentsPage() {
                   <div className="rounded-xs bg-background px-3 py-3 text-xs leading-5 text-foreground-off">
                     <p className="font-medium text-foreground">Skills API unavailable</p>
                     <p className="mt-1">Server does not expose {SKILLS_ENDPOINT}. Runs send selected skill slugs when available.</p>
-                    {skillsError ? <p className="mt-2 break-words text-alert-red">{skillsError}</p> : null}
+                    {skillsError ? <p className="mt-2 wrap-break-words text-alert-red">{skillsError}</p> : null}
                   </div>
                 ) : skills.length === 0 ? (
                   <div className="rounded-xs bg-background px-3 py-6 text-center text-xs text-foreground-off">No skills available.</div>
@@ -1015,7 +706,7 @@ export default function AgentsPage() {
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xs bg-background-focus text-foreground-off"><IconGitBranch size={17} /></span>
                         <span className="min-w-0">
                           <span className="block truncate text-sm text-foreground">{project.name}</span>
-                        <span className="mt-1 block truncate text-[10px] text-foreground-off">{repositories.find(repository => repository.projectId === project.id)?.repositoryUrl ?? "No repository URL"}</span>
+                          <span className="mt-1 block truncate text-[10px] text-foreground-off">{repositories.find(repository => repository.projectId === project.id)?.repositoryUrl ?? "No repository URL"}</span>
                         </span>
                       </button>
                       <div className="flex items-center gap-1">
@@ -1098,7 +789,7 @@ export default function AgentsPage() {
                     {activeRun?.error || runError ? (
                       <div className="flex items-start gap-3 rounded-xs border border-alert-red bg-alert-red/10 px-3 py-3 text-xs text-foreground">
                         <IconAlertCircle size={16} className="mt-0.5 shrink-0 text-alert-red" />
-                        <p className="break-words">{activeRun?.error ?? runError}</p>
+                        <p className="wrap-break-words">{activeRun?.error ?? runError}</p>
                       </div>
                     ) : null}
 
@@ -1110,7 +801,7 @@ export default function AgentsPage() {
                             <div key={event.id} className="flex gap-3 rounded-xs bg-background px-3 py-3 text-xs">
                               <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${event.level === "error" ? "bg-alert-red" : event.level === "success" ? "bg-status-green" : event.level === "warning" ? "bg-warning" : "bg-accent"}`} />
                               <div className="min-w-0">
-                                <p className="break-words leading-5 text-foreground">{event.message}</p>
+                                <p className="wrap-break-words leading-5 text-foreground">{event.message}</p>
                                 <p className="mt-1 font-mono text-[10px] text-foreground-off">{event.type}{event.createdAt ? ` · ${formatDate(event.createdAt)}` : ""}</p>
                               </div>
                             </div>
