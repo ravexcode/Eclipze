@@ -8,7 +8,7 @@ interface Props {
     React.SetStateAction<string>
   >;
   values: string[];
-  width?: string;
+  width: string;
 }
 
 export default function SelectorInput(props: Props) {
@@ -16,25 +16,40 @@ export default function SelectorInput(props: Props) {
 
   return (
     <section
-      className={`rounded-sm hover:bg-background-focus bg-background-card p-1 text-sm relative cursor-default text-center flex ${props.width}`}
-      onClick={() => setExpanded(prev => prev ? false : true)}>
-      {props.current}
+      className="relative flex rounded-sm bg-background-card text-center text-sm">
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-haspopup="listbox"
+        className="w-full cursor-pointer rounded-sm hover:bg-background-focus focus-visible:outline-1 focus-visible:outline-accent py-1 px-2"
+        onClick={() => setExpanded(prev => !prev)}>
+        {props.current}
+      </button>
 
       {
         expanded &&
         <div
-          className="w-full rounded-sm flex flex-col items-center justify-center absolute top-1/1 max-h-40 overflow-auto bg-background-card py-2">
+          role="listbox"
+          aria-label="Select a model"
+          className={`absolute top-full left-0 z-10 flex max-h-40 ${props.width} flex-col items-center justify-center overflow-auto rounded-sm bg-background-card py-2 px-4`}>
           {
             props.values.map((value, index) =>
-              <span
+              <button
+                type="button"
                 key={index}
-                className={`w-full px-2 py-1 cursor-default ${value === props.current ? "bg-background-focus" : "hover:bg-background-focus/50"}`}>
+                role="option"
+                aria-selected={value === props.current}
+                className={`w-full cursor-pointer px-2 py-1 text-start ${value === props.current ? "bg-background-focus" : "hover:bg-background-focus/50"}`}
+                onClick={() => {
+                  props.setCurrent(value);
+                  setExpanded(false);
+                }}>
                 {value}
-              </span>
+              </button>
             )
           }
         </div>
       }
     </section>
-  )
+  );
 }

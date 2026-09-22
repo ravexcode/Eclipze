@@ -30,10 +30,6 @@ export default function AgentsPage() {
     defaultModels[0]
   );
 
-  const onSend = () => {
-    return console.log("Prompt sent!");
-  };
-
   return (
     <DashLayout
       current="agents"
@@ -55,7 +51,7 @@ export default function AgentsPage() {
               current={model}
               setCurrent={setModel}
               values={defaultModels}
-              width="w-20" />
+              width="min-w-40" />
 
           </div>
         </section>
