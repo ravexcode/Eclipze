@@ -7,12 +7,13 @@ interface Props {
 
 export default function AgentsInput(props: Props) {
   return (
-    <textarea
+    <input
+      type="text"
       value={props.value}
       onChange={(e) => {
         props.setValue(e.target.value);
       }}
-      className="w-full rounded-sm outline-none text-sm min-h-10 max-h-50 resize-none"
+      className="w-full rounded-sm outline-none text-sm"
       placeholder="Ask me anything.." />
   )
 }
