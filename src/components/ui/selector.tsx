@@ -16,36 +16,27 @@ export default function SelectorInput(props: Props) {
 
   return (
     <section
-      className="relative flex rounded-sm bg-background-card text-center text-sm">
-      <button
-        type="button"
-        aria-expanded={expanded}
-        aria-haspopup="listbox"
-        className="w-full cursor-pointer rounded-sm hover:bg-background-focus focus-visible:outline-1 focus-visible:outline-accent py-1 px-2"
-        onClick={() => setExpanded(prev => !prev)}>
-        {props.current}
-      </button>
+      className={"relative flex rounded-lg bg-background-card p-1 px-3 w-max items-center justify-center cursor-default text-center text-sm hover:cursor-pointer " + (!expanded && "hover:bg-background-focus duration-300")}
+      onClick={() => setExpanded(prev => !prev)}>
+
+      {props.current}
 
       {
         expanded &&
         <div
-          role="listbox"
-          aria-label="Select a model"
-          className={`absolute top-full left-0 z-10 flex max-h-40 ${props.width} flex-col items-center justify-center overflow-auto rounded-sm bg-background-card py-2 px-4`}>
+          className="absolute top-1/1 left-0 rounded-lg flex flex-col items-center justify-start bg-background-card border border-background-focus p-2 overflow-auto max-h-40 w-50 text-start">
           {
             props.values.map((value, index) =>
-              <button
-                type="button"
-                key={index}
-                role="option"
-                aria-selected={value === props.current}
-                className={`w-full cursor-pointer px-2 py-1 text-start ${value === props.current ? "bg-background-focus" : "hover:bg-background-focus/50"}`}
+              <span
                 onClick={() => {
                   props.setCurrent(value);
-                  setExpanded(false);
-                }}>
+                }}
+                key={index}
+                className={"w-full p-1 px-3 rounded-lg hover:bg-background-focus duration-300 hover:cursor-pointer " + (value === props.current && "bg-background-focus")}>
+
                 {value}
-              </button>
+
+              </span>
             )
           }
         </div>

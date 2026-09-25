@@ -16,16 +16,13 @@ export default function AgentsPage() {
   const [prompt, setPrompt] = useState<string>("");
 
   const defaultModels: string[] = [
-    "gpt-5",
-    "gpt-5-chat-latest",
-    "gpt-5-mini",
-    "gpt-5-nano",
-    "gpt-5-thinking",
-    "gpt-5-thinking-mini",
-    "gpt-4.1",
-    "gpt-4.1-mini",
-    "gpt-4.1-nano",
-    "o4-mini"
+    "GPT 6 Astra",
+    "GPT 6 Sol",
+    "GPT 6 Luna",
+    "GPT 5.6 Sol",
+    "GPT 5.6 Terra",
+    "GPT 5.6 Luna",
+    "GPT 5.5 Pro",
   ];
   const [model, setModel] = useState<string>(
     defaultModels[0]
