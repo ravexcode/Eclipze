@@ -5,11 +5,12 @@ import DashLayout from "@/components/layouts/dash";
 import AgentsInput from "@/components/agents/input";
 import Heading from "@/components/ui/heading";
 import SelectorInput from "@/components/ui/selector";
+import Snackbar from "@/components/ui/snackbar";
 import type { AiProviderConnection } from "@/types/ai";
 import type { SessionUser } from "@/types/user";
 import { apiFetch } from "@/utils/api-fetch";
 import { getSessionUser } from "@/utils/session";
-import { getAvailableModels } from "@/utils/agents";
+import { getAvailableModels, type AvailableModel } from "@/utils/agents";
 
 import { useRouter } from "next/navigation";
 
@@ -20,10 +21,11 @@ export default function AgentsPage() {
 
   const [prompt, setPrompt] = useState<string>("");
   const [user, setUser] = useState<SessionUser | null>(null);
-  const [models, setModels] = useState<string[]>([]);
+  const [models, setModels] = useState<AvailableModel[]>([]);
   const [model, setModel] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showNoProvidersSnackbar, setShowNoProvidersSnackbar] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,10 +57,41 @@ export default function AgentsPage() {
           return;
         }
 
-        const availableModels = getAvailableModels(data.connections ?? []);
+        const connections = data.connections ?? [];
+        const savedModels = getAvailableModels(connections);
+        let discoveredModels: AvailableModel[] = [];
+
+        if (connections.some(connection => connection.provider === "OPENROUTER" && connection.connected)) {
+          try {
+            const modelsResponse = await apiFetch("/api/ai-providers/models", {
+              credentials: "include",
+              cache: "no-store",
+            });
+            const modelsData = await modelsResponse.json() as {
+              message?: string;
+              models?: AvailableModel[];
+            };
+
+            if (cancelled) return;
+
+            if (!modelsResponse.ok) {
+              if (savedModels.length === 0) setError(modelsData.message ?? "Unable to load OpenRouter models.");
+            } else {
+              discoveredModels = modelsData.models ?? [];
+            }
+          } catch {
+            if (cancelled) return;
+            if (savedModels.length === 0) setError("Unable to load OpenRouter models.");
+          }
+        }
+
+        if (cancelled) return;
+
+        const availableModels = getAvailableModels(connections, discoveredModels);
         setUser(currentUser);
         setModels(availableModels);
-        setModel(availableModels[0] ?? "");
+        setModel(availableModels[0]?.id ?? "");
+        setShowNoProvidersSnackbar(!connections.some(connection => connection.connected));
       } catch {
         if (!cancelled) {
           setError("Unable to load your available models.");
@@ -98,21 +131,23 @@ export default function AgentsPage() {
                 <p className="text-sm text-priority-high" role="alert">
                   {error}
                 </p>
-              ) : models.length > 0 ? (
+              ) : (
                 <SelectorInput
                   current={model}
                   setCurrent={setModel}
                   values={models}
-                  width="min-w-48" />
-              ) : (
-                <p className="text-xs text-orange-500/80">
-                  No models configured. Connect a provider and choose a model in Settings.
-                </p>
+                  disabled={!models.length || showNoProvidersSnackbar} />
               )}
             </div>
           </section>
         </div>
       </main>
+      {showNoProvidersSnackbar ? (
+        <Snackbar
+          mode="warn"
+          message="You don't have any active AI providers. Connect a provider in Settings to choose a model."
+          onClose={() => setShowNoProvidersSnackbar(false)} />
+      ) : null}
     </DashLayout>
   );
 }

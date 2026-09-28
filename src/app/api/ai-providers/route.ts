@@ -51,6 +51,38 @@ async function validateOpenAiApiKey(apiKey: string) {
   }
 }
 
+async function validateOpenRouterApiKey(apiKey: string) {
+  try {
+    const response = await fetch("https://openrouter.ai/api/v1/models", {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    if (response.ok) return { valid: true as const };
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false as const,
+        status: 400,
+        message: "OpenRouter rejected this API key. Check the key and try again.",
+      };
+    }
+
+    return {
+      valid: false as const,
+      status: 502,
+      message: "OpenRouter could not verify the API key right now. Try again later.",
+    };
+  } catch {
+    return {
+      valid: false as const,
+      status: 503,
+      message: "Unable to reach OpenRouter to verify the API key. Try again later.",
+    };
+  }
+}
+
 function serializeConnection(connection: {
   provider: AiProvider;
   keyHint: string | null;
@@ -172,6 +204,14 @@ export async function PUT(request: Request) {
 
       if (!validation.valid) {
         return NextResponse.json({ message: validation.message }, { status: validation.status });
+      }
+    }
+
+    if (provider === "OPENROUTER") {
+      const validation = await validateOpenRouterApiKey(apiKey);
+
+      if (!validation.valid) {
+        return NextResponse.json({ message: validation.message }, { status: validation.status, headers: PRIVATE_NO_STORE_HEADERS });
       }
     }
 
