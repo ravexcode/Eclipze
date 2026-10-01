@@ -34,3 +34,5 @@ Thumbs.db
 .next/*
 
 scripts/
+# Local AI runtime state
+.atl/

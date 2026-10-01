@@ -1,6 +1,6 @@
 interface:
   display_name: "Eclipse Designer"
-  short_description: "Apply Eclipse UI and Tailwind v4 rules"
+  short_description: "Build Eclipse interfaces to match Figma designs"
   brand_color: "#000BDE"
   default_prompt: "Use $designer to build or refine an Eclipse frontend interface."
 
