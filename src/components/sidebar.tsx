@@ -243,7 +243,7 @@ export default function Sidebar(props: Props) {
                 }
               }}
               aria-hidden={isMenuClosing}
-              className={"absolute bottom-full left-0 z-20 mb-2 w-full rounded-xs border border-background-focus bg-surface p-1 shadow-lg md:top-auto " +
+              className={"absolute bottom-full left-0 z-20 mb-2 w-full rounded-xs border border-background-focus bg-surface p-1 md:top-auto " +
                 (isMenuClosing
                   ? "animate-slide-out-top animate-duration-150 animate-ease-out"
                   : "animate-slide-in-top animate-duration-150 animate-ease-out") +

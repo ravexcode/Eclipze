@@ -65,7 +65,7 @@ function AnnouncementToast({
 
   return (
     <div
-      className={`pointer-events-auto flex w-full items-start gap-3 rounded-sm border bg-background-card px-4 py-3 text-sm shadow-lg animate-fade-in-down ${variantStyles[announcement.variant]}`}
+      className={`pointer-events-auto flex w-full items-start gap-3 rounded-sm border bg-background-card px-4 py-3 text-sm animate-fade-in-down ${variantStyles[announcement.variant]}`}
       role={isError ? "alert" : "status"}
       aria-live={isError ? "assertive" : "polite"}
       aria-atomic="true"

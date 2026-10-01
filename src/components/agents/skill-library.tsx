@@ -175,7 +175,7 @@ export default function SkillLibrary(props: Props) {
     props.skills.some(skill => skill.sourceId === sourceId);
 
   return (
-    <section className="flex flex-col gap-4 rounded-sm bg-background-card p-5">
+    <section className="flex flex-col gap-4 rounded-sm border border-background-focus bg-background-card p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold">Skills</h2>

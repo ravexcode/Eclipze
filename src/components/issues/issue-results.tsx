@@ -49,7 +49,7 @@ export default function IssueResults({
               key={item.id}
               type="button"
               onClick={() => onOpenIssue(item.id)}
-              className="flex w-full flex-col gap-3 rounded-sm bg-background-card p-4 text-left hover:bg-background-focus md:flex-row md:items-center md:justify-between">
+              className="flex w-full flex-col gap-3 rounded-sm border border-background-focus bg-background-card p-4 text-left transition-colors hover:bg-background-focus focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent md:flex-row md:items-center md:justify-between">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-base font-medium">{item.title}</span>

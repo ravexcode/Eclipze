@@ -46,7 +46,7 @@ export default function DeveloperAccountSection(props: {
   };
 
   return (
-    <section className="flex w-full flex-col gap-4 rounded-sm bg-background-card p-5 md:p-6">
+    <section className="flex w-full flex-col gap-4 rounded-sm border border-background-focus bg-background-card p-5 md:p-6">
       <div className="flex items-start gap-3">
         <IconCode className="mt-0.5 shrink-0 text-foreground-off" size={18} />
         <div>

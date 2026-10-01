@@ -7,7 +7,7 @@ export default function ProfileHeader(props: {
 }) {
   return (
     props.user ?
-      <section className="flex min-h-28 items-center gap-4 rounded-sm bg-background-card px-5 md:px-6">
+      <section className="flex min-h-28 items-center gap-4 rounded-sm border border-background-focus bg-background-card px-5 md:px-6">
         <Image
           src={props.avatarUrl || '/logo.svg'}
           alt={props.user?.displayName ?? "User avatar"}
@@ -25,7 +25,7 @@ export default function ProfileHeader(props: {
           </p>
         </div>
       </section> :
-      <section className="flex min-h-28 items-center gap-4 rounded-sm bg-background-card px-5 md:px-6">
+      <section className="flex min-h-28 items-center gap-4 rounded-sm border border-background-focus bg-background-card px-5 md:px-6">
         <span className="h-14 w-14 shrink-0 rounded-full bg-background-focus object-cover animate-pulse" />
         <div className="w-full h-14 rounded-md bg-background-focus animate-pulse block" />
       </section>

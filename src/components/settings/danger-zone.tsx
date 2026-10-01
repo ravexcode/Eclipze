@@ -71,7 +71,7 @@ export default function DangerZone(props: {
   };
 
   return (
-    <section className="flex w-full flex-col gap-5 rounded-sm bg-background-card p-5 md:p-6">
+    <section className="flex w-full flex-col gap-5 rounded-sm border border-background-focus bg-background-card p-5 md:p-6">
       <div className="flex items-start gap-3">
         <IconAlertTriangle className="mt-0.5 shrink-0 text-red-400" size={18} />
         <div>

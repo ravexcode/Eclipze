@@ -27,7 +27,7 @@ export default function IssueForm({
             required
             value={form.title}
             onChange={(event) => onChange({ title: event.target.value })}
-            className="rounded-sm bg-background-focus px-3 py-2 text-foreground outline-hidden"
+            className="rounded-sm bg-background-focus px-3 py-2 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
             placeholder="What do you need help with?"
           />
         </label>
@@ -39,7 +39,7 @@ export default function IssueForm({
             onChange={(event) =>
               onChange({ type: event.target.value as IssueType })
             }
-            className="rounded-sm bg-background-focus px-3 py-2 text-foreground outline-hidden">
+            className="rounded-sm bg-background-focus px-3 py-2 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
             <option value="SUPPORT">Support</option>
             <option value="BUG">Bug</option>
             <option value="FEATURE">Feature</option>
@@ -53,7 +53,7 @@ export default function IssueForm({
             onChange={(event) =>
               onChange({ priority: event.target.value as IssuePriority })
             }
-            className="rounded-sm bg-background-focus px-3 py-2 text-foreground outline-hidden">
+            className="rounded-sm bg-background-focus px-3 py-2 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
             <option value="LOW">Low</option>
             <option value="MEDIUM">Medium</option>
             <option value="HIGH">High</option>
@@ -68,7 +68,7 @@ export default function IssueForm({
           minLength={5}
           value={form.description}
           onChange={(event) => onChange({ description: event.target.value })}
-          className="min-h-28 resize-y rounded-sm bg-background-focus px-3 py-2 text-foreground outline-hidden"
+          className="min-h-28 resize-y rounded-sm bg-background-focus px-3 py-2 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
           placeholder="Describe the issue with enough context for the team."
         />
       </label>

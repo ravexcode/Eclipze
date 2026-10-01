@@ -162,7 +162,7 @@ export default function ProjectsWorkspace() {
       {showForm ? (
         <form
           onSubmit={save}
-          className="flex flex-col gap-4 rounded-xs bg-surface p-5">
+          className="flex flex-col gap-4 rounded-xs border border-background-focus bg-surface p-5">
           <div className="grid gap-4 md:grid-cols-[1fr_180px]">
             <label className="flex flex-col gap-2 text-sm">
               Name
@@ -175,7 +175,7 @@ export default function ProjectsWorkspace() {
                     name: event.target.value,
                   }))
                 }
-                className="rounded-xs bg-surface-raised px-3 py-2 text-sm outline-hidden"
+                className="rounded-xs bg-surface-raised px-3 py-2 text-sm outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
                 placeholder="Eclipse"
               />
             </label>
@@ -189,7 +189,7 @@ export default function ProjectsWorkspace() {
                     status: event.target.value as ProjectStatus,
                   }))
                 }
-                className="rounded-xs bg-surface-raised px-3 py-2 text-sm outline-hidden">
+                className="rounded-xs bg-surface-raised px-3 py-2 text-sm outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
                 <option value="ACTIVE">Active</option>
                 <option value="AT_RISK">At risk</option>
                 <option value="COMPLETED">Completed</option>
@@ -206,7 +206,7 @@ export default function ProjectsWorkspace() {
                   description: event.target.value,
                 }))
               }
-              className="min-h-24 resize-y rounded-xs bg-surface-raised px-3 py-2 text-sm outline-hidden"
+              className="min-h-24 resize-y rounded-xs bg-surface-raised px-3 py-2 text-sm outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
               placeholder="What is this project for?"
             />
           </label>
@@ -221,7 +221,7 @@ export default function ProjectsWorkspace() {
                   externalUrl: event.target.value,
                 }))
               }
-              className="rounded-xs bg-surface-raised px-3 py-2 text-sm outline-hidden"
+              className="rounded-xs bg-surface-raised px-3 py-2 text-sm outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
               placeholder="https://github.com/org/repo"
             />
           </label>
@@ -259,7 +259,7 @@ export default function ProjectsWorkspace() {
           {projects.map((project) => (
             <article
               key={project.id}
-              className={`flex flex-col gap-4 rounded-xs bg-surface p-5 sm:flex-row sm:items-start sm:justify-between ${project.status === "AT_RISK" ? "border border-alert-red" : "border border-transparent"}`}>
+              className="flex flex-col gap-4 rounded-xs border border-background-focus bg-surface p-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex min-w-0 items-start gap-3">
                 <span
                   className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${PROJECT_STATUS_DOT[project.status]}`}

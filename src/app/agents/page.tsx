@@ -205,7 +205,7 @@ export default function AgentsPage() {
       <main className="flex min-h-dvh min-w-0 flex-col">
         <Heading label="Agent" />
         <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-5 px-5 py-8 sm:px-8 lg:px-10">
-          <section className="flex flex-col gap-5 rounded-sm bg-background-card p-5 sm:p-6">
+          <section className="flex flex-col gap-5 rounded-sm border border-background-focus bg-background-card p-5 sm:p-6">
             <div>
               <h1 className="text-lg font-semibold">Start a task</h1>
               <p className="mt-1 text-sm text-foreground-off">Describe what you want to understand or work through in a repository.</p>
@@ -223,7 +223,7 @@ export default function AgentsPage() {
                 value={prompt}
                 onChange={event => setPrompt(event.target.value)}
                 placeholder="Explain what should be explored, reviewed, or planned…"
-                className="resize-y rounded-sm bg-background-focus px-4 py-3 text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-accent" />
+                className="resize-y rounded-sm bg-background-focus px-4 py-3 text-sm outline-hidden focus-visible:ring-1 focus-visible:ring-accent" />
             </label>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -236,7 +236,7 @@ export default function AgentsPage() {
               </label>
               <div className="flex flex-col gap-2 text-sm font-medium">
                 Model
-                {isLoading ? <span className="text-foreground-off">Loading models…</span> : (
+                {isLoading ? <span role="status" className="text-foreground-off">Loading models…</span> : (
                   <SelectorInput current={model} setCurrent={setModel} values={models} disabled={!models.length || showNoProvidersSnackbar} />
                 )}
               </div>
@@ -280,7 +280,7 @@ export default function AgentsPage() {
             onSkillsChanged={loadSkills} />
 
           {activeRun ? (
-            <section className="flex flex-col gap-4 rounded-sm bg-background-card p-5" aria-live="polite">
+            <section className="flex flex-col gap-4 rounded-sm border border-background-focus bg-background-card p-5" aria-live="polite">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-base font-semibold">Task progress</h2>

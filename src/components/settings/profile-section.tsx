@@ -71,7 +71,7 @@ export default function ProfileSection(props: {
   };
 
   return (
-    <section className="overflow-hidden rounded-sm bg-background-card">
+    <section className="overflow-hidden rounded-sm border border-background-focus bg-background-card">
       <button
         type="button"
         className={`flex min-h-14 w-full items-center justify-between px-4 text-left text-base font-semibold duration-300 hover:bg-background-focus focus:outline-none focus-visible:ring-1 focus-visible:ring-accent ${isOpen ? "bg-background-focus" : ""}`}

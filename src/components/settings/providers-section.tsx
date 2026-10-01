@@ -152,7 +152,7 @@ export default function ProvidersSection() {
   };
 
   return (
-    <section className="flex w-full flex-col gap-5 rounded-sm bg-background-card p-5 md:p-6">
+    <section className="flex w-full flex-col gap-5 rounded-sm border border-background-focus bg-background-card p-5 md:p-6">
       <div>
         <h2 className="text-base font-semibold tracking-[-0.01em]">
           AI providers
