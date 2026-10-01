@@ -139,7 +139,7 @@ export function buildDashboardMetrics(input: {
 
 export async function getWorkspaceSnapshot(user: WorkspaceUser): Promise<WorkspaceSnapshot> {
   const userId = user.id;
-  const [projects, issues, agents, agentSessions] = await Promise.all([
+  const [projects, issues, agents, agentSessions, notifications] = await Promise.all([
     prisma.project.findMany({
       where: { userId },
       orderBy: { updatedAt: "desc" },
@@ -160,6 +160,19 @@ export async function getWorkspaceSnapshot(user: WorkspaceUser): Promise<Workspa
       orderBy: { startedAt: "desc" },
       select: { id: true, agentId: true, projectId: true, description: true, model: true, status: true, startedAt: true, endedAt: true, createdAt: true, updatedAt: true },
     }),
+    prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 8,
+      select: {
+        id: true,
+        issueId: true,
+        type: true,
+        createdAt: true,
+        readAt: true,
+        issue: { select: { id: true, title: true } },
+      },
+    }),
   ]);
 
   return {
@@ -168,6 +181,11 @@ export async function getWorkspaceSnapshot(user: WorkspaceUser): Promise<Workspa
     issues: issues.map(serializeIssue),
     agents: agents.map(serializeAgent),
     agentSessions: agentSessions.map(serializeAgentSession),
+    notifications: notifications.map(notification => ({
+      ...notification,
+      createdAt: notification.createdAt.toISOString(),
+      readAt: iso(notification.readAt),
+    })),
     metrics: buildDashboardMetrics({ issues, projectsTotal: projects.length, activeSessionsTotal: agentSessions.filter(session => session.status === "ACTIVE").length }),
   };
 }

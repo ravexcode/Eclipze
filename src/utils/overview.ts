@@ -1,51 +1,133 @@
-import type { WorkspaceAgentSession } from "@/types/user";
+import type { WorkspaceAgentSession, WorkspaceIssue, WorkspaceNotification } from "@/types/user";
 
-export function sessionGroupLabel(isoDate: string) {
-  const started = new Date(isoDate);
+export type MonthIssueDay = {
+  day: number;
+  count: number;
+};
 
-  if (Number.isNaN(started.getTime())) {
-    return "Earlier";
-  }
+export type AgentUsagePeriod = {
+  label: string;
+  totalMilliseconds: number;
+  sessionCount: number;
+};
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+export function formatOverviewMonth(date: Date) {
+  const month = new Intl.DateTimeFormat("en", { month: "long" }).format(date);
 
-  const day = new Date(started);
-  day.setHours(0, 0, 0, 0);
-
-  const diffDays = Math.round((today.getTime() - day.getTime()) / 86_400_000);
-
-  if (diffDays === 0) {
-    return "Today";
-  }
-
-  if (diffDays === 1) {
-    return "Yesterday";
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-  }).format(started);
+  return `${month} ${date.getFullYear()} Issues`;
 }
 
-export function groupSessionsByDay(sessions: WorkspaceAgentSession[]) {
-  const groups = new Map<string, WorkspaceAgentSession[]>();
+export function getMonthIssueDays(issues: WorkspaceIssue[], date = new Date()): MonthIssueDay[] {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const countsByDay = new Map<number, number>();
 
-  for (const session of sessions) {
-    const label = sessionGroupLabel(session.startedAt);
-    const existing = groups.get(label) ?? [];
-    existing.push(session);
-    groups.set(label, existing);
+  for (const issue of issues) {
+    const createdAt = new Date(issue.createdAt);
+
+    if (createdAt.getFullYear() !== year || createdAt.getMonth() !== month) {
+      continue;
+    }
+
+    const day = createdAt.getDate();
+    countsByDay.set(day, (countsByDay.get(day) ?? 0) + 1);
   }
 
-  return [...groups.entries()];
+  return Array.from({ length: daysInMonth }, (_, index) => {
+    const day = index + 1;
+
+    return {
+      day,
+      count: countsByDay.get(day) ?? 0,
+    };
+  });
 }
 
-export function chartBarHeight(count: number, peak: number) {
-  if (peak <= 0) {
-    return 8;
+function getPeriodStart(period: "day" | "week" | "month", date: Date) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+
+  if (period === "week") {
+    const daysSinceMonday = (start.getDay() + 6) % 7;
+    start.setDate(start.getDate() - daysSinceMonday);
   }
 
-  return Math.max(8, Math.round((count / peak) * 88));
+  if (period === "month") {
+    start.setDate(1);
+  }
+
+  return start.getTime();
+}
+
+function getSessionOverlap(session: WorkspaceAgentSession, from: number, to: number) {
+  const sessionStart = new Date(session.startedAt).getTime();
+  const sessionEnd = session.endedAt ? new Date(session.endedAt).getTime() : to;
+  const overlapStart = Math.max(sessionStart, from);
+  const overlapEnd = Math.min(sessionEnd, to);
+
+  return Math.max(0, overlapEnd - overlapStart);
+}
+
+export function getAgentUsagePeriods(sessions: WorkspaceAgentSession[], date = new Date()): AgentUsagePeriod[] {
+  const now = date.getTime();
+  const periods = [
+    { label: "Today", key: "day" as const },
+    { label: "This week", key: "week" as const },
+    { label: "This month", key: "month" as const },
+  ];
+
+  return periods.map(period => {
+    const start = getPeriodStart(period.key, date);
+    let totalMilliseconds = 0;
+    let sessionCount = 0;
+
+    for (const session of sessions) {
+      const overlap = getSessionOverlap(session, start, now);
+
+      if (overlap <= 0) {
+        continue;
+      }
+
+      totalMilliseconds += overlap;
+      sessionCount += 1;
+    }
+
+    return {
+      label: period.label,
+      totalMilliseconds,
+      sessionCount,
+    };
+  });
+}
+
+export function formatUsageDuration(milliseconds: number) {
+  const totalMinutes = Math.floor(milliseconds / 60_000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours === 0) {
+    return `${minutes}m`;
+  }
+
+  if (minutes === 0) {
+    return `${hours}h`;
+  }
+
+  return `${hours}h ${minutes}m`;
+}
+
+export function getNotificationLabel(notification: WorkspaceNotification) {
+  const issueTitle = notification.issue?.title ?? "an issue";
+
+  switch (notification.type) {
+    case "ISSUE_CREATED":
+      return `New issue: ${issueTitle}`;
+    case "ISSUE_MESSAGE":
+      return `New message: ${issueTitle}`;
+    case "ISSUE_STATUS_CHANGED":
+      return `Issue status changed: ${issueTitle}`;
+    case "ISSUE_PRIORITY_CHANGED":
+      return `Issue priority changed: ${issueTitle}`;
+  }
 }

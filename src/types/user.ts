@@ -98,6 +98,15 @@ export type DashboardMetrics = {
   activeSessionsTotal: number;
 };
 
+export type WorkspaceNotification = {
+  id: string;
+  issueId: string | null;
+  type: "ISSUE_CREATED" | "ISSUE_MESSAGE" | "ISSUE_STATUS_CHANGED" | "ISSUE_PRIORITY_CHANGED";
+  createdAt: string;
+  readAt: string | null;
+  issue: { id: string; title: string } | null;
+};
+
 export type WorkspaceSnapshot = {
   user: SessionUser;
   projects: WorkspaceProject[];
@@ -105,6 +114,7 @@ export type WorkspaceSnapshot = {
   agents: WorkspaceAgent[];
   agentSessions: WorkspaceAgentSession[];
   metrics: DashboardMetrics;
+  notifications?: WorkspaceNotification[];
 };
 
 export type AuthApiResponse = {

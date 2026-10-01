@@ -13,6 +13,7 @@ import {
 
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import Image from "next/image";
+import Link from "next/link";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/utils/api-fetch";
@@ -130,16 +131,16 @@ export default function Sidebar(props: Props) {
       selected: props.selected === "issues"
     },
     {
-      label: "Agent",
-      icon: <IconPointer2 size={16} strokeWidth={2} />,
-      action: () => { router.push("/agents") },
-      selected: props.selected === "agents"
-    },
-    {
       label: "Projects",
       icon: <IconFolders size={16} strokeWidth={2} />,
       action: () => { router.push("/projects") },
       selected: props.selected === "projects"
+    },
+    {
+      label: "Agents",
+      icon: <IconPointer2 size={16} strokeWidth={2} />,
+      action: () => { router.push("/agents") },
+      selected: props.selected === "agents"
     },
   ];
 
@@ -165,19 +166,41 @@ export default function Sidebar(props: Props) {
           setIsSidebarClosing(false);
         }
       }}
-      className={"sticky top-0 z-10 flex h-auto w-full flex-col items-center justify-start border-b border-background-focus bg-surface p-3 md:h-dvh md:w-81 md:border-b-0 md:p-4 " +
+      className={"sticky top-0 z-10 flex h-auto w-full flex-col items-center justify-start border-b border-background-focus bg-surface p-3 md:h-dvh md:w-[200px] md:border-b-0 md:p-3 " +
         (isSidebarClosing
           ? "animate-slide-out-left animate-duration-180 animate-ease-out animate-slide-distance-[8px]"
           : "animate-slide-in-left animate-duration-180 animate-ease-out animate-slide-distance-[8px]") +
         " motion-reduce:animate-none"}>
-      <div
-        className="flex w-full items-start justify-center gap-2">
-        <div
-          ref={menuRef}
-          className="relative w-full">
+      <div className="flex w-full flex-col md:h-full">
+        <div className="flex w-full items-center justify-between px-2">
+          <Link href="/dashboard" aria-label="Eclipze dashboard" className="rounded-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+            <Image src="/logo.svg" alt="" width={18} height={18} />
+          </Link>
           <button
             type="button"
-            className="flex w-full select-none items-center justify-start gap-2 rounded-xs px-3 py-2 transition-colors hover:bg-surface-raised"
+            className="rounded-xs p-2 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground"
+            onClick={toggle}
+            aria-label="Collapse sidebar">
+            <IconLayoutSidebar size={16} strokeWidth={2} />
+          </button>
+        </div>
+
+        <nav aria-label="Main navigation" className="mt-5 flex w-full flex-row items-center justify-start gap-1 overflow-x-auto md:flex-col md:items-stretch">
+          {options.map(option => (
+            <Option
+              key={option.label}
+              label={option.label}
+              icon={option.icon}
+              selected={option.selected}
+              action={option.action}
+            />
+          ))}
+        </nav>
+
+        <div ref={menuRef} className="relative mt-4 w-full md:mt-auto">
+          <button
+            type="button"
+            className="flex w-full select-none items-center justify-start gap-2 rounded-xs px-2 py-2 transition-colors hover:bg-surface-raised"
             onClick={() => {
               if (menuOpen) {
                 closeMenu();
@@ -188,93 +211,62 @@ export default function Sidebar(props: Props) {
             }}
             aria-expanded={menuOpen && !isMenuClosing}
             aria-haspopup="menu">
-            {
-              props.user ?
-                <>
-                  <Image
+            {props.user ? (
+              <>
+                <Image
                   src={props.user.avatar}
                   alt={props.user.name}
                   width={16}
                   height={16}
-                  className="w-4 h-4 rounded-full"
+                  className="h-4 w-4 rounded-full"
                   unoptimized
-                  />
-                  <p
-                    className="w-full text-start font-heading text-xs text-foreground">
-                    {props.user.name}
-                  </p>
-                </> :
-                <div className="animate-pulse flex w-full gap-2">
-                  <span className="w-6 rounded-full aspect-square block bg-background-focus" />
-                  <span className="w-full h-5 rounded-full block bg-background-focus" />
-                </div>
-            }
-            <IconChevronDown
-              size={16}
-              strokeWidth={2} />
+                />
+                <span className="min-w-0 flex-1 truncate text-start text-xs text-foreground">
+                  {props.user.name}
+                </span>
+              </>
+            ) : (
+              <div className="flex w-full animate-pulse gap-2">
+                <span className="block aspect-square w-4 rounded-full bg-background-focus" />
+                <span className="block h-4 w-full rounded-full bg-background-focus" />
+              </div>
+            )}
+            <IconChevronDown size={14} strokeWidth={2} />
           </button>
 
-          {
-            menuOpen ? (
-              <div
-                onAnimationEnd={(event) => {
-                  if (isMenuClosing && event.animationName === "slide-out-top") {
-                    setMenuOpen(false);
-                    setIsMenuClosing(false);
-                  }
-                }}
-                aria-hidden={isMenuClosing}
-                className={"absolute left-0 top-full z-20 mt-2 w-full rounded-xs border border-background-focus bg-surface p-1 shadow-lg " +
-                  (isMenuClosing
-                    ? "animate-slide-out-top animate-duration-150 animate-ease-out"
-                    : "animate-slide-in-top animate-duration-150 animate-ease-out") +
-                  " animate-slide-distance-[6px] motion-reduce:animate-none " +
-                  (isMenuClosing ? "pointer-events-none" : "")}>
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2 rounded-xs px-3 py-2 text-xs text-foreground-off hover:bg-surface-raised hover:text-foreground"
-                  onClick={goToProfileSettings}>
-                  <IconSettings size={16} strokeWidth={2} />
-                  <span>Profile settings</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2 rounded-xs px-3 py-2 text-xs text-foreground-off hover:bg-surface-raised hover:text-foreground disabled:opacity-50"
-                  onClick={() => {
-                    void logout();
-                  }}
-                  disabled={isSigningOut}>
-                  <IconLogout2 size={16} strokeWidth={2} />
-                  <span>{isSigningOut ? "Signing out..." : "Logout"}</span>
-                </button>
-              </div>
-            ) : null
-          }
+          {menuOpen ? (
+            <div
+              onAnimationEnd={event => {
+                if (isMenuClosing && event.animationName === "slide-out-top") {
+                  setMenuOpen(false);
+                  setIsMenuClosing(false);
+                }
+              }}
+              aria-hidden={isMenuClosing}
+              className={"absolute bottom-full left-0 z-20 mb-2 w-full rounded-xs border border-background-focus bg-surface p-1 shadow-lg md:top-auto " +
+                (isMenuClosing
+                  ? "animate-slide-out-top animate-duration-150 animate-ease-out"
+                  : "animate-slide-in-top animate-duration-150 animate-ease-out") +
+                " animate-slide-distance-[6px] motion-reduce:animate-none " +
+                (isMenuClosing ? "pointer-events-none" : "")}>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded-xs px-3 py-2 text-xs text-foreground-off hover:bg-surface-raised hover:text-foreground"
+                onClick={goToProfileSettings}>
+                <IconSettings size={16} strokeWidth={2} />
+                <span>Profile settings</span>
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded-xs px-3 py-2 text-xs text-foreground-off hover:bg-surface-raised hover:text-foreground disabled:opacity-50"
+                onClick={() => void logout()}
+                disabled={isSigningOut}>
+                <IconLogout2 size={16} strokeWidth={2} />
+                <span>{isSigningOut ? "Signing out..." : "Logout"}</span>
+              </button>
+            </div>
+          ) : null}
         </div>
-
-        <button
-          type="button"
-          className="rounded-xs p-2 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground"
-          onClick={toggle}>
-          <IconLayoutSidebar
-            size={16}
-            strokeWidth={2} />
-        </button>
-      </div>
-
-      <div
-        className="mt-5 flex w-full flex-row items-center justify-start gap-1 overflow-x-auto md:flex-col md:items-center md:justify-center">
-        {
-          options.map((option, index) => (
-            <Option
-              key={option.label}
-              label={option.label}
-              icon={option.icon}
-              selected={option.selected}
-              action={option.action} />
-          ))
-        }
       </div>
     </aside>
   );

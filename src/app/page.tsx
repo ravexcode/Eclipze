@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { IconArrowRight } from "@tabler/icons-react";
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -16,54 +15,46 @@ export default async function HomePage() {
 
   return (
     <MarketingLayout hasToken={hasToken}>
-      <section className="relative w-full overflow-hidden px-5 py-16 sm:px-8 sm:py-24 lg:px-10 lg:py-28">
-        <div className="mx-auto grid w-full max-w-330 items-center gap-14 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-16">
-          <div className="relative z-10 max-w-xl animate-blurred-fade-in">
-
-            <p className="mb-5 font-heading text-xs uppercase tracking-[0.18em] text-foreground-off">
-              Developer workflow, without the noise
-            </p>
-
-            <h1 className="max-w-130 font-heading text-5xl font-normal leading-[0.98] tracking-[-0.06em] text-foreground sm:text-6xl lg:text-[4.4rem]">
-              Build faster. <br />
-              Deploy with <br />
-              <span className="text-accent-strong">confidence.</span>
+      <section className="mx-auto grid min-h-[calc(100dvh-5rem)] w-full max-w-[1280px] grid-cols-1 items-center gap-10 overflow-hidden lg:-translate-y-5 lg:grid-cols-[40.4%_59.6%] lg:gap-0">
+        <div className="relative z-10 px-7 py-10 animate-blurred-fade-in lg:py-0">
+          <div className="max-w-[390px]">
+            <h1 className="font-base text-[2.5rem] font-semibold leading-[1.02] tracking-[-0.055em] text-foreground sm:text-[3rem]">
+              Build <span className="text-accent-strong">Faster</span>
+              <br />
+              Deploy with
+              <br />
+              <span className="text-accent-strong">Confidence</span>
             </h1>
 
-            <p className="mt-7 max-w-md text-sm leading-6 text-foreground-off sm:text-base">
-              A focused workspace for projects, issues, and AI agents —
-              built to keep your team moving.
+            <p className="mt-5 max-w-[350px] text-xs leading-5 text-foreground-off sm:text-sm">
+              A focused workspace for projects, issues, and AI agents — built to keep your team moving.
             </p>
 
-            <div className="mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+            <div className="mt-6 flex items-center gap-2">
               <Button
                 variant="main"
                 href="/auth"
-                className="h-10 w-30 cursor-pointer">
+                className="h-8 min-h-0 cursor-pointer px-4">
                 Start
               </Button>
               <Button
                 variant="ghost"
                 href="/about"
-                className="h-10 w-40 cursor-pointer">
+                className="h-8 min-h-0 cursor-pointer px-3">
                 Learn more
-                <IconArrowRight
-                  size={16}
-                  stroke={1.8}
-                />
               </Button>
             </div>
           </div>
-
-          <Image
-            src="/images/dashboard.webp"
-            alt="Eclipze dashboard showing issues, projects, and agent sessions"
-            className="h-auto w-full rounded-xs border border-background-focus object-cover animate-fade-in-up animate-duration-700"
-            width={1000}
-            height={600}
-            priority
-          />
         </div>
+
+        <Image
+          src="/images/dashboard.webp"
+          alt="Eclipze dashboard showing issues, projects, and agent sessions"
+          className="aspect-[763/421] h-auto w-full object-cover animate-fade-in-up animate-duration-700"
+          width={1920}
+          height={926}
+          priority
+        />
       </section>
     </MarketingLayout>
   );

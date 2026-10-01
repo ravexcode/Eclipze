@@ -43,7 +43,7 @@ export default function AuthPage(
       return "Verify your email";
     }
 
-    return type === "in" ? "Welcome back!" : "Get started!";
+    return type === "in" ? "Welcome back!" : "Get started";
   }, [step, type]);
 
   const onSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
@@ -170,11 +170,8 @@ export default function AuthPage(
         onSubmit={onSubmit}
         onError={onError}>
 
-        <div className="mb-5 w-full text-center">
-          <p className="mb-2 font-heading text-[10px] uppercase tracking-[0.18em] text-foreground-off">
-            Eclipze workspace
-          </p>
-          <h1 className="font-heading text-2xl font-normal tracking-[-0.04em]">{greeting}</h1>
+        <div className="mb-3 w-full text-center">
+          <h1 className="font-base text-xl font-semibold tracking-[-0.04em]">{greeting}</h1>
         </div>
 
         {
@@ -327,7 +324,7 @@ export default function AuthPage(
           type="submit"
           variant="main"
           disabled={isSubmitting}
-          className="mt-3 w-full cursor-pointer">
+          className="mt-1 h-[30px] min-h-0 w-full cursor-pointer">
           {isSubmitting ? "Please wait..." : step === "credentials" ? "Continue" : "Verify code"}
         </Button>
 

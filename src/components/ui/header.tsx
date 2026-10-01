@@ -3,16 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 
-function HeaderLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className="rounded-xs px-2 py-1 text-xs text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
-      {children}
-    </Link>
-  );
-}
-
 type CtaValues = {
   link: string;
   label: string;
@@ -33,7 +23,7 @@ export default function Header({ hasToken = false }: { hasToken?: boolean }) {
 
   return (
     <header
-      className="mx-auto flex w-full max-w-[1320px] items-center justify-between border-b border-background-focus px-5 py-4 animate-fade-in-down sm:px-8 lg:px-10">
+      className="mx-auto flex h-20 w-full max-w-[1280px] items-center justify-between px-7 animate-fade-in-down sm:px-8">
       <Link
         href="/"
         aria-label="Eclipze home"
@@ -45,22 +35,6 @@ export default function Header({ hasToken = false }: { hasToken?: boolean }) {
           height={25}
         />
       </Link>
-
-      <div
-        className="hidden items-center justify-center gap-3 text-sm sm:flex">
-        <HeaderLink
-          href="#">
-          Product
-        </HeaderLink>
-        <HeaderLink
-          href="#">
-          Pricing
-        </HeaderLink>
-        <HeaderLink
-          href="#">
-          About us
-        </HeaderLink>
-      </div>
 
       <Link
         href={cta.link}
