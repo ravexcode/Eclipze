@@ -24,9 +24,7 @@ const emptyAgentForm: AgentForm = {
 export default function AgentsGestor() {
   const [agents, setAgents] = useState<WorkspaceAgent[]>([]);
   const [skills, setSkills] = useState<WorkspaceSkill[]>([]);
-  const [selectedSkills, setSelectedSkills] = useState<Record<string, string[]>>(
-    {},
-  );
+  const [selectedSkills, setSelectedSkills] = useState<Record<string, string[]>>({});
   const [projects, setProjects] = useState<WorkspaceProject[]>([]);
   const [repositories, setRepositories] = useState<WorkspaceRepository[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -99,10 +97,10 @@ export default function AgentsGestor() {
   }, []);
 
   useEffect(() => {
-    void load();
+    load();
   }, [load]);
 
-  const saveAgent = async (event: React.FormEvent<HTMLFormElement>) => {
+  const saveAgent = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaving(true);
     setError(null);
@@ -168,7 +166,7 @@ export default function AgentsGestor() {
     await load();
   };
 
-  const connectRepository = async (event: React.FormEvent<HTMLFormElement>) => {
+  const connectRepository = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
 
@@ -209,7 +207,7 @@ export default function AgentsGestor() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[980px] flex-col gap-10 px-5 py-8 sm:px-8">
+    <div className="mx-auto flex w-full max-w-245 flex-col gap-10 px-5 py-8 sm:px-8">
       {error ? (
         <p
           role="alert"

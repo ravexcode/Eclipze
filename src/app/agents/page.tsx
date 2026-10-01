@@ -7,7 +7,6 @@ import Heading from "@/components/ui/heading";
 import SelectorInput from "@/components/ui/selector";
 import Snackbar from "@/components/ui/snackbar";
 import type { AiProviderConnection } from "@/types/ai";
-import type { SessionUser } from "@/types/user";
 import { apiFetch } from "@/utils/api-fetch";
 import { getSessionUser } from "@/utils/session";
 import { getAvailableModels, type AvailableModel } from "@/utils/agents";
@@ -20,7 +19,6 @@ export default function AgentsPage() {
   const router = useRouter();
 
   const [prompt, setPrompt] = useState<string>("");
-  const [user, setUser] = useState<SessionUser | null>(null);
   const [models, setModels] = useState<AvailableModel[]>([]);
   const [model, setModel] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
@@ -88,7 +86,6 @@ export default function AgentsPage() {
         if (cancelled) return;
 
         const availableModels = getAvailableModels(connections, discoveredModels);
-        setUser(currentUser);
         setModels(availableModels);
         setModel(availableModels[0]?.id ?? "");
         setShowNoProvidersSnackbar(!connections.some(connection => connection.connected));

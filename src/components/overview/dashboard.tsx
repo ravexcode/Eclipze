@@ -39,7 +39,7 @@ export default function OverviewDashboard({
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-[980px] flex-col gap-10 px-5 py-8 sm:px-8 lg:py-10">
+    <div className="mx-auto flex w-full max-w-245 flex-col gap-10 px-5 py-8 sm:px-8 lg:py-10">
       {error ? (
         <p
           role="alert"
@@ -247,7 +247,7 @@ export default function OverviewDashboard({
                 {sessions.map((session) => (
                   <article
                     key={session.id}
-                    className="flex min-h-[37px] items-center gap-3 rounded-xs bg-surface px-4 py-2">
+                    className="flex min-h-9.25 items-center gap-3 rounded-xs bg-surface px-4 py-2">
                     <IconTerminal2
                       className="shrink-0 text-foreground-off"
                       size={16}
