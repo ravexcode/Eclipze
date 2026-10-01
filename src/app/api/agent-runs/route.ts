@@ -3,7 +3,6 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth";
-import { resolveSkillSnapshot } from "@/lib/agent-skills";
 import { appendRunEvent, serializeAgentRun, startAgentRun } from "@/lib/agent-runs";
 import { resolveAllowedCommand, createInstructionsDigest } from "@/lib/agent-runner";
 import prisma from "@/lib/prisma";
@@ -46,22 +45,35 @@ export async function POST(request: Request) {
     return badRequest("Invalid JSON body.");
   }
 
-  const sessionId = requiredString(body.sessionId, "sessionId");
   const repositoryId = requiredString(body.repositoryId, "repositoryId");
-  const instructions = requiredString(body.instructions, "instructions");
+  const prompt = requiredString(body.prompt, "prompt");
+  const model = requiredString(body.model, "model");
 
-  if (sessionId.error) return sessionId.error;
   if (repositoryId.error) return repositoryId.error;
-  if (instructions.error) return instructions.error;
-  if (instructions.value.length > 8_000) return badRequest("instructions is too long.");
+  if (prompt.error) return prompt.error;
+  if (model.error) return model.error;
+  if (prompt.value.length > 8_000) return badRequest("prompt is too long.");
+  if (model.value.length > 200) return badRequest("model is too long.");
 
-  const session = await prisma.agentSession.findFirst({
-    where: { id: sessionId.value, userId: user.id },
-    include: { agent: { include: { skillSelections: true } } },
+  let sessionId: string | null = null;
+
+  if (typeof body.sessionId === "string" && body.sessionId.trim()) {
+    const session = await prisma.agentSession.findFirst({
+      where: { id: body.sessionId.trim(), userId: user.id },
+      select: { id: true },
+    });
+
+    if (!session) return notFound("Agent session not found.");
+    sessionId = session.id;
+  }
+
+  const providerConnection = await prisma.aiProviderConnection.findUnique({
+    where: { userId_provider: { userId: user.id, provider: "OPENROUTER" } },
+    select: { encryptedApiKey: true },
   });
 
-  if (!session) {
-    return notFound("Agent session not found.");
+  if (!providerConnection?.encryptedApiKey) {
+    return badRequest("Connect an OpenRouter provider in Settings before starting a task.");
   }
 
   const repository = await prisma.workspaceRepository.findFirst({
@@ -73,38 +85,51 @@ export async function POST(request: Request) {
     return notFound("Repository not found.");
   }
 
+  const requestedSkillIds = Array.isArray(body.skillIds)
+    ? [...new Set(body.skillIds.filter((id): id is string => typeof id === "string"))]
+    : [];
+
+  if (requestedSkillIds.length > 10) {
+    return badRequest("Choose no more than 10 skills per task.");
+  }
+
+  const selectedSkills = requestedSkillIds.length > 0
+    ? await prisma.userSkill.findMany({
+        where: { userId: user.id, id: { in: requestedSkillIds } },
+        select: { id: true, sourceId: true, source: true, slug: true, name: true, content: true, version: true },
+      })
+    : [];
+
+  if (selectedSkills.length !== requestedSkillIds.length) {
+    return badRequest("One or more selected skills are no longer available.");
+  }
+
   const commandKey = typeof body.commandKey === "string" && body.commandKey.trim()
     ? body.commandKey.trim()
     : "git-status";
   const command = resolveAllowedCommand(commandKey);
+  if (!command) return badRequest("Command is not allowed.");
 
-  if (!command) {
-    return badRequest("Command is not allowed.");
-  }
-
-  const skillSnapshot = resolveSkillSnapshot(body.skills, session.agent.skillSelections.map(skill => ({ slug: skill.slug, version: skill.version })));
-
-  if (skillSnapshot.error) {
-    return badRequest(skillSnapshot.error);
-  }
-
-  const model = typeof body.model === "string" && body.model.trim()
-    ? body.model.trim()
-    : session.model || session.agent.defaultModel;
-
-  if (model.length > 200) {
-    return badRequest("model is too long.");
-  }
+  const promptSnapshot = JSON.stringify({ prompt: prompt.value, skills: selectedSkills });
 
   const run = await prisma.agentRun.create({
     data: {
       userId: user.id,
-      agentSessionId: session.id,
+      agentSessionId: sessionId,
       repositoryId: repository.id,
-      model,
+      model: model.value.trim(),
+      prompt: prompt.value,
       commandKey: command.key,
-      instructionsDigest: createInstructionsDigest(instructions.value),
-      skillSnapshot: skillSnapshot.skills.map(skill => ({ slug: skill.slug, version: skill.version })),
+      instructionsDigest: createInstructionsDigest(promptSnapshot),
+      skillSnapshot: selectedSkills.map(skill => ({
+        id: skill.id,
+        sourceId: skill.sourceId,
+        source: skill.source,
+        slug: skill.slug,
+        name: skill.name,
+        version: skill.version,
+        content: skill.content,
+      })),
       workspaceKey: randomUUID(),
     },
     include: { events: true },

@@ -263,6 +263,7 @@ export async function materializePublicRepository(input: {
 
   const cloneEnv: NodeJS.ProcessEnv = {
     PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
+    NODE_ENV: process.env.NODE_ENV ?? "production",
     GIT_TERMINAL_PROMPT: "0",
     GIT_ASKPASS: "true",
     LANG: "C",

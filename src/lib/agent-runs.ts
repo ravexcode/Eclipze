@@ -1,5 +1,6 @@
 import "server-only";
 
+import { generateAgentResponse } from "@/lib/agent-completion";
 import type { AgentRunEventType } from "@/types/agent-runner";
 import prisma from "@/lib/prisma";
 import {
@@ -16,10 +17,11 @@ import { join } from "node:path";
 
 type RunWithRelations = {
   id: string;
-  agentSessionId: string;
+  agentSessionId: string | null;
   repositoryId: string;
   status: string;
   model: string;
+  prompt: string | null;
   commandKey: string;
   instructionsDigest: string;
   skillSnapshot: unknown;
@@ -63,6 +65,7 @@ export function serializeAgentRun(run: RunWithRelations) {
     repositoryId: run.repositoryId,
     status: run.status,
     model: run.model,
+    prompt: run.prompt,
     commandKey: run.commandKey,
     instructionsDigest: run.instructionsDigest,
     skills: skillSnapshot,
@@ -181,36 +184,56 @@ async function executeAgentRun(runId: string, userId: string) {
       return;
     }
 
-    const command = resolveAllowedCommand(run.commandKey);
-
-    if (!command) {
-      await persistEvent({ type: "ERROR", message: "Command is not allowed." });
-      await updateRunFailure(run.id, "COMMAND_NOT_ALLOWED", "Command is not allowed.");
+    if (!run.prompt) {
+      await persistEvent({ type: "ERROR", message: "This task does not include a prompt." });
+      await updateRunFailure(run.id, "PROMPT_MISSING", "This task does not include a prompt.");
       await eventQueue;
       return;
     }
 
-    const commandResult = await runAllowedCommand({
-      runId: run.id,
-      workspacePath: repositoryPath,
-      command: command.key,
-      onEvent: persistEvent,
+    const answer = await generateAgentResponse({
+      userId,
+      model: run.model,
+      prompt: run.prompt,
+      repositoryPath,
+      skillSnapshot: run.skillSnapshot,
     });
 
-    const resultSummary = commandResult.errorCode
-      ? `${commandResult.status}: ${commandResult.errorCode}`
-      : `${commandResult.status} (exit ${commandResult.exitCode ?? 0})`;
-
-    await persistEvent({
-      type: "RESULT",
-      message: resultSummary,
+    const completionRun = await prisma.agentRun.findUnique({
+      where: { id: run.id },
+      select: { status: true, cancelRequestedAt: true },
     });
+
+    if (!completionRun || completionRun.status === "CANCELLED" || completionRun.cancelRequestedAt) {
+      await prisma.agentRun.update({
+        where: { id: run.id },
+        data: {
+          status: "CANCELLED",
+          errorCode: "CANCELLED",
+          resultSummary: null,
+          finishedAt: new Date(),
+        },
+      });
+      await persistEvent({ type: "SYSTEM", message: "Run cancelled." });
+      await eventQueue;
+      return;
+    }
+
+    for (let offset = 0; offset < answer.length; offset += 7_500) {
+      await persistEvent({
+        type: "OUTPUT",
+        message: sanitizeRunnerOutput(answer.slice(offset, offset + 7_500)),
+      });
+    }
+
+    const resultSummary = sanitizeRunnerOutput(answer).slice(0, 500);
+    await persistEvent({ type: "RESULT", message: "Task completed." });
 
     await prisma.agentRun.update({
       where: { id: run.id },
       data: {
-        status: commandResult.status,
-        errorCode: commandResult.errorCode,
+        status: "SUCCEEDED",
+        errorCode: null,
         resultSummary,
         finishedAt: new Date(),
       },

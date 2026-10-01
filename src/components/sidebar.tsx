@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  IconBrain,
   IconChevronDown,
   IconFolders,
   IconLayoutDashboard,
@@ -21,7 +20,7 @@ import CacheDB from "@/utils/cache";
 import { clearSessionUser } from "@/utils/session";
 import { Option } from "./ui/sidebar-option";
 
-type SelectedSection = "overview" | "issues" | "agents" | "agents-gestor" | "projects" | "settings";
+type SelectedSection = "overview" | "issues" | "agents" | "projects" | "settings";
 
 interface Props {
   selected: SelectedSection;
@@ -135,12 +134,6 @@ export default function Sidebar(props: Props) {
       icon: <IconPointer2 size={16} strokeWidth={2} />,
       action: () => { router.push("/agents") },
       selected: props.selected === "agents"
-    },
-    {
-      label: "Agents gestor",
-      icon: <IconBrain size={16} strokeWidth={2} />,
-      action: () => { router.push("/agents/gestor") },
-      selected: props.selected === "agents-gestor"
     },
     {
       label: "Projects",

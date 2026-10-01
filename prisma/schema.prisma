@@ -123,6 +123,7 @@ model User {
   verificationCodes     VerificationCode[]
   accounts              AuthAccount[]
   aiProviderConnections AiProviderConnection[]
+  skills                 UserSkill[]
   projects              Project[]
   issues                Issue[]
   issueMessages         IssueMessage[]
@@ -280,15 +281,35 @@ model AgentSkillSelection {
   @@map("agent_skill_selections")
 }
 
+model UserSkill {
+  id          String   @id @default(cuid())
+  userId      String
+  sourceId    String?
+  source      String
+  slug        String
+  name        String
+  description String
+  content     String   @db.Text
+  version     String   @default("1")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sourceId])
+  @@index([userId, updatedAt])
+  @@map("user_skills")
+}
+
 model AgentRun {
   id                 String             @id @default(cuid())
   userId             String
-  agentSessionId     String
+  agentSessionId     String?
   repositoryId       String
   status             AgentRunStatus     @default(QUEUED)
   model              String
   commandKey         String
   instructionsDigest String
+  prompt             String?            @db.Text
   skillSnapshot      Json
   workspaceKey       String             @unique
   errorCode          String?
@@ -299,7 +320,7 @@ model AgentRun {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  agentSession       AgentSession       @relation(fields: [agentSessionId], references: [id], onDelete: Cascade)
+  agentSession       AgentSession?      @relation(fields: [agentSessionId], references: [id], onDelete: SetNull)
   repository         WorkspaceRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   events             AgentRunEvent[]
 

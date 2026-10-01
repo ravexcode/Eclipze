@@ -56,6 +56,30 @@ export type WorkspaceSkill = {
   instruction: string;
 };
 
+export type LibrarySkill = {
+  id: string;
+  sourceId: string | null;
+  source: string;
+  slug: string;
+  name: string;
+  description: string;
+  content: string;
+  version: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SkillSearchResult = {
+  id: string;
+  name: string;
+  source: string;
+  slug: string;
+  installs: number;
+  description: string;
+  url: string | null;
+  isDuplicate: boolean;
+};
+
 export type AgentSkillSelection = {
   slug: string;
   version: string;
@@ -73,10 +97,11 @@ export type AgentRunEvent = {
 
 export type AgentRun = {
   id: string;
-  agentSessionId: string;
+  agentSessionId: string | null;
   repositoryId: string;
   status: AgentRunStatus;
   model: string;
+  prompt: string | null;
   commandKey: string;
   instructionsDigest: string;
   skills: AgentSkillSelection[];
