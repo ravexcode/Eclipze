@@ -24,7 +24,7 @@ interface Props {
 export default function Input(props: Props) {
   const [visible, setVisible] = useState(false);
 
-  const inputClass = "w-full rounded-xs border border-transparent bg-background-focus px-3 py-2.5 text-sm text-foreground outline-hidden transition-colors placeholder:text-foreground-off/70 focus:border-accent focus:ring-1 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50";
+  const inputClass = "w-full rounded-lg border border-transparent bg-background-focus px-3 py-2.5 text-sm text-foreground outline-hidden transition-colors placeholder:text-foreground-off/70 focus:border-accent focus:ring-1 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <div
@@ -62,20 +62,20 @@ export default function Input(props: Props) {
           </button>
         </>
         :
-          <input
-            type={props.type}
-            value={props.value}
-            onChange={props.onChange}
-            placeholder={props.placeholder}
-            pattern={props.pattern}
-            autoComplete={props.autoComplete}
-            maxLength={props.maxLength}
-            minLength={props.minLength}
-            required={props.required}
-            disabled={props.disabled}
-            className={inputClass}
-          />
-        }
+        <input
+          type={props.type}
+          value={props.value}
+          onChange={props.onChange}
+          placeholder={props.placeholder}
+          pattern={props.pattern}
+          autoComplete={props.autoComplete}
+          maxLength={props.maxLength}
+          minLength={props.minLength}
+          required={props.required}
+          disabled={props.disabled}
+          className={inputClass}
+        />
+      }
     </div>
   );
 }

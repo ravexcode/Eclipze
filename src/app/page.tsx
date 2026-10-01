@@ -15,9 +15,9 @@ export default async function HomePage() {
 
   return (
     <MarketingLayout hasToken={hasToken}>
-      <section className="mx-auto grid min-h-[calc(100dvh-5rem)] w-full max-w-[1280px] grid-cols-1 items-center gap-10 overflow-hidden lg:-translate-y-5 lg:grid-cols-[40.4%_59.6%] lg:gap-0">
+      <section className="mx-auto grid min-h-[calc(100dvh-5rem)] w-full max-w-7xl grid-cols-1 items-center gap-10 overflow-hidden lg:-translate-y-5 lg:grid-cols-[40.4%_59.6%] lg:gap-0">
         <div className="relative z-10 px-7 py-10 animate-blurred-fade-in lg:py-0">
-          <div className="max-w-[390px]">
+          <div className="max-w-97.5">
             <h1 className="font-base text-[2.5rem] font-semibold leading-[1.02] tracking-[-0.055em] text-foreground sm:text-[3rem]">
               Build <span className="text-accent-strong">Faster</span>
               <br />
@@ -26,7 +26,7 @@ export default async function HomePage() {
               <span className="text-accent-strong">Confidence</span>
             </h1>
 
-            <p className="mt-5 max-w-[350px] text-xs leading-5 text-foreground-off sm:text-sm">
+            <p className="mt-5 max-w-87.5 text-xs leading-5 text-foreground-off sm:text-sm">
               A focused workspace for projects, issues, and AI agents — built to keep your team moving.
             </p>
 
@@ -50,7 +50,7 @@ export default async function HomePage() {
         <Image
           src="/images/dashboard.webp"
           alt="Eclipze dashboard showing issues, projects, and agent sessions"
-          className="aspect-[763/421] h-auto w-full object-cover animate-fade-in-up animate-duration-700"
+          className="aspect-763/421 h-auto w-full object-cover animate-fade-in-up animate-duration-700"
           width={1920}
           height={926}
           priority

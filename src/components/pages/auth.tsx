@@ -21,7 +21,7 @@ import { IconArrowLeft } from "@tabler/icons-react";
 
 export default function AuthPage(
   { type }:
-  { type: "in" | "up" }
+    { type: "in" | "up" }
 ) {
   const router = useRouter();
   const { announce } = useAnnouncements();
@@ -324,7 +324,7 @@ export default function AuthPage(
           type="submit"
           variant="main"
           disabled={isSubmitting}
-          className="mt-1 h-[30px] min-h-0 w-full cursor-pointer">
+          className="mt-1 h-8 min-h-0 w-full cursor-pointer rounded-lg">
           {isSubmitting ? "Please wait..." : step === "credentials" ? "Continue" : "Verify code"}
         </Button>
 
@@ -401,10 +401,10 @@ export default function AuthPage(
           step === "credentials" &&
           <p
             className="w-full text-center text-xs text-foreground-off">
-            { type === "in" ? "Don't have an account?" : "Already have an account?" } <Link
-              href={ type === "in" ? "/auth/signup" : "/auth/signin" }
+            {type === "in" ? "Don't have an account?" : "Already have an account?"} <Link
+              href={type === "in" ? "/auth/signup" : "/auth/signin"}
               className="hover:text-accent duration-300 underline">
-                {type === "in" ? "Sign up" : "Sign in"}
+              {type === "in" ? "Sign up" : "Sign in"}
             </Link>
           </p>
         }
