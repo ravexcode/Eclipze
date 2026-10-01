@@ -239,3 +239,117 @@ export function getRunnerMaterializationError() {
     message: "Repository provider materialization is not configured on this server.",
   } as const;
 }
+
+export async function materializePublicRepository(input: {
+  repositoryUrl: string;
+  defaultBranch: string;
+  destinationPath: string;
+  onEvent(event: RunnerEvent): Promise<void> | void;
+}) {
+  const root = getWorkspaceRoot();
+
+  if (!isSafeWorkspacePath(root, input.destinationPath)) {
+    return {
+      ok: false as const,
+      code: "UNSAFE_WORKSPACE",
+      message: "Workspace path is outside the server workspace root.",
+    };
+  }
+
+  await input.onEvent({
+    type: "SYSTEM",
+    message: `Cloning ${input.repositoryUrl} (${input.defaultBranch}).`,
+  });
+
+  const cloneEnv: NodeJS.ProcessEnv = {
+    PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
+    GIT_TERMINAL_PROMPT: "0",
+    GIT_ASKPASS: "true",
+    LANG: "C",
+  };
+
+  return new Promise<{
+    ok: true;
+  } | {
+    ok: false;
+    code: string;
+    message: string;
+  }>(resolveResult => {
+    const child = spawn(
+      "git",
+      [
+        "clone",
+        "--depth",
+        "1",
+        "--single-branch",
+        "--branch",
+        input.defaultBranch,
+        "--",
+        input.repositoryUrl,
+        input.destinationPath,
+      ],
+      {
+        cwd: root,
+        env: cloneEnv,
+        shell: false,
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    );
+
+    let stderr = "";
+    let settled = false;
+
+    const finish = (result: {
+      ok: true;
+    } | {
+      ok: false;
+      code: string;
+      message: string;
+    }) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      resolveResult(result);
+    };
+
+    child.stderr.on("data", chunk => {
+      stderr += chunk.toString("utf8").slice(0, 4_000);
+    });
+
+    child.on("error", error => {
+      finish({
+        ok: false,
+        code: "GIT_UNAVAILABLE",
+        message: sanitizeRunnerOutput(error.message),
+      });
+    });
+
+    child.on("close", code => {
+      if (code === 0) {
+        finish({ ok: true });
+        return;
+      }
+
+      finish({
+        ok: false,
+        code: "CLONE_FAILED",
+        message: sanitizeRunnerOutput(
+          stderr.trim() || `git clone exited with code ${code}.`,
+        ).slice(0, 500),
+      });
+    });
+
+    setTimeout(() => {
+      if (!settled) {
+        terminateProcess(child as unknown as ChildProcessWithoutNullStreams);
+        finish({
+          ok: false,
+          code: "CLONE_TIMEOUT",
+          message: "Repository clone timed out.",
+        });
+      }
+    }, RUNNER_LIMITS.timeoutMs).unref();
+  });
+}

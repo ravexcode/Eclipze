@@ -6,12 +6,13 @@ import {
   cancelCommandForRun,
   cleanupRunWorkspace,
   createRunWorkspace,
-  getRunnerMaterializationError,
+  materializePublicRepository,
   resolveAllowedCommand,
   runAllowedCommand,
   sanitizeRunnerOutput,
   type RunnerEvent,
 } from "@/lib/agent-runner";
+import { join } from "node:path";
 
 type RunWithRelations = {
   id: string;
@@ -148,9 +149,72 @@ async function executeAgentRun(runId: string, userId: string) {
     });
     await persistEvent({ type: "SYSTEM", message: "Run started." });
 
-    const materializationError = getRunnerMaterializationError();
-    await persistEvent({ type: "ERROR", message: materializationError.message, metadata: { code: materializationError.code } });
-    await updateRunFailure(run.id, materializationError.code, materializationError.message, "BLOCKED");
+    const repositoryPath = join(workspacePath, "repo");
+    const cloneResult = await materializePublicRepository({
+      repositoryUrl: run.repository.repositoryUrl,
+      defaultBranch: run.repository.defaultBranch,
+      destinationPath: repositoryPath,
+      onEvent: persistEvent,
+    });
+
+    if (!cloneResult.ok) {
+      await persistEvent({
+        type: "ERROR",
+        message: cloneResult.message,
+        metadata: { code: cloneResult.code },
+      });
+      await updateRunFailure(run.id, cloneResult.code, cloneResult.message);
+      await eventQueue;
+      return;
+    }
+
+    await persistEvent({ type: "SYSTEM", message: "Repository ready." });
+
+    const cancelled = await prisma.agentRun.findUnique({
+      where: { id: run.id },
+      select: { cancelRequestedAt: true, status: true },
+    });
+
+    if (!cancelled || cancelled.status === "CANCELLED" || cancelled.cancelRequestedAt) {
+      await persistEvent({ type: "SYSTEM", message: "Run cancelled after clone." });
+      await eventQueue;
+      return;
+    }
+
+    const command = resolveAllowedCommand(run.commandKey);
+
+    if (!command) {
+      await persistEvent({ type: "ERROR", message: "Command is not allowed." });
+      await updateRunFailure(run.id, "COMMAND_NOT_ALLOWED", "Command is not allowed.");
+      await eventQueue;
+      return;
+    }
+
+    const commandResult = await runAllowedCommand({
+      runId: run.id,
+      workspacePath: repositoryPath,
+      command: command.key,
+      onEvent: persistEvent,
+    });
+
+    const resultSummary = commandResult.errorCode
+      ? `${commandResult.status}: ${commandResult.errorCode}`
+      : `${commandResult.status} (exit ${commandResult.exitCode ?? 0})`;
+
+    await persistEvent({
+      type: "RESULT",
+      message: resultSummary,
+    });
+
+    await prisma.agentRun.update({
+      where: { id: run.id },
+      data: {
+        status: commandResult.status,
+        errorCode: commandResult.errorCode,
+        resultSummary,
+        finishedAt: new Date(),
+      },
+    });
     await eventQueue;
   } catch (error) {
     const message = sanitizeRunnerOutput(error instanceof Error ? error.message : "Runner failed unexpectedly.");
@@ -160,8 +224,6 @@ async function executeAgentRun(runId: string, userId: string) {
   } finally {
     await cleanupRunWorkspace(userId, run.id);
   }
-
-  void workspacePath;
 }
 
 export function startAgentRun(runId: string, userId: string) {
