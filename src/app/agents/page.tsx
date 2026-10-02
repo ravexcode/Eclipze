@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 
 import DashLayout from "@/components/layouts/dash";
 import SkillLibrary from "@/components/agents/skill-library";
-import Heading from "@/components/ui/heading";
 import SelectorInput from "@/components/ui/selector";
 import Snackbar from "@/components/ui/snackbar";
 import Button from "@/components/ui/button";
+import { IconAdjustments, IconArrowUp, IconCode, IconSparkles } from "@tabler/icons-react";
 import type { AiProviderConnection } from "@/types/ai";
 import type { AgentRun, LibrarySkill, WorkspaceRepository } from "@/types/agent-runner";
 import { apiFetch } from "@/utils/api-fetch";
@@ -36,7 +36,7 @@ export default function AgentsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showNoProvidersSnackbar, setShowNoProvidersSnackbar] = useState(false);
-  const [activeRun, setActiveRun] = useState<AgentRun | null>(null);
+  const [showTaskSettings, setShowTaskSettings] = useState(false);
 
   const loadSkills = useCallback(async (newSkillId?: string) => {
     const response = await apiFetch("/api/skills", { cache: "no-store" });
@@ -121,28 +121,6 @@ export default function AgentsPage() {
     return () => { cancelled = true; };
   }, [router]);
 
-  useEffect(() => {
-    if (!activeRun || !["QUEUED", "RUNNING"].includes(activeRun.status)) return;
-    let cancelled = false;
-    let timer: ReturnType<typeof setTimeout>;
-
-    const poll = async () => {
-      try {
-        const response = await apiFetch(`/api/agent-runs/${activeRun.id}`, { cache: "no-store" });
-        const payload = await readJson(response) as { run?: AgentRun; message?: string };
-        if (!response.ok || !payload.run) throw new Error(payload.message ?? "Unable to load task progress.");
-        if (cancelled) return;
-        setActiveRun(payload.run);
-        if (["QUEUED", "RUNNING"].includes(payload.run.status)) timer = setTimeout(poll, 1_500);
-      } catch (pollError) {
-        if (!cancelled) setError(pollError instanceof Error ? pollError.message : "Unable to load task progress.");
-      }
-    };
-
-    timer = setTimeout(poll, 800);
-    return () => { cancelled = true; clearTimeout(timer); };
-  }, [activeRun]);
-
   const addRepository = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
@@ -167,7 +145,6 @@ export default function AgentsPage() {
     if (!repositoryId || !model || showNoProvidersSnackbar) return;
     setError(null);
     setIsSubmitting(true);
-    setActiveRun(null);
     try {
       const response = await apiFetch("/api/agent-runs", {
         method: "POST",
@@ -176,24 +153,13 @@ export default function AgentsPage() {
       });
       const payload = await readJson(response) as { run?: AgentRun; message?: string };
       if (!response.ok || !payload.run) throw new Error(payload.message ?? "Unable to start this task.");
-      setActiveRun(payload.run);
       setPrompt("");
+      router.push(`/agents/${payload.run.id}`);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Unable to start this task.");
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const cancelTask = async () => {
-    if (!activeRun) return;
-    const response = await apiFetch(`/api/agent-runs/${activeRun.id}/cancel`, { method: "POST" });
-    const payload = await readJson(response) as { run?: AgentRun; message?: string };
-    if (!response.ok) {
-      setError(payload.message ?? "Unable to cancel this task.");
-      return;
-    }
-    if (payload.run) setActiveRun(payload.run);
   };
 
   const toggleSkill = (id: string) => {
@@ -203,57 +169,67 @@ export default function AgentsPage() {
   return (
     <DashLayout current="agents" router={router}>
       <main className="flex min-h-dvh min-w-0 flex-col">
-        <Heading label="Agent" />
-        <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-5 px-5 py-8 sm:px-8 lg:px-10">
-          <section className="flex flex-col gap-5 rounded-sm border border-background-focus bg-background-card p-5 sm:p-6">
-            <div>
-              <h1 className="text-lg font-semibold">Start a task</h1>
-              <p className="mt-1 text-sm text-foreground-off">Describe what you want to understand or work through in a repository.</p>
-            </div>
-
-            {error ? <p role="alert" className="text-sm text-priority-high">{error}</p> : null}
-            {isLoading ? <p role="status" className="text-sm text-foreground-off">Loading your workspace…</p> : null}
-
-            <label className="flex flex-col gap-2 text-sm font-medium">
-              Task
+        <section className="flex flex-1 flex-col items-center justify-center px-5 py-10">
+          <div className="w-full max-w-[600px]">
+            <div className="rounded-sm bg-background-card p-2.5 sm:p-3">
+              <label htmlFor="agent-prompt" className="sr-only">Ask an agent</label>
               <textarea
+                id="agent-prompt"
                 required
                 maxLength={8_000}
-                rows={6}
+                rows={2}
                 value={prompt}
                 onChange={event => setPrompt(event.target.value)}
-                placeholder="Explain what should be explored, reviewed, or planned…"
-                className="resize-y rounded-sm bg-background-focus px-4 py-3 text-sm outline-hidden focus-visible:ring-1 focus-visible:ring-accent" />
-            </label>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="flex flex-col gap-2 text-sm font-medium">
-                Repository
-                <select value={repositoryId} onChange={event => setRepositoryId(event.target.value)} disabled={!repositories.length} className="min-h-10 rounded-sm bg-background-focus px-3 text-sm disabled:brightness-[0.8] disabled:cursor-not-allowed">
-                  <option value="">Select a repository</option>
-                  {repositories.map(repository => <option key={repository.id} value={repository.id}>{repository.repositoryUrl} ({repository.defaultBranch})</option>)}
-                </select>
-              </label>
-              <div className="flex flex-col gap-2 text-sm font-medium">
-                Model
-                {isLoading ? <span role="status" className="text-foreground-off">Loading models…</span> : (
-                  <SelectorInput current={model} setCurrent={setModel} values={models} disabled={!models.length || showNoProvidersSnackbar} />
-                )}
+                onKeyDown={event => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    void submitTask();
+                  }
+                }}
+                placeholder="Ask me anything…"
+                className="min-h-12 w-full resize-y bg-transparent px-1.5 py-1 text-sm outline-hidden placeholder:text-foreground-off focus-visible:ring-1 focus-visible:ring-accent"
+              />
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  {isLoading ? <span role="status" className="text-[10px] text-foreground-off">Loading models…</span> : (
+                    <div className="max-w-[220px]">
+                      <SelectorInput current={model} setCurrent={setModel} values={models} disabled={!models.length || showNoProvidersSnackbar} />
+                    </div>
+                  )}
+                  <span className="hidden text-[10px] text-foreground-off sm:inline">{repositories.find(repository => repository.id === repositoryId)?.repositoryUrl ?? "Select repository"}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void submitTask()}
+                  disabled={isLoading || isSubmitting || showNoProvidersSnackbar || !repositoryId || !prompt.trim()}
+                  aria-label="Start task"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <IconArrowUp size={15} strokeWidth={2.2} />
+                </button>
               </div>
             </div>
 
-            {!showRepositoryForm ? (
-              <button type="button" onClick={() => setShowRepositoryForm(true)} className="self-start text-sm text-accent hover:underline">
-                + Add a repository
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1">
+              <button type="button" onClick={() => setShowTaskSettings(value => !value)} aria-expanded={showTaskSettings} className="inline-flex items-center gap-1.5 rounded-xs px-2 py-1.5 text-[10px] text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground">
+                <IconAdjustments size={13} />{showTaskSettings ? "Hide settings" : "Task settings"}
               </button>
-            ) : (
-              <fieldset className="flex flex-col gap-3 rounded-sm border border-background-focus p-4">
-                <legend className="px-1 text-sm font-medium">Connect a public repository</legend>
+              <button type="button" onClick={() => setShowRepositoryForm(value => !value)} className="inline-flex items-center gap-1.5 rounded-xs px-2 py-1.5 text-[10px] text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground">
+                <IconCode size={13} />{showRepositoryForm ? "Cancel repository" : repositories.length ? "Add repository" : "Connect repository"}
+              </button>
+            </div>
+
+            {error ? <p role="alert" className="mt-3 text-xs text-priority-high">{error}</p> : null}
+            {isLoading ? <p role="status" className="mt-2 text-center text-[10px] text-foreground-off">Loading your workspace…</p> : null}
+
+            {showRepositoryForm ? (
+              <fieldset className="mt-3 flex flex-col gap-3 rounded-sm border border-background-focus bg-background-card p-4">
+                <legend className="px-1 text-xs font-medium">Connect a public repository</legend>
                 <form onSubmit={addRepository} className="flex flex-col gap-3">
-                  <input required type="url" value={repositoryUrl} onChange={event => setRepositoryUrl(event.target.value)} placeholder="https://github.com/owner/repository" className="rounded-sm bg-background-focus px-3 py-2 text-sm" />
+                  <input required type="url" value={repositoryUrl} onChange={event => setRepositoryUrl(event.target.value)} placeholder="https://github.com/owner/repository" className="rounded-sm bg-background-focus px-3 py-2 text-xs" />
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <input value={defaultBranch} onChange={event => setDefaultBranch(event.target.value)} placeholder="Default branch (main)" className="rounded-sm bg-background-focus px-3 py-2 text-sm" />
-                    <select value={projectId} onChange={event => setProjectId(event.target.value)} className="rounded-sm bg-background-focus px-3 py-2 text-sm">
+                    <input value={defaultBranch} onChange={event => setDefaultBranch(event.target.value)} placeholder="Default branch (main)" className="rounded-sm bg-background-focus px-3 py-2 text-xs" />
+                    <select value={projectId} onChange={event => setProjectId(event.target.value)} className="rounded-sm bg-background-focus px-3 py-2 text-xs">
                       <option value="">No project</option>
                       {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
                     </select>
@@ -264,41 +240,26 @@ export default function AgentsPage() {
                   </div>
                 </form>
               </fieldset>
-            )}
+            ) : null}
 
-            <div className="flex justify-end border-t border-background-focus pt-4">
-              <Button type="button" onClick={() => void submitTask()} disabled={isLoading || isSubmitting || showNoProvidersSnackbar || !repositoryId || !prompt.trim()}>
-                {isSubmitting ? "Starting…" : "Start task"}
-              </Button>
-            </div>
-          </section>
-
-          <SkillLibrary
-            skills={skills}
-            selectedSkillIds={selectedSkillIds}
-            onToggle={toggleSkill}
-            onSkillsChanged={loadSkills} />
-
-          {activeRun ? (
-            <section className="flex flex-col gap-4 rounded-sm border border-background-focus bg-background-card p-5" aria-live="polite">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-base font-semibold">Task progress</h2>
-                  <p className="mt-1 text-xs text-foreground-off">{activeRun.status}</p>
+            {showTaskSettings ? (
+              <div className="mt-3 flex flex-col gap-4 rounded-sm border border-background-focus bg-background-card p-4">
+                <label className="flex flex-col gap-2 text-xs font-medium">
+                  Repository
+                  <select value={repositoryId} onChange={event => setRepositoryId(event.target.value)} disabled={!repositories.length} className="min-h-9 rounded-sm bg-background-focus px-3 text-xs disabled:brightness-[0.8] disabled:cursor-not-allowed">
+                    <option value="">Select a repository</option>
+                    {repositories.map(repository => <option key={repository.id} value={repository.id}>{repository.repositoryUrl} ({repository.defaultBranch})</option>)}
+                  </select>
+                </label>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-1.5 text-xs font-medium"><IconSparkles size={14} />Skills</div>
+                  <SkillLibrary skills={skills} selectedSkillIds={selectedSkillIds} onToggle={toggleSkill} onSkillsChanged={loadSkills} />
                 </div>
-                {["QUEUED", "RUNNING"].includes(activeRun.status) ? <Button type="button" variant="secondary" onClick={() => void cancelTask()}>Cancel</Button> : null}
               </div>
-              <div className="flex flex-col gap-2">
-                {(activeRun.events ?? []).map(event => (
-                  <article key={event.id} className="rounded-xs bg-background-focus p-3">
-                    <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-foreground-off">{event.type}</p>
-                    <p className="whitespace-pre-wrap break-words text-sm">{event.message}</p>
-                  </article>
-                ))}
-              </div>
-            </section>
-          ) : null}
-        </div>
+            ) : null}
+          </div>
+        </section>
+
       </main>
       {showNoProvidersSnackbar ? (
         <Snackbar mode="warn" message="You don't have an active OpenRouter provider. Connect one in Settings to choose a model." onClose={() => setShowNoProvidersSnackbar(false)} />
