@@ -4,9 +4,8 @@ import { ISSUE_HEAT_LEVELS } from "@/constants/overview";
 import type { WorkspaceIssue, WorkspaceSnapshot } from "@/types/user";
 import {
   formatUsageDuration,
-  formatOverviewMonth,
   getAgentUsagePeriods,
-  getMonthIssueDays,
+  getYearIssueDays,
   getNotificationLabel,
 } from "@/utils/overview";
 
@@ -29,10 +28,17 @@ export default function OverviewDashboard({
   const issues = snapshot?.issues ?? [];
   const sessions = snapshot?.agentSessions ?? [];
   const notifications = snapshot?.notifications ?? [];
-  const monthDays = getMonthIssueDays(issues, now);
+  const yearDays = getYearIssueDays(issues, now);
   const usagePeriods = getAgentUsagePeriods(sessions, now);
-  const peakIssueCount = Math.max(1, ...monthDays.map(day => day.count));
+  const peakIssueCount = Math.max(1, ...yearDays.map(day => day.count));
   const peakUsage = Math.max(0, ...usagePeriods.map(period => period.totalMilliseconds));
+  const weekCount = Math.max(...yearDays.map(day => day.week)) + 1;
+  const monthLabels = yearDays
+    .filter(day => day.date.getDate() === 1)
+    .map(day => ({
+      label: new Intl.DateTimeFormat("en", { month: "short" }).format(day.date),
+      week: day.week,
+    }));
 
   return (
     <main className="min-h-dvh w-full min-w-0 px-5 py-5 sm:px-8 sm:py-6">
@@ -43,9 +49,9 @@ export default function OverviewDashboard({
           </p>
         ) : null}
 
-        <section aria-labelledby="issue-activity-title" className="flex flex-col gap-3">
+        <section aria-labelledby="issue-activity-title" className="flex flex-col gap-3 rounded-sm bg-background-card p-3 sm:p-4">
           <h1 id="issue-activity-title" className="text-sm font-medium">
-            {formatOverviewMonth(now)}
+            {now.getFullYear()} Issues
           </h1>
 
           {loading && !snapshot ? (
@@ -53,26 +59,34 @@ export default function OverviewDashboard({
               Loading issue activity…
             </p>
           ) : (
-            <div className="grid gap-x-1.5 gap-y-1" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(12px, 1fr))" }}>
-              {monthDays.map(day => {
+            <div className="min-w-0 overflow-x-auto pb-1">
+              <div className="grid min-w-[520px] gap-x-1 gap-y-1" style={{ gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))` }}>
+                <div className="col-span-full grid h-4 text-[9px] text-foreground-off" style={{ gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))` }} aria-hidden="true">
+                  {monthLabels.map(month => (
+                    <span key={`${month.label}-${month.week}`} style={{ gridColumnStart: month.week + 1 }}>{month.label}</span>
+                  ))}
+                </div>
+                {yearDays.map(day => {
                 const level = day.count === 0
                   ? 0
                   : Math.min(3, Math.ceil((day.count / peakIssueCount) * 3));
 
                 return (
-                  <div
-                    key={day.day}
-                    className={`aspect-square min-w-0 rounded-[2px] ${ISSUE_HEAT_LEVELS[level]}`}
-                    title={`${now.toLocaleString("en", { month: "long" })} ${day.day}: ${day.count} issue${day.count === 1 ? "" : "s"}`}
-                    aria-label={`${day.day}: ${day.count} issues`}
-                  />
+                  <div key={day.dateKey} className="aspect-square min-w-0 rounded-[2px]" style={{ gridColumnStart: day.week + 1, gridRowStart: day.weekday + 2 }}>
+                    <div
+                      className={`h-full w-full rounded-[2px] ${ISSUE_HEAT_LEVELS[level]}`}
+                      title={`${day.date.toLocaleDateString("en", { month: "short", day: "numeric" })}: ${day.count} issue${day.count === 1 ? "" : "s"}`}
+                      aria-label={`${day.date.toLocaleDateString("en", { month: "long", day: "numeric" })}: ${day.count} issues`}
+                    />
+                  </div>
                 );
               })}
+              </div>
             </div>
           )}
         </section>
 
-        <section aria-labelledby="agents-usage-title" className="flex flex-col gap-3">
+        <section aria-labelledby="agents-usage-title" className="flex flex-col gap-3 rounded-sm bg-background-card p-3 sm:p-4">
           <h2 id="agents-usage-title" className="text-sm font-medium">
             Agents usage
           </h2>
@@ -118,7 +132,7 @@ export default function OverviewDashboard({
           )}
         </section>
 
-        <section aria-labelledby="inbox-title" className="flex flex-col gap-3">
+        <section aria-labelledby="inbox-title" className="flex flex-col gap-3 rounded-sm bg-background-card p-3 sm:p-4">
           <div className="flex items-center justify-between gap-4">
             <h2 id="inbox-title" className="text-sm font-medium">
               Inbox
