@@ -58,7 +58,7 @@ export default function OverviewPage() {
         loading={loading}
         error={error}
         onOpenIssue={issue => router.push(`/issues/${issue.id}`)}
-        onOpenIssues={() => router.push("/issues")}
+        onOpenIssues={() => router.push("/inbox")}
       />
     </DashLayout>
   );

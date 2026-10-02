@@ -3,10 +3,12 @@
 import {
   IconChevronDown,
   IconFolders,
+  IconInbox,
   IconLayoutDashboard,
   IconLayoutSidebar,
   IconLogout2,
   IconPointer2,
+  IconSearch,
   IconSettings,
   IconTarget
 } from "@tabler/icons-react";
@@ -21,7 +23,7 @@ import CacheDB from "@/utils/cache";
 import { clearSessionUser } from "@/utils/session";
 import { Option } from "./ui/sidebar-option";
 
-type SelectedSection = "overview" | "issues" | "agents" | "projects" | "settings";
+type SelectedSection = "overview" | "inbox" | "issues" | "agents" | "projects" | "settings";
 
 interface Props {
   selected: SelectedSection;
@@ -40,6 +42,7 @@ export default function Sidebar(props: Props) {
   const [isSidebarClosing, setIsSidebarClosing] = useState(false);
   const [isMenuClosing, setIsMenuClosing] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [navigationQuery, setNavigationQuery] = useState("");
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const router = props.router;
@@ -125,6 +128,12 @@ export default function Sidebar(props: Props) {
       selected: props.selected === "overview"
     },
     {
+      label: "Inbox",
+      icon: <IconInbox size={16} strokeWidth={2} />,
+      action: () => { router.push("/inbox") },
+      selected: props.selected === "inbox"
+    },
+    {
       label: "Issues",
       icon: <IconTarget size={16} strokeWidth={2} />,
       action: () => { router.push("/issues") },
@@ -143,6 +152,10 @@ export default function Sidebar(props: Props) {
       selected: props.selected === "agents"
     },
   ];
+
+  const visibleOptions = options.filter(option =>
+    option.label.toLowerCase().includes(navigationQuery.trim().toLowerCase()),
+  );
 
   if (!visibility) {
     return (
@@ -185,8 +198,20 @@ export default function Sidebar(props: Props) {
           </button>
         </div>
 
+        <label className="mt-4 flex h-8 w-full items-center gap-2 rounded-full bg-background-focus px-2.5 text-foreground-off focus-within:ring-1 focus-within:ring-accent">
+          <IconSearch size={14} strokeWidth={1.8} aria-hidden="true" />
+          <span className="sr-only">Search navigation</span>
+          <input
+            type="search"
+            value={navigationQuery}
+            onChange={event => setNavigationQuery(event.target.value)}
+            placeholder="Search"
+            className="min-w-0 flex-1 bg-transparent text-[10px] text-foreground outline-hidden placeholder:text-foreground-off"
+          />
+        </label>
+
         <nav aria-label="Main navigation" className="mt-5 flex w-full flex-row items-center justify-start gap-1 overflow-x-auto md:flex-col md:items-stretch">
-          {options.map(option => (
+          {visibleOptions.map(option => (
             <Option
               key={option.label}
               label={option.label}
