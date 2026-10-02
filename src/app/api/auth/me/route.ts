@@ -13,7 +13,7 @@ import {
 import prisma from "@/lib/prisma";
 import { ACCOUNT_DELETION_DELAY_DAYS } from "@/types/user";
 import { isValidAvatarUrl, normalizeAvatarUrl } from "@/utils/avatar-url";
-import { Prisma } from "../../../../../prisma/generated/client/index.js";
+import { Prisma } from "@prisma/client";
 
 const PRIVATE_NO_STORE_HEADERS = {
   "Cache-Control": "private, no-store, max-age=0",

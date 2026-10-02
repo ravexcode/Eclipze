@@ -142,7 +142,7 @@ export async function runAllowedCommand(input: {
   await input.onEvent({ type: "COMMAND", message: commandLabel });
 
   return new Promise<RunnerResult>(resolveResult => {
-    const child = spawn(command.executable, command.args, {
+    const child = spawn(/*turbopackIgnore: true*/ command.executable, command.args, {
       cwd: input.workspacePath,
       env: createRunnerEnvironment(input.workspacePath),
       shell: false,
