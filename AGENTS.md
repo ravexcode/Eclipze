@@ -28,3 +28,8 @@
 - Functions that are not React components belong in `src/utils/`, using the main file or directory name as the module name.
 - Reusable React components belong in `src/components/`, using the main file or directory name as the module name.
 - Keep the main page or feature file focused on orchestration; import extracted constants, functions, and components from their respective modules.
+
+## Product Language
+
+- Keep all user-facing product copy in English, including legal documents, navigation, labels, and notices.
+- Preserve official names of laws, government agencies, and other proper nouns in their original language when needed for accurate citations; explain them in English.

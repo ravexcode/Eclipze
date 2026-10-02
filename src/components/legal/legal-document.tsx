@@ -11,8 +11,8 @@ type LegalDocumentProps = {
 };
 
 const LEGAL_LINKS = [
-  { label: "Términos del servicio", href: "/legal/tos", key: "terms" },
-  { label: "Aviso de privacidad", href: "/legal/privacy", key: "privacy" },
+  { label: "Terms of Service", href: "/legal/tos", key: "terms" },
+  { label: "Privacy Notice", href: "/legal/privacy", key: "privacy" },
 ] as const;
 
 export default function LegalDocument({
@@ -22,7 +22,7 @@ export default function LegalDocument({
   current,
 }: LegalDocumentProps) {
   return (
-    <main lang="es" className="min-h-dvh bg-background px-5 pb-16 pt-6 sm:px-8 sm:pt-10">
+    <main lang="en" className="min-h-dvh bg-background px-5 pb-16 pt-6 sm:px-8 sm:pt-10">
       <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-6 border-b border-background-focus pb-5">
         <Link href="/" aria-label="Eclipze home" className="shrink-0 rounded-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
           <Image src="/logo.svg" alt="Eclipze" width={28} height={28} />
@@ -46,16 +46,16 @@ export default function LegalDocument({
 
       <article className="mx-auto w-full max-w-3xl">
         <div className="border-b border-background-focus py-12 sm:py-16">
-          <p className="mb-3 text-sm text-foreground-off">Legal · Nuevo León, México</p>
+          <p className="mb-3 text-sm text-foreground-off">Legal · Nuevo León, Mexico</p>
           <h1 className="font-base text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">{title}</h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-foreground-off">{intro}</p>
-          <p className="mt-6 text-xs text-foreground-off">Borrador para revisión · 2 de octubre de 2026</p>
+          <p className="mt-6 text-xs text-foreground-off">Draft for review · October 2, 2026</p>
         </div>
 
         <aside className="my-8 rounded-sm border border-accent/40 bg-background-card p-5 sm:p-6">
-          <h2 className="text-base font-medium">Pendiente de completar</h2>
+          <h2 className="text-base font-medium">Completion needed</h2>
           <p className="mt-2 text-sm leading-6 text-foreground-off">
-            Este borrador refleja el código actual de la aplicación y los datos del responsable recibidos hasta ahora. Antes de publicarlo, confirma el domicilio completo del servicio, los proveedores y su infraestructura, los periodos de conservación y el texto legal final.
+            This draft reflects the application code and the operator details provided so far. Before publishing it, confirm the operator's full address, service providers and infrastructure, retention periods, and final legal wording.
           </p>
         </aside>
 
@@ -90,14 +90,14 @@ export default function LegalDocument({
 
         <footer className="mt-12 border-t border-background-focus pt-6 text-sm text-foreground-off">
           <p>
-            Responsable: Jose Rafael Martinez Bocanegra ·{" "}
+            Operator: Jose Rafael Martinez Bocanegra ·{" "}
             <a className="text-foreground underline underline-offset-4" href="mailto:contact@ravexcode.com">
               contact@ravexcode.com
             </a>
           </p>
-          <p className="mt-2">Ubicación del servicio: Nuevo León, México. Falta agregar el domicilio completo.</p>
+          <p className="mt-2">Service location: Nuevo León, Mexico. The full address still needs to be added.</p>
           <Link href="/auth/signin" className="mt-6 inline-flex rounded-xs py-2 underline underline-offset-4 transition-colors hover:text-foreground">
-            Volver a iniciar sesión
+            Back to sign in
           </Link>
         </footer>
       </article>

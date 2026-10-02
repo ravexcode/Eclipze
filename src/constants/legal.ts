@@ -5,134 +5,134 @@ export type LegalSection = {
 };
 
 export const TERMS_OF_SERVICE = {
-  title: "Términos del servicio",
-  description: "Términos del servicio de Eclipze.",
+  title: "Terms of Service",
+  description: "Terms of Service for Eclipze.",
   intro:
-    "Estos términos describen el acceso a Eclipze, un espacio de trabajo para comunicación de proyectos, issues, repositorios y tareas de desarrollo asistidas por IA.",
+    "These terms describe access to Eclipze, a workspace for project communication, issues, repositories, and AI-assisted development tasks.",
   sections: [
     {
-      title: "Responsable y alcance",
+      title: "Operator and scope",
       paragraphs: [
-        "Eclipze es operado por Jose Rafael Martinez Bocanegra desde Nuevo León, México. Falta confirmar el domicilio completo del servicio y revisar las cláusulas finales de jurisdicción y solución de controversias antes de considerar estos términos como un acuerdo definitivo.",
-        "Al crear una cuenta, aceptas estos términos y el Aviso de privacidad. Se respetan los derechos irrenunciables que establezca la legislación aplicable.",
+        "Eclipze is operated by Jose Rafael Martinez Bocanegra from Nuevo León, Mexico. The operator's full service address must be confirmed, and the jurisdiction and dispute resolution clauses must be reviewed before these terms are treated as a final agreement.",
+        "By creating an account, you agree to these terms and the Privacy Notice. Any non-waivable rights provided by applicable law remain in effect.",
       ],
     },
     {
-      title: "Cuentas y seguridad",
+      title: "Accounts and security",
       paragraphs: [
-        "Proporciona un correo electrónico válido, verifícalo cuando se te solicite y mantén en privado tu contraseña y enlaces de acceso. Eres responsable de la actividad realizada con tu cuenta. Contacta pronto al responsable si crees que alguien accedió a ella sin autorización.",
+        "Provide a valid email address, verify it when asked, and keep your password and access links private. You are responsible for activity under your account. Contact the operator promptly if you believe someone accessed it without authorization.",
       ],
     },
     {
-      title: "Contenido del espacio de trabajo",
+      title: "Workspace content",
       paragraphs: [
-        "Eres responsable de los proyectos, descripciones de issues, mensajes, direcciones de repositorios, prompts, skills y demás contenido que agregues a Eclipze. Comparte únicamente contenido que tengas derecho a usar y proporcionar para la función que elijas.",
-        "Eclipze procesa el contenido para ofrecer las funciones solicitadas. Evita incluir contraseñas, secretos de API o información confidencial, salvo que una función los requiera y tengas autorización para compartirlos.",
+        "You are responsible for the projects, issue descriptions, messages, repository addresses, prompts, selected skills, and other content you add to Eclipze. Only share content you have the right to use and provide for the feature you choose.",
+        "Eclipze processes content to provide the features you request. Do not include passwords, API secrets, or confidential information unless a feature requires it and you are authorized to share it.",
       ],
     },
     {
-      title: "IA y servicios conectados",
+      title: "AI and connected services",
       paragraphs: [
-        "Al iniciar una tarea de IA, el prompt y el contenido de las skills seleccionadas se envían a OpenRouter para procesar la solicitud. Otros servicios conectados pueden recibir la información necesaria para brindar una función que solicites. Cada proveedor aplica sus propios términos y aviso de privacidad.",
-        "Eclipze no vende ni renta tus datos personales. Las claves de proveedores de IA se cifran antes de guardarse. Eres responsable de elegir proveedores apropiados y de enviar contenido que tengas autorización para compartir con ellos.",
+        "When you start an AI task, its prompt and the content of selected skills are sent to OpenRouter to process the request. Other connected services may receive information needed to provide a feature you request. Each provider has its own terms and privacy notice.",
+        "Eclipze does not sell or rent your personal data. AI provider keys are encrypted before storage. You are responsible for choosing appropriate providers and sending only content you are authorized to share with them.",
       ],
     },
     {
-      title: "Uso aceptable",
+      title: "Acceptable use",
       paragraphs: [
-        "Usa Eclipze conforme a la legislación aplicable y dentro de tus autorizaciones. No intentes acceder a la cuenta o espacio de trabajo de otra persona, interferir con el servicio ni usar servicios conectados de forma que infrinja sus términos.",
+        "Use Eclipze in accordance with applicable law and your authorizations. Do not try to access another person's account or workspace, interfere with the service, or use connected services in a way that violates their terms.",
       ],
     },
     {
-      title: "Cambios y eliminación de cuenta",
+      title: "Changes and account deletion",
       paragraphs: [
-        "El responsable puede actualizar el servicio o estos términos. Los cambios se reflejarán en esta página con una fecha de actualización.",
-        "La eliminación de cuenta puede solicitarse desde la configuración cuando la cuenta tenga al menos 30 días y se cumplan las verificaciones del producto. La aplicación elimina la cuenta y sus registros relacionados en la base de datos; los plazos de conservación en respaldos y sistemas de terceros aún deben documentarse.",
+        "The operator may update the service or these terms. Changes will be reflected on this page with an updated date.",
+        "You can request account deletion from Settings when your account is at least 30 days old and the product's verification requirements are met. The application deletes the account and related records from the database; retention periods for backups and third-party systems still need to be documented.",
       ],
     },
     {
-      title: "Contacto",
+      title: "Contact",
       paragraphs: [
-        "Para preguntas sobre estos términos, escribe a Jose Rafael Martinez Bocanegra en contact@ravexcode.com. Este documento sigue siendo un borrador hasta confirmar el domicilio completo del responsable y revisar la redacción legal final.",
+        "For questions about these terms, contact Jose Rafael Martinez Bocanegra at contact@ravexcode.com. This document remains a draft until the operator's full address is confirmed and the final legal wording is reviewed.",
       ],
     },
   ] satisfies LegalSection[],
 };
 
 export const PRIVACY_NOTICE = {
-  title: "Aviso de privacidad",
-  description: "Aviso de privacidad de Eclipze.",
+  title: "Privacy Notice",
+  description: "Privacy Notice for Eclipze.",
   intro:
-    "Este aviso explica qué datos personales maneja Eclipze, para qué los utiliza y qué proveedores reciben información para ofrecer las funciones que solicitas.",
+    "This notice explains what personal data Eclipze handles, how it is used, and which providers receive information to deliver the features you request.",
   sections: [
     {
-      title: "Responsable",
+      title: "Data controller",
       paragraphs: [
-        "El responsable del tratamiento es Jose Rafael Martinez Bocanegra, operador de Eclipze en Nuevo León, México. Para preguntas o solicitudes de privacidad, escribe a contact@ravexcode.com. Falta agregar el domicilio completo del servicio antes de considerar terminado este aviso.",
+        "The data controller is Jose Rafael Martinez Bocanegra, who operates Eclipze in Nuevo León, Mexico. For privacy questions or requests, contact contact@ravexcode.com. The controller's full service address must be added before this notice is considered complete.",
       ],
     },
     {
-      title: "Datos que maneja la aplicación",
+      title: "Data handled by the application",
       paragraphs: [
-        "La cuenta incluye datos como correo electrónico, nombre de usuario, avatar opcional, hash de contraseña, rol y fechas de actividad. La aplicación también guarda sesiones de acceso y códigos de verificación o recuperación en forma de hashes.",
-        "El espacio de trabajo puede contener proyectos, issues, mensajes, notificaciones, direcciones de repositorios, configuración de agentes, prompts, skills seleccionadas y actividad de tareas. El contenido libre que decidas enviar podría incluir datos personales o confidenciales.",
-        "La aplicación no solicita intencionalmente categorías de datos personales sensibles como campos de cuenta. Sin embargo, podrías incluir ese tipo de información en mensajes, issues o prompts de texto libre; evita hacerlo salvo que sea necesario y tengas autorización.",
-        "Un correo de seguridad tras iniciar sesión puede incluir la dirección IP observada en esa solicitud, una descripción del navegador y dispositivo, y la hora de acceso. Resend entrega ese correo.",
+        "Account data includes your email address, username, optional avatar, password hash, role, and activity dates. The application also stores access sessions and verification or recovery codes as hashes.",
+        "Your workspace may contain projects, issues, messages, notifications, repository addresses, agent settings, prompts, selected skills, and task activity. Free-text content you submit may include personal or confidential information.",
+        "The application does not intentionally request sensitive personal data as account fields. However, you could include it in free-text messages, issues, or prompts. Avoid doing so unless necessary and you are authorized to provide it.",
+        "A security email after sign-in may include the IP address observed for that request, a description of your browser and device, and the sign-in time. Resend delivers that email.",
       ],
     },
     {
-      title: "Finalidades",
+      title: "Purposes of use",
       paragraphs: [
-        "Los datos se usan para crear y proteger cuentas; verificar correos y recuperar contraseñas; ofrecer proyectos, issues, mensajes, repositorios, agentes y otras funciones; procesar tareas de IA que inicies; enviar comunicaciones de servicio y seguridad; y mantener y proteger el servicio.",
-        "Eclipze incluye Vercel Analytics para entender el uso del servicio. El operador debe confirmar los eventos exactos y los plazos de conservación configurados para analítica.",
+        "Data is used to create and secure accounts; verify email addresses and recover passwords; provide projects, issues, messages, repositories, agents, and other features; process AI tasks you start; send service and security communications; and maintain and protect the service.",
+        "Eclipze uses Vercel Analytics to understand service usage. The operator must confirm the exact analytics events and configured retention periods.",
       ],
     },
     {
-      title: "Venta, proveedores y transferencias",
+      title: "Sale, service providers, and transfers",
       paragraphs: [
-        "Eclipze no vende ni renta datos personales. Solo comparte información con proveedores cuando es necesario para operar una función o entregar una comunicación que solicites.",
-        "Al iniciar una tarea de IA, el prompt y el contenido de las skills seleccionadas se envían a OpenRouter. Resend entrega correos de cuenta y seguridad. Vercel proporciona analítica. Es posible contactar API de proveedores para validar o usar una conexión de IA. Los proveedores de alojamiento y base de datos también procesan información necesaria para operar la aplicación; falta confirmar sus identidades, ubicaciones y plazos de conservación.",
-        "Algunos proveedores podrían procesar información fuera de México. El operador debe confirmar destinos y condiciones de transferencia antes de publicar el aviso. Cada proveedor puede tratar los datos recibidos conforme a sus propios términos y avisos de privacidad.",
+        "Eclipze does not sell or rent personal data. Information is shared with providers only when needed to operate a feature or deliver a communication you request.",
+        "When you start an AI task, its prompt and selected skill content are sent to OpenRouter. Resend delivers account and security emails. Vercel provides analytics. The application may contact AI provider APIs to validate or use an AI connection. Hosting and database providers also process information needed to operate the application; their identities, locations, and retention periods still need to be confirmed.",
+        "Some providers may process information outside Mexico. The operator must confirm destinations and transfer conditions before publishing this notice. Each provider may handle received data under its own terms and privacy notices.",
       ],
     },
     {
-      title: "Seguridad y acceso",
+      title: "Security and access",
       paragraphs: [
-        "La aplicación genera hashes de contraseñas con scrypt y guarda como hashes los secretos de sesión y verificación. Las claves de API de proveedores de IA se cifran con AES-256-GCM antes de guardarse.",
-        "Otros campos de la base de datos —incluidos correo y nombre de usuario, contenido de issues y mensajes, direcciones de repositorios y prompts de agentes— no están cifrados campo por campo por la aplicación. El rol Developer puede consultar algunos identificadores de cuenta y registros de issues para operar el servicio; por eso Eclipze no puede afirmar que ningún desarrollador pueda ver jamás datos de usuario. El acceso está sujeto a los permisos por rol y espacio de trabajo implementados en la aplicación.",
+        "The application hashes passwords using scrypt and stores session and verification secrets as hashes. AI provider API keys are encrypted with AES-256-GCM before storage.",
+        "Other database fields—including email addresses and usernames, issue and message content, repository addresses, and agent prompts—are not encrypted field by field by the application. The Developer role can access some account identifiers and issue records to operate the service. For this reason, Eclipze cannot claim that developers can never see user data. Access is subject to the role and workspace permissions implemented in the application.",
       ],
     },
     {
-      title: "Conservación y eliminación",
+      title: "Retention and deletion",
       paragraphs: [
-        "La eliminación de cuenta puede solicitarse desde la configuración cuando la cuenta tenga al menos 30 días y se cumplan las verificaciones del producto. La aplicación elimina la cuenta y los registros relacionados en la base de datos. Aún deben documentarse la conservación de respaldos, registros de infraestructura, analítica y datos en manos de proveedores.",
+        "You can request account deletion from Settings when your account is at least 30 days old and the product's verification requirements are met. The application deletes the account and related records from the database. Retention of backups, infrastructure logs, analytics, and data held by providers still needs to be documented.",
       ],
     },
     {
-      title: "Tus derechos y solicitudes de privacidad",
+      title: "Your privacy rights and requests",
       paragraphs: [
-        "Conforme a la legislación mexicana aplicable, puedes solicitar acceso, rectificación, cancelación u oposición al tratamiento de tus datos personales (derechos ARCO). Escribe a contact@ravexcode.com con tu nombre, correo de la cuenta, el derecho que deseas ejercer y suficiente detalle para localizar los datos. El responsable puede pedir información necesaria para verificar tu identidad o aclarar la solicitud.",
-        "La Ley Federal de Protección de Datos Personales en Posesión de los Particulares establece el marco para los responsables privados. La ley de Nuevo León se refiere a datos en posesión de sujetos obligados del sector público; el domicilio del operador en Nuevo León, por sí solo, no convierte a Eclipze en un sujeto obligado.",
+        "Under applicable Mexican law, you may request access to, correction or deletion of, or objection to the processing of your personal data. These rights are known in Mexico as ARCO rights (Acceso, Rectificación, Cancelación y Oposición). Email contact@ravexcode.com with your name, account email, the right you wish to exercise, and enough detail to locate the data. The controller may request information needed to verify your identity or clarify your request.",
+        "Mexico's Federal Law on the Protection of Personal Data Held by Private Parties (Ley Federal de Protección de Datos Personales en Posesión de los Particulares) applies to private-sector controllers. Nuevo León's state law concerns data held by public-sector obligated entities; operating from Nuevo León alone does not make Eclipze a public-sector obligated entity.",
       ],
       links: [
         {
-          label: "Ley Federal (Cámara de Diputados, texto vigente)",
+          label: "Federal Law (Chamber of Deputies, current text)",
           href: "https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf",
         },
         {
-          label: "Ley de Nuevo León (Compilación Legislativa del Estado)",
+          label: "Nuevo León State Law (State Legal Compilation)",
           href: "https://sistec.nl.gob.mx/Transparencia_2015/Archivos/AC_0001_0002_0168084-0000001.pdf",
         },
         {
-          label: "Gobierno de Nuevo León: tratamiento de datos personales",
+          label: "Government of Nuevo León: Personal Data Processing",
           href: "https://nl.gob.mx/es/sobre-tratamiento-datos-personales",
         },
       ],
     },
     {
-      title: "Actualizaciones",
+      title: "Updates",
       paragraphs: [
-        "Los cambios a este aviso se publicarán aquí con una nueva fecha de actualización. Este aviso tiene fecha del 2 de octubre de 2026. Falta confirmar el domicilio del servicio, la lista y ubicación de proveedores, los periodos de conservación y la revisión legal final.",
+        "Changes to this notice will be posted here with a new update date. This notice is dated October 2, 2026. The controller's full address, provider list and locations, retention periods, and final legal review still need to be confirmed.",
       ],
     },
   ] satisfies LegalSection[],
