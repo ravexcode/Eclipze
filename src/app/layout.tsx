@@ -9,6 +9,9 @@ import { AnnouncementProvider } from "@/components/announcements/announcement-pr
 
 import { Suspense } from "react";
 
+//Vercel settings
+import { Analytics } from "@vercel/analytics/next"
+
 export const metadata: Metadata = {
   title: {
     default: "Eclipze | Developer Workflow Platform",
@@ -35,6 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-base bg-background text-foreground antialiased">
+        <Analytics />
         <Suspense fallback={<div></div>}>
           <AnnouncementProvider>
             <Lenis>
