@@ -13,7 +13,7 @@ function AuthShell({ title, children }: { title: string; children: React.ReactNo
   return (
     <div className="flex min-h-dvh w-full items-center justify-center px-5 py-16 sm:px-8">
       <div className="w-full max-w-[263px]">
-        <h1 className="mb-3 text-center font-base text-xl font-semibold tracking-[-0.04em]">{title}</h1>
+        <h1 className="mb-1 text-center font-base text-2xl font-semibold tracking-[-0.04em]">{title}</h1>
         {children}
         <p className="mt-5 text-center text-xs text-foreground-off">
           <Link className="rounded-xs px-2 py-1 underline transition-colors hover:bg-background-focus hover:text-foreground" href="/auth/signin">Back to sign in</Link>
