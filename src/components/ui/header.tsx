@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import Button from "./button";
 
 type CtaValues = {
   link: string;
@@ -23,11 +24,10 @@ export default function Header({ hasToken = false }: { hasToken?: boolean }) {
 
   return (
     <header
-      className="mx-auto mt-2 flex h-[52px] w-[calc(100%-2rem)] max-w-[740px] items-center justify-between rounded-sm bg-background-card/80 px-4 animate-fade-in-down sm:px-5">
+      className="mx-auto mt-2 flex w-185 items-center justify-between rounded-lg backdrop-blur backdrop-brightness-20 px-10 py-4 animate-fade-in-down z-100 top-7 sticky">
       <Link
         href="/"
-        aria-label="Eclipze home"
-        className="rounded-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+        aria-label="Eclipze home">
         <Image
           src="/logo.svg"
           alt="Eclipze Logo"
@@ -36,11 +36,12 @@ export default function Header({ hasToken = false }: { hasToken?: boolean }) {
         />
       </Link>
 
-      <Link
+      <Button
+        variant="main"
         href={cta.link}
-        className="rounded-sm bg-accent px-4 py-1.5 text-center text-xs font-medium text-foreground transition-colors hover:bg-accent-strong focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent">
+        className="w-30">
         {cta.label}
-      </Link>
+      </Button>
     </header>
   )
 }
