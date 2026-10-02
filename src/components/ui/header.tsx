@@ -23,7 +23,7 @@ export default function Header({ hasToken = false }: { hasToken?: boolean }) {
 
   return (
     <header
-      className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-7 animate-fade-in-down sm:px-8">
+      className="mx-auto mt-2 flex h-[52px] w-[calc(100%-2rem)] max-w-[740px] items-center justify-between rounded-sm bg-background-card/80 px-4 animate-fade-in-down sm:px-5">
       <Link
         href="/"
         aria-label="Eclipze home"
@@ -38,7 +38,7 @@ export default function Header({ hasToken = false }: { hasToken?: boolean }) {
 
       <Link
         href={cta.link}
-        className="rounded-sm bg-accent px-4 py-2 text-center text-xs font-medium text-foreground transition-colors hover:bg-accent-strong focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent">
+        className="rounded-sm bg-accent px-4 py-1.5 text-center text-xs font-medium text-foreground transition-colors hover:bg-accent-strong focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent">
         {cta.label}
       </Link>
     </header>
