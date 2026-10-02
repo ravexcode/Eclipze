@@ -12,18 +12,21 @@ const PRIVATE_NO_STORE_HEADERS = {
   "Cache-Control": "private, no-store, max-age=0",
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   const user = await getCurrentUser();
 
   if (!user) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401, headers: PRIVATE_NO_STORE_HEADERS });
   }
 
+  const projectId = new URL(request.url).searchParams.get("projectId")?.trim();
   const runs = await prisma.agentRun.findMany({
-    where: { userId: user.id },
+    where: {
+      userId: user.id,
+      ...(projectId ? { repository: { projectId, userId: user.id } } : {}),
+    },
     orderBy: { createdAt: "desc" },
     take: 50,
-    include: { events: { orderBy: { sequence: "asc" }, take: 100 } },
   });
 
   return NextResponse.json(

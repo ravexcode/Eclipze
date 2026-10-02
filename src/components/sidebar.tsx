@@ -6,6 +6,7 @@ import {
   IconInbox,
   IconLayoutDashboard,
   IconLayoutSidebar,
+  IconMessage,
   IconLogout2,
   IconPointer2,
   IconSearch,
@@ -22,6 +23,8 @@ import { apiFetch } from "@/utils/api-fetch";
 import CacheDB from "@/utils/cache";
 import { clearSessionUser } from "@/utils/session";
 import { Option } from "./ui/sidebar-option";
+import type { AgentRun } from "@/types/agent-runner";
+import { readJson } from "@/utils/json-payload";
 
 type SelectedSection = "overview" | "inbox" | "issues" | "agents" | "projects" | "settings";
 
@@ -43,9 +46,31 @@ export default function Sidebar(props: Props) {
   const [isMenuClosing, setIsMenuClosing] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [navigationQuery, setNavigationQuery] = useState("");
+  const [agentRuns, setAgentRuns] = useState<AgentRun[]>([]);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const router = props.router;
+
+  const loadAgentRuns = useCallback(async () => {
+    try {
+      const response = await apiFetch("/api/agent-runs", { cache: "no-store" });
+      const payload = await readJson(response) as { runs?: AgentRun[] };
+      if (response.ok) setAgentRuns(payload.runs ?? []);
+    } catch {
+      setAgentRuns([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (props.selected !== "agents") return;
+    const initialLoadTimer = window.setTimeout(() => { void loadAgentRuns(); }, 0);
+    const handleRunsUpdated = () => { void loadAgentRuns(); };
+    window.addEventListener("agent-runs-updated", handleRunsUpdated);
+    return () => {
+      window.clearTimeout(initialLoadTimer);
+      window.removeEventListener("agent-runs-updated", handleRunsUpdated);
+    };
+  }, [loadAgentRuns, props.selected]);
 
   const closeMenu = useCallback(() => {
     if (!menuOpen) {
@@ -181,8 +206,8 @@ export default function Sidebar(props: Props) {
       }}
       className={"sticky top-0 z-10 flex h-auto w-full flex-col items-center justify-start border-b border-background-focus bg-surface p-3 md:h-dvh md:w-[250px] md:border-b-0 md:p-[15px] " +
         (isSidebarClosing
-          ? "animate-slide-out-left animate-duration-180 animate-ease-out animate-slide-distance-[8px]"
-          : "animate-slide-in-left animate-duration-180 animate-ease-out animate-slide-distance-[8px]") +
+          ? "animate-slide-out-left animate-duration-140 animate-linear animate-slide-distance-[6px]"
+          : "animate-slide-in-left animate-duration-140 animate-linear animate-slide-distance-[6px]") +
         " motion-reduce:animate-none"}>
       <div className="flex w-full flex-col md:h-full">
         <div className="flex w-full items-center justify-between px-2.5">
@@ -221,6 +246,24 @@ export default function Sidebar(props: Props) {
             />
           ))}
         </nav>
+
+        {props.selected === "agents" ? (
+          <section className="mt-5 flex min-h-0 w-full flex-col gap-2 md:flex-1" aria-label="Agent sessions">
+            <div className="flex items-center justify-between px-2.5">
+              <h2 className="text-[11px] font-medium text-foreground-off">Sessions</h2>
+              <button type="button" onClick={() => router.push("/agents")} className="text-[10px] text-foreground-off hover:text-foreground">New chat</button>
+            </div>
+            <nav className="flex max-h-56 flex-col gap-0.5 overflow-y-auto md:max-h-none" aria-label="Agent sessions">
+              {agentRuns.map(run => (
+                <button key={run.id} type="button" onClick={() => router.push(`/agents/${run.id}`)} className="flex w-full items-start gap-2 rounded-xs px-2.5 py-2 text-left text-xs text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground">
+                  <IconMessage size={14} className="mt-0.5 shrink-0" />
+                  <span className="min-w-0 flex-1 truncate">{run.prompt?.split("\n")[0] || "New session"}</span>
+                </button>
+              ))}
+              {agentRuns.length === 0 ? <p className="px-2.5 py-2 text-[10px] text-foreground-off">Your sessions will appear here.</p> : null}
+            </nav>
+          </section>
+        ) : null}
 
         <div ref={menuRef} className="relative mt-5 w-full md:mt-auto">
           <button

@@ -6,9 +6,13 @@ import { IconArrowLeft, IconArrowUp } from "@tabler/icons-react";
 
 import DashLayout from "@/components/layouts/dash";
 import Button from "@/components/ui/button";
+import SelectorInput from "@/components/ui/selector";
+import MarkdownMessage from "@/components/agents/markdown-message";
 import type { AgentRun } from "@/types/agent-runner";
+import type { AiProviderConnection } from "@/types/ai";
 import { apiFetch } from "@/utils/api-fetch";
 import { readJson } from "@/utils/json-payload";
+import { getAvailableModels, type AvailableModel } from "@/utils/agents";
 
 export default function AgentRunPage() {
   const router = useRouter();
@@ -18,6 +22,8 @@ export default function AgentRunPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [models, setModels] = useState<AvailableModel[]>([]);
+  const [model, setModel] = useState("");
 
   const loadRun = useCallback(async () => {
     try {
@@ -38,8 +44,39 @@ export default function AgentRunPage() {
   }, [params.chatId]);
 
   useEffect(() => {
-    void loadRun();
+    (() => void loadRun())();
   }, [loadRun]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadModels() {
+      try {
+        const providerResponse = await apiFetch("/api/ai-providers", { cache: "no-store" });
+        const providerPayload = await readJson(providerResponse) as { connections?: AiProviderConnection[] };
+        if (!providerResponse.ok) return;
+        const connections = providerPayload.connections ?? [];
+        const hasOpenRouter = connections.some(connection => connection.provider === "OPENROUTER" && connection.connected);
+        let discoveredModels: AvailableModel[] = [];
+        if (hasOpenRouter) {
+          const response = await apiFetch("/api/ai-providers/models", { cache: "no-store" });
+          const payload = await readJson(response) as { models?: AvailableModel[] };
+          if (response.ok) discoveredModels = payload.models ?? [];
+        }
+        if (cancelled) return;
+        setModels(getAvailableModels(connections, discoveredModels).filter(item => item.provider === "OPENROUTER"));
+      } catch {
+        if (!cancelled) setModels([]);
+      }
+    }
+    void loadModels();
+    return () => { cancelled = true; };
+  }, []);
+
+  const selectedModel = model || run?.model || "";
+  const runOutput = run?.events
+    ?.filter(event => event.type === "OUTPUT")
+    .map(event => event.message)
+    .join("") ?? "";
 
   useEffect(() => {
     if (!run || !["QUEUED", "RUNNING"].includes(run.status)) return;
@@ -72,7 +109,7 @@ export default function AgentRunPage() {
       const response = await apiFetch("/api/agent-runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ repositoryId: run.repositoryId, model: run.model, prompt }),
+        body: JSON.stringify({ repositoryId: run.repositoryId, model: selectedModel, prompt }),
       });
       const payload = await readJson(response) as { run?: AgentRun; message?: string };
 
@@ -81,6 +118,7 @@ export default function AgentRunPage() {
       }
 
       setPrompt("");
+      window.dispatchEvent(new Event("agent-runs-updated"));
       router.push(`/agents/${payload.run.id}`);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Unable to start this task.");
@@ -100,14 +138,13 @@ export default function AgentRunPage() {
 
         <div className="flex min-h-0 flex-1 flex-col">
           <section aria-live="polite" className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-8">
-            <div className="mx-auto flex w-full max-w-[590px] flex-col gap-4">
+            <div className="mx-auto flex w-full max-w-250 flex-col gap-4">
               {loading ? <p role="status" className="text-xs text-foreground-off">Loading task…</p> : null}
               {run?.prompt ? <p className="ml-auto max-w-[min(100%,450px)] whitespace-pre-wrap rounded-sm bg-accent px-3 py-2.5 text-xs leading-5 text-white">{run.prompt}</p> : null}
 
-              {run?.events?.map(event => (
-                <article key={event.id} className="whitespace-pre-wrap break-words text-xs leading-[1.55] text-foreground-off sm:text-sm">
-                  {event.message}
-                </article>
+              {runOutput ? <MarkdownMessage>{runOutput}</MarkdownMessage> : null}
+              {run?.events?.filter(event => event.type === "ERROR").map(event => (
+                <p key={event.id} className="text-xs text-priority-high">{event.message}</p>
               ))}
 
               {run && ["QUEUED", "RUNNING"].includes(run.status) ? (
@@ -125,19 +162,18 @@ export default function AgentRunPage() {
             </div>
           </section>
 
-          <form onSubmit={submitFollowUp} className="mx-auto mb-5 w-[calc(100%-2.5rem)] max-w-[600px] rounded-sm bg-background-card p-2.5 sm:mb-6 sm:p-3">
+          <form onSubmit={submitFollowUp} className="mx-auto mb-5 w-[calc(100%-2.5rem)] max-w-250 rounded-sm bg-background-card p-2.5 sm:mb-6 sm:p-3">
             <label htmlFor="agent-follow-up" className="sr-only">Ask a follow-up question</label>
-            <textarea
+            <input
               id="agent-follow-up"
-              rows={2}
-              maxLength={8_000}
-              value={prompt}
               onChange={event => setPrompt(event.target.value)}
               placeholder="Ask me anything…"
-              className="min-h-11 w-full resize-y bg-transparent px-1.5 py-1 text-sm outline-hidden placeholder:text-foreground-off focus-visible:ring-1 focus-visible:ring-accent"
+              className="min-h-11 w-full bg-transparent px-1.5 py-1 text-sm outline-hidden placeholder:text-foreground-off"
             />
             <div className="flex items-center justify-between px-1 pt-1.5">
-              <span className="max-w-[75%] truncate text-[10px] text-foreground-off">{run?.model ?? "Agent"}</span>
+              <div className="max-w-55">
+                {models.length ? <SelectorInput current={selectedModel} setCurrent={setModel} values={models} /> : <span className="text-[10px] text-foreground-off">{selectedModel || "Agent"}</span>}
+              </div>
               <button type="submit" disabled={sending || !run || !prompt.trim()} aria-label="Send follow-up" className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40">
                 <IconArrowUp size={15} strokeWidth={2.2} />
               </button>
