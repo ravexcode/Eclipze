@@ -9,7 +9,7 @@ export default function AuthForm(props: Props) {
     <form
       onSubmit={props.onSubmit}
       onError={props.onError}
-      className="flex w-full max-w-[263px] flex-col items-center justify-center gap-2.5 animate-fade-in-up">
+      className="flex w-full max-w-[395px] flex-col items-center justify-center gap-4 animate-fade-in-up">
       {props.children}
     </form>
   );
