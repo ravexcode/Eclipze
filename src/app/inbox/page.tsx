@@ -164,26 +164,26 @@ export default function InboxPage() {
   return (
     <DashLayout current="inbox" router={router}>
       <main className="flex min-h-dvh min-w-0 flex-col lg:h-dvh lg:flex-row lg:overflow-hidden">
-        <aside className="flex min-h-0 w-full flex-col border-b border-background-focus bg-background-card lg:w-[300px] lg:shrink-0 lg:border-b-0 lg:border-r">
-          <div className="border-b border-background-focus p-3">
-            <label className="flex h-8 items-center gap-2 rounded-full bg-background-focus px-3 text-foreground-off focus-within:ring-1 focus-within:ring-accent">
-              <IconSearch size={14} strokeWidth={1.8} aria-hidden="true" />
+        <aside className="flex min-h-0 w-full flex-col border-b border-background-focus bg-background-card lg:w-[450px] lg:shrink-0 lg:border-b-0 lg:border-r">
+          <div className="border-b border-background-focus p-[18px]">
+            <label className="flex h-12 items-center gap-3 rounded-full bg-background-focus px-[18px] text-foreground-off focus-within:ring-1 focus-within:ring-accent">
+              <IconSearch size={21} strokeWidth={1.8} aria-hidden="true" />
               <span className="sr-only">Search inbox</span>
               <input
                 type="search"
                 value={query}
                 onChange={event => setQuery(event.target.value)}
                 placeholder="Search"
-                className="min-w-0 flex-1 bg-transparent text-xs text-foreground outline-hidden placeholder:text-foreground-off"
+                className="min-w-0 flex-1 bg-transparent text-[18px] text-foreground outline-hidden placeholder:text-foreground-off"
               />
             </label>
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
             {loading ? (
-              <p role="status" className="p-4 text-xs text-foreground-off">Loading inbox…</p>
+              <p role="status" className="p-6 text-[18px] text-foreground-off">Loading inbox…</p>
             ) : filteredIssues.length === 0 ? (
-              <p className="p-4 text-xs text-foreground-off">No messages found.</p>
+              <p className="p-6 text-[18px] text-foreground-off">No messages found.</p>
             ) : (
               filteredIssues.map(issue => (
                 <button
@@ -191,11 +191,11 @@ export default function InboxPage() {
                   type="button"
                   onClick={() => setSelectedId(issue.id)}
                   aria-current={selectedId === issue.id ? "true" : undefined}
-                  className={`flex w-full flex-col gap-1 border-b border-background-focus/70 px-4 py-3 text-left transition-colors hover:bg-background-focus ${selectedId === issue.id ? "bg-background-focus" : ""}`}
+                  className={`flex w-full flex-col gap-1.5 border-b border-background-focus/70 px-6 py-[18px] text-left transition-colors hover:bg-background-focus ${selectedId === issue.id ? "bg-background-focus" : ""}`}
                 >
-                  <span className="truncate text-xs font-medium text-foreground">{issue.title}</span>
-                  <span className="truncate text-[10px] text-foreground-off">{issue.requester?.username ?? issue.requester?.email ?? issue.type}</span>
-                  <span className="line-clamp-2 text-[10px] leading-4 text-foreground-off">{issue.description ?? "No additional details."}</span>
+                  <span className="truncate text-[18px] font-medium text-foreground">{issue.title}</span>
+                  <span className="truncate text-[15px] text-foreground-off">{issue.requester?.username ?? issue.requester?.email ?? issue.type}</span>
+                  <span className="line-clamp-2 text-[15px] leading-6 text-foreground-off">{issue.description ?? "No additional details."}</span>
                 </button>
               ))
             )}
@@ -203,43 +203,43 @@ export default function InboxPage() {
         </aside>
 
         <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <header className="flex h-10 shrink-0 items-center justify-between border-b border-background-focus px-4 sm:px-5">
+          <header className="flex h-[60px] shrink-0 items-center justify-between border-b border-background-focus px-6 sm:px-[30px]">
             <div className="flex items-center gap-1 text-foreground-off">
-              <button type="button" onClick={() => router.push("/issues")} aria-label="Open issues" className="rounded-xs p-1.5 hover:bg-background-focus hover:text-foreground">
-                <IconExternalLink size={15} strokeWidth={1.8} />
+              <button type="button" onClick={() => router.push("/issues")} aria-label="Open issues" className="rounded-xs p-2.5 hover:bg-background-focus hover:text-foreground">
+                <IconExternalLink size={22} strokeWidth={1.8} />
               </button>
             </div>
             <div className="flex items-center gap-1 text-foreground-off">
-              <span className="mr-2 text-[10px]">{selectedIndex >= 0 ? `${selectedIndex + 1} of ${issues.length}` : ""}</span>
-              <button type="button" onClick={() => selectAdjacent(-1)} disabled={selectedIndex <= 0} aria-label="Previous message" className="rounded-xs p-1.5 hover:bg-background-focus hover:text-foreground disabled:opacity-30">
-                <IconChevronLeft size={15} />
+              <span className="mr-3 text-[15px]">{selectedIndex >= 0 ? `${selectedIndex + 1} of ${issues.length}` : ""}</span>
+              <button type="button" onClick={() => selectAdjacent(-1)} disabled={selectedIndex <= 0} aria-label="Previous message" className="rounded-xs p-2.5 hover:bg-background-focus hover:text-foreground disabled:opacity-30">
+                <IconChevronLeft size={22} />
               </button>
-              <button type="button" onClick={() => selectAdjacent(1)} disabled={selectedIndex < 0 || selectedIndex >= issues.length - 1} aria-label="Next message" className="rounded-xs p-1.5 hover:bg-background-focus hover:text-foreground disabled:opacity-30">
-                <IconChevronRight size={15} />
+              <button type="button" onClick={() => selectAdjacent(1)} disabled={selectedIndex < 0 || selectedIndex >= issues.length - 1} aria-label="Next message" className="rounded-xs p-2.5 hover:bg-background-focus hover:text-foreground disabled:opacity-30">
+                <IconChevronRight size={22} />
               </button>
             </div>
           </header>
 
-          {error ? <p role="alert" className="border-b border-alert-red/30 px-5 py-2 text-xs text-alert-red">{error}</p> : null}
+          {error ? <p role="alert" className="border-b border-alert-red/30 px-[30px] py-3 text-[18px] text-alert-red">{error}</p> : null}
 
           {detailLoading ? (
-            <p role="status" className="p-6 text-sm text-foreground-off">Loading message…</p>
+            <p role="status" className="p-9 text-[21px] text-foreground-off">Loading message…</p>
           ) : selectedIssue ? (
-            <article className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-7 lg:px-8">
+            <article className="min-h-0 flex-1 overflow-y-auto px-6 py-6 sm:px-[42px] lg:px-12">
               <div className="mx-auto w-full max-w-5xl">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <h1 className="break-words text-xl font-medium tracking-[-0.02em] sm:text-2xl">{selectedIssue.title}</h1>
-                    <p className="mt-2 text-xs text-foreground-off">{selectedIssue.requester?.email ?? ""}</p>
+                    <h1 className="break-words text-[30px] font-medium tracking-[-0.02em] sm:text-4xl">{selectedIssue.title}</h1>
+                    <p className="mt-3 text-[18px] text-foreground-off">{selectedIssue.requester?.email ?? ""}</p>
                   </div>
-                  <div className="text-right text-[10px] text-foreground-off">{formatDate(selectedIssue.createdAt)}</div>
+                  <div className="text-right text-[15px] text-foreground-off">{formatDate(selectedIssue.createdAt)}</div>
                 </div>
 
-                <div className="mt-5 space-y-5 text-xs leading-[1.55] text-foreground-off sm:text-sm">
+                <div className="mt-8 space-y-8 text-[18px] leading-[1.55] text-foreground-off sm:text-[21px]">
                   {selectedIssue.description ? <p className="whitespace-pre-wrap">{selectedIssue.description}</p> : null}
                   {selectedIssue.messages.map(message => (
-                    <section key={message.id} className="border-t border-background-focus pt-4">
-                      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-[10px] text-foreground-off">
+                    <section key={message.id} className="border-t border-background-focus pt-6">
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-[15px] text-foreground-off">
                         <span>{message.author.username ?? message.author.email}</span>
                         <time>{formatDate(message.createdAt)}</time>
                       </div>
@@ -248,26 +248,26 @@ export default function InboxPage() {
                   ))}
                 </div>
 
-                <div className="mt-6 flex justify-end">
-                  <button type="button" onClick={() => router.push(`/issues/${selectedIssue.id}`)} className="inline-flex items-center gap-1.5 rounded-xs px-2 py-1.5 text-[11px] text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground">
-                    Open issue <IconExternalLink size={13} />
+                <div className="mt-9 flex justify-end">
+                  <button type="button" onClick={() => router.push(`/issues/${selectedIssue.id}`)} className="inline-flex items-center gap-2 rounded-xs px-3 py-2 text-[17px] text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground">
+                    Open issue <IconExternalLink size={20} />
                   </button>
                 </div>
 
-                <form onSubmit={sendReply} className="sticky bottom-0 mt-4 rounded-sm bg-background-card p-3 shadow-[0_-12px_28px_#010101] sm:p-4">
+                <form onSubmit={sendReply} className="sticky bottom-0 mt-6 rounded-sm bg-background-card p-[18px] shadow-[0_-12px_28px_#010101] sm:p-6">
                   <label htmlFor="inbox-reply" className="sr-only">Reply to this issue</label>
                   <textarea
                     id="inbox-reply"
                     value={reply}
                     onChange={event => setReply(event.target.value)}
-                    rows={2}
+                    rows={3}
                     placeholder="Write a reply…"
-                    className="w-full resize-y bg-transparent text-xs text-foreground outline-hidden placeholder:text-foreground-off"
+                    className="w-full resize-y bg-transparent text-[18px] text-foreground outline-hidden placeholder:text-foreground-off"
                   />
-                  <div className="mt-2 flex items-center justify-between">
-                    <button type="button" onClick={() => router.push("/issues")} className="text-[10px] text-foreground-off hover:text-foreground">All issues</button>
-                    <button type="submit" disabled={!reply.trim() || replyBusy} className="inline-flex items-center gap-1.5 rounded-xs bg-accent px-3 py-1.5 text-[11px] font-medium text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-50">
-                      {replyBusy ? "Sending…" : "Reply"}<IconSend size={13} />
+                  <div className="mt-3 flex items-center justify-between">
+                    <button type="button" onClick={() => router.push("/issues")} className="text-[15px] text-foreground-off hover:text-foreground">All issues</button>
+                    <button type="submit" disabled={!reply.trim() || replyBusy} className="inline-flex items-center gap-2 rounded-xs bg-accent px-[18px] py-2 text-[17px] font-medium text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-50">
+                      {replyBusy ? "Sending…" : "Reply"}<IconSend size={20} />
                     </button>
                   </div>
                 </form>
@@ -275,9 +275,9 @@ export default function InboxPage() {
             </article>
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-foreground-off">
-                <IconArchive size={18} strokeWidth={1.6} />
-              <p className="text-sm">Select a message to read it.</p>
-              <p className="text-xs">{loading ? "" : "Your issue updates will appear here."}</p>
+                <IconArchive size={27} strokeWidth={1.6} />
+              <p className="text-[21px]">Select a message to read it.</p>
+              <p className="text-[18px]">{loading ? "" : "Your issue updates will appear here."}</p>
             </div>
           )}
         </section>
