@@ -18,7 +18,6 @@ export default async function HomePage() {
 
   return (
     <MarketingLayout hasToken={hasToken}>
-      <div aria-hidden="true" className="pointer-events-none absolute top-0 -translate-y-[50%] left-1/2 -translate-x-1/2 w-150 scale-150 rounded-full blur-3xl bg-radial from-blue-400 to-50% to-accent/60 block aspect-square animate-fade-in-down -z-1" />
 
       <section className="mx-auto w-full max-w-7xl overflow-hidden py-20 flex items-center justify-between">
 
