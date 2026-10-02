@@ -14,7 +14,7 @@ import type { AgentRun, LibrarySkill, WorkspaceRepository } from "@/types/agent-
 import { apiFetch } from "@/utils/api-fetch";
 import { getSessionUser } from "@/utils/session";
 import { getAvailableModels, type AvailableModel } from "@/utils/agents";
-import { errorMessage, readJson } from "@/utils/json-payload";
+import { readJson } from "@/utils/json-payload";
 
 type ProjectOption = { id: string; name: string };
 
@@ -76,11 +76,11 @@ export default function AgentsPage() {
         const [providerPayload, repositoryPayload, projectPayload, skillPayload] = await Promise.all([
           readJson(providerResponse), readJson(repositoryResponse), readJson(projectResponse), readJson(skillResponse),
         ]) as [
-          { connections?: AiProviderConnection[]; message?: string },
-          { repositories?: WorkspaceRepository[]; message?: string },
-          { projects?: ProjectOption[]; message?: string },
-          { skills?: LibrarySkill[]; message?: string },
-        ];
+            { connections?: AiProviderConnection[]; message?: string },
+            { repositories?: WorkspaceRepository[]; message?: string },
+            { projects?: ProjectOption[]; message?: string },
+            { skills?: LibrarySkill[]; message?: string },
+          ];
 
         if (cancelled) return;
         if (!providerResponse.ok) throw new Error(providerPayload.message ?? "Unable to load your AI provider.");
@@ -121,7 +121,7 @@ export default function AgentsPage() {
     return () => { cancelled = true; };
   }, [router]);
 
-  const addRepository = async (event: React.FormEvent<HTMLFormElement>) => {
+  const addRepository = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
     try {
@@ -168,16 +168,21 @@ export default function AgentsPage() {
 
   return (
     <DashLayout current="agents" router={router}>
-      <main className="flex min-h-dvh min-w-0 flex-col">
-        <section className="flex flex-1 flex-col items-center justify-center px-5 py-10">
-          <div className="w-full max-w-[600px]">
-            <div className="rounded-sm bg-background-card p-2.5 sm:p-3">
-              <label htmlFor="agent-prompt" className="sr-only">Ask an agent</label>
-              <textarea
+      <main
+        className="flex min-h-dvh min-w-0 flex-col">
+
+        <section
+          className="flex flex-1 flex-col items-center justify-center px-5 py-10">
+
+          <div
+            className="w-full max-w-250">
+
+            <div
+              className="rounded-sm bg-background-card p-2.5 sm:p-3">
+
+              <input
                 id="agent-prompt"
                 required
-                maxLength={8_000}
-                rows={2}
                 value={prompt}
                 onChange={event => setPrompt(event.target.value)}
                 onKeyDown={event => {
@@ -187,26 +192,38 @@ export default function AgentsPage() {
                   }
                 }}
                 placeholder="Ask me anything…"
-                className="min-h-12 w-full resize-y bg-transparent px-1.5 py-1 text-sm outline-hidden placeholder:text-foreground-off focus-visible:ring-1 focus-visible:ring-accent"
+                className="min-h-12 w-full resize-y bg-transparent px-1.5 py-1 text-sm outline-hidden placeholder:text-foreground-off"
               />
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
-                <div className="flex min-w-0 flex-1 items-center gap-2">
-                  {isLoading ? <span role="status" className="text-[10px] text-foreground-off">Loading models…</span> : (
-                    <div className="max-w-[220px]">
-                      <SelectorInput current={model} setCurrent={setModel} values={models} disabled={!models.length || showNoProvidersSnackbar} />
-                    </div>
-                  )}
-                  <span className="hidden text-[10px] text-foreground-off sm:inline">{repositories.find(repository => repository.id === repositoryId)?.repositoryUrl ?? "Select repository"}</span>
+
+              <div
+                className="flex flex-wrap items-center justify-between gap-2 pt-2">
+                <div
+                  className="flex min-w-0 flex-1 items-center gap-2">
+                  {isLoading ?
+                    <span
+                      role="status"
+                      className="text-[10px] text-foreground-off">
+                      Loading models…
+                    </span> : (
+                      <div className="max-w-55">
+                        <SelectorInput
+                          current={model}
+                          setCurrent={setModel}
+                          values={models}
+                          disabled={!models.length || showNoProvidersSnackbar} />
+                      </div>
+                    )}
                 </div>
+
                 <button
                   type="button"
                   onClick={() => void submitTask()}
                   disabled={isLoading || isSubmitting || showNoProvidersSnackbar || !repositoryId || !prompt.trim()}
                   aria-label="Start task"
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40"
-                >
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40">
                   <IconArrowUp size={15} strokeWidth={2.2} />
                 </button>
+
               </div>
             </div>
 
@@ -219,8 +236,20 @@ export default function AgentsPage() {
               </button>
             </div>
 
-            {error ? <p role="alert" className="mt-3 text-xs text-priority-high">{error}</p> : null}
-            {isLoading ? <p role="status" className="mt-2 text-center text-[10px] text-foreground-off">Loading your workspace…</p> : null}
+            {error &&
+              <p
+                role="alert"
+                className="mt-3 text-xs text-priority-high">
+                {error}
+              </p>
+            }
+            {isLoading &&
+              <p
+                role="status"
+                className="mt-2 text-center text-[10px] text-foreground-off">
+                Loading your workspace…
+              </p>
+            }
 
             {showRepositoryForm ? (
               <fieldset className="mt-3 flex flex-col gap-3 rounded-sm border border-background-focus bg-background-card p-4">

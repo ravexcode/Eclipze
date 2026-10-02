@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --port 8080",
+    "dev": "next dev --port 2222",
     "build": "prisma generate && next build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

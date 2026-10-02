@@ -28,7 +28,7 @@ export default function SelectorInput(props: Props) {
   const selectedModel = props.values.find(model => model.id === props.current);
 
   return (
-    <div className="relative w-full max-w-xl">
+    <div className="relative w-full text-xs">
       <button
         type="button"
         aria-haspopup="listbox"
@@ -38,7 +38,7 @@ export default function SelectorInput(props: Props) {
           setExpanded(previous => !previous);
           setQuery("");
         }}
-        className={`flex w-70 items-center justify-between gap-3 rounded-sm bg-background-card px-3 py-2 text-left text-sm transition-colors hover:bg-background-focus disabled:brightness-[0.8] disabled:cursor-not-allowed ${props.disabled || props.values.length === 0 ? "brightness-[0.8] cursor-not-allowed" : "cursor-pointer"}`}>
+        className={`flex w-50 items-center justify-between gap-3 rounded-sm bg-background-card px-3 py-2 text-left transition-colors hover:bg-background-focus disabled:brightness-[0.8] disabled:cursor-not-allowed ${props.disabled || props.values.length === 0 ? "brightness-[0.8] cursor-not-allowed" : "cursor-pointer"}`}>
         <span className="flex min-w-0 flex-1 items-center justify-between gap-3">
           {selectedModel ? (
             <span className="flex min-w-0 flex-col">
@@ -48,11 +48,10 @@ export default function SelectorInput(props: Props) {
             <span className="truncate">{props.current || "Select a model"}</span>
           )}
         </span>
-        <IconChevronDown size={16} className="shrink-0 text-foreground-off" />
       </button>
 
       {expanded && !props.disabled ? (
-        <div className="absolute left-0 top-full z-20 mt-1 w-full overflow-hidden rounded-sm border border-background-focus bg-background-card">
+        <div className="absolute left-0 top-full z-20 mt-1 overflow-hidden rounded-sm border border-background-focus bg-background-card">
           <label className="flex items-center gap-2 border-b border-background-focus px-3 py-2 text-foreground-off">
             <IconSearch size={16} />
             <input
@@ -62,7 +61,7 @@ export default function SelectorInput(props: Props) {
               onChange={event => setQuery(event.target.value)}
               placeholder="Search models"
               aria-label="Search models"
-              className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-hidden placeholder:text-foreground-off/70" />
+              className="min-w-0 flex-1 bg-transparent text-foreground outline-hidden placeholder:text-foreground-off/70" />
           </label>
 
           <div className="max-h-60 overflow-y-auto p-1" role="listbox" aria-label="Available models">
@@ -78,7 +77,7 @@ export default function SelectorInput(props: Props) {
                 }}
                 className={`flex w-full items-center justify-between gap-3 rounded-xs px-3 py-2 text-left hover:bg-background-focus ${model.id === props.current ? "bg-background-focus" : ""}`}>
                 <span className="flex min-w-0 flex-col">
-                  <span className="truncate text-sm font-medium">{model.name}</span>
+                  <span className="truncate font-medium">{model.name}</span>
                   {model.id !== model.name ? (
                     <span className="truncate text-xs text-foreground-off">{model.id}</span>
                   ) : null}
