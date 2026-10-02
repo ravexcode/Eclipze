@@ -1,4 +1,4 @@
-![logo](./public/images/app_image.png)
+![logo](./public/logo.svg)
 
 Eclipze is a **developer ↔ client contact tool** designed to centralize communication, project context, and workflow visibility in one interface.
 
@@ -27,8 +27,8 @@ This app is intended to help developers and clients stay aligned by giving them 
 
 ### Requirements
 
-- Node.js `>=20`
-- `pnpm`
+- Runner: Node.js `>=22x`
+- Package manager: `pnpm`
 
 ### Install dependencies
 
@@ -102,30 +102,6 @@ These were extracted from the Figma file and added as the initial theme foundati
 - `--color-foreground: #fafafa`
 - `--color-foreground-off: #676767`
 - `--color-accent: #000bde`
-
-## Project structure
-
-```text
-src/
-  app/
-    dashboard/
-    globals.css
-    layout.tsx
-    page.tsx
-  components/
-    layouts/
-    sidebar.tsx
-```
-
-## Status
-
-This repository currently contains the **basic app foundation**:
-
-- Next.js migration completed
-- pnpm setup completed
-- Bun removed
-- initial dashboard shell kept minimal
-- Figma-based color tokens added
 
 ## Security
 

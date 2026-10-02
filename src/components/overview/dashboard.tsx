@@ -42,26 +42,26 @@ export default function OverviewDashboard({
 
   return (
     <main className="min-h-dvh w-full min-w-0 px-5 py-5 sm:px-8 sm:py-6">
-      <div className="mx-auto flex w-full max-w-[900px] flex-col gap-9">
+      <div className="mx-auto flex w-full max-w-[750px] flex-col gap-[30px]">
         {error ? (
-          <p role="alert" className="text-[18px] text-alert-red">
+          <p role="alert" className="text-[15px] text-alert-red">
             {error}
           </p>
         ) : null}
 
-        <section aria-labelledby="issue-activity-title" className="flex flex-col gap-[18px] rounded-sm bg-background-card p-[18px] sm:p-6">
-          <h1 id="issue-activity-title" className="text-[21px] font-medium">
+        <section aria-labelledby="issue-activity-title" className="flex flex-col gap-[15px] rounded-sm bg-background-card p-[15px] sm:p-5">
+          <h1 id="issue-activity-title" className="text-[18px] font-medium">
             {now.getFullYear()} Issues
           </h1>
 
           {loading && !snapshot ? (
-            <p role="status" className="text-[18px] text-foreground-off">
+            <p role="status" className="text-[15px] text-foreground-off">
               Loading issue activity…
             </p>
           ) : (
             <div className="min-w-0 overflow-x-auto pb-1">
-              <div className="grid min-w-[780px] gap-x-1.5 gap-y-1.5" style={{ gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))` }}>
-                <div className="col-span-full grid h-6 text-[14px] text-foreground-off" style={{ gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))` }} aria-hidden="true">
+              <div className="grid min-w-[650px] gap-x-1.5 gap-y-1.5" style={{ gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))` }}>
+                <div className="col-span-full grid h-5 text-[11px] text-foreground-off" style={{ gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))` }} aria-hidden="true">
                   {monthLabels.map(month => (
                     <span key={`${month.label}-${month.week}`} style={{ gridColumnStart: month.week + 1 }}>{month.label}</span>
                   ))}
@@ -86,17 +86,17 @@ export default function OverviewDashboard({
           )}
         </section>
 
-        <section aria-labelledby="agents-usage-title" className="flex flex-col gap-[18px] rounded-sm bg-background-card p-[18px] sm:p-6">
-          <h2 id="agents-usage-title" className="text-[21px] font-medium">
+        <section aria-labelledby="agents-usage-title" className="flex flex-col gap-[15px] rounded-sm bg-background-card p-[15px] sm:p-5">
+          <h2 id="agents-usage-title" className="text-[18px] font-medium">
             Agents usage
           </h2>
 
           {loading && !snapshot ? (
-            <p role="status" className="text-[18px] text-foreground-off">
+            <p role="status" className="text-[15px] text-foreground-off">
               Loading agent usage…
             </p>
           ) : (
-            <div className="flex flex-col gap-[18px]">
+            <div className="flex flex-col gap-[15px]">
               {usagePeriods.map(period => {
                 const percentage = peakUsage === 0
                   ? 0
@@ -104,7 +104,7 @@ export default function OverviewDashboard({
 
                 return (
                   <div key={period.label} className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between gap-4 text-[17px]">
+                    <div className="flex items-center justify-between gap-4 text-[14px]">
                       <span className="text-foreground-off">{period.label}</span>
                       <span className="text-foreground">
                         {formatUsageDuration(period.totalMilliseconds)}
@@ -114,7 +114,7 @@ export default function OverviewDashboard({
                       </span>
                     </div>
                     <div
-                      className="h-[9px] overflow-hidden rounded-full bg-background-focus"
+                      className="h-[7px] overflow-hidden rounded-full bg-background-focus"
                       role="progressbar"
                       aria-label={`${period.label} agent usage`}
                       aria-valuemin={0}
@@ -132,22 +132,22 @@ export default function OverviewDashboard({
           )}
         </section>
 
-        <section aria-labelledby="inbox-title" className="flex flex-col gap-[18px] rounded-sm bg-background-card p-[18px] sm:p-6">
+        <section aria-labelledby="inbox-title" className="flex flex-col gap-[15px] rounded-sm bg-background-card p-[15px] sm:p-5">
           <div className="flex items-center justify-between gap-4">
-            <h2 id="inbox-title" className="text-[21px] font-medium">
+            <h2 id="inbox-title" className="text-[18px] font-medium">
               Inbox
             </h2>
             <button
               type="button"
               onClick={onOpenIssues}
-              className="inline-flex items-center gap-1.5 text-[17px] text-foreground-off transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+              className="inline-flex items-center gap-1.5 text-[14px] text-foreground-off transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
               Open all messages
-              <IconArrowUpRight size={20} strokeWidth={1.8} />
+              <IconArrowUpRight size={16} strokeWidth={1.8} />
             </button>
           </div>
 
           {loading && !snapshot ? (
-            <p role="status" className="text-[18px] text-foreground-off">
+            <p role="status" className="text-[15px] text-foreground-off">
               Loading inbox…
             </p>
           ) : notifications.length > 0 ? (
@@ -160,22 +160,22 @@ export default function OverviewDashboard({
                     key={notification.id}
                     type="button"
                     onClick={() => issue ? onOpenIssue(issue) : onOpenIssues()}
-                    className="flex min-h-[42px] items-center gap-3 border-b border-background-focus/70 py-2 text-left text-[17px] transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+                    className="flex min-h-9 items-center gap-2.5 border-b border-background-focus/70 py-2 text-left text-[14px] transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
                     <span
                       aria-hidden="true"
-                      className={`h-[9px] w-[9px] shrink-0 rounded-full ${notification.readAt ? "bg-foreground-off/50" : "bg-status-purple"}`}
+                      className={`h-2 w-2 shrink-0 rounded-full ${notification.readAt ? "bg-foreground-off/50" : "bg-status-purple"}`}
                     />
                     <span className="min-w-0 flex-1 truncate text-foreground-off">
                       {getNotificationLabel(notification)}
                     </span>
-                    <IconArrowUpRight className="shrink-0 text-foreground-off" size={18} strokeWidth={1.8} />
+                    <IconArrowUpRight className="shrink-0 text-foreground-off" size={15} strokeWidth={1.8} />
                   </button>
                 );
               })}
             </div>
           ) : (
-            <div className="flex items-center gap-3 py-3 text-[18px] text-foreground-off">
-              <IconInbox size={22} strokeWidth={1.7} />
+            <div className="flex items-center gap-2.5 py-2.5 text-[15px] text-foreground-off">
+              <IconInbox size={19} strokeWidth={1.7} />
               <p>No messages yet.</p>
             </div>
           )}
