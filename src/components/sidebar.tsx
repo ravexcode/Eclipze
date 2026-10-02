@@ -123,31 +123,31 @@ export default function Sidebar(props: Props) {
   const options = [
     {
       label: "Overview",
-      icon: <IconLayoutDashboard size={16} strokeWidth={2} />,
+      icon: <IconLayoutDashboard size={24} strokeWidth={2} />,
       action: () => { router.push("/dashboard") },
       selected: props.selected === "overview"
     },
     {
       label: "Inbox",
-      icon: <IconInbox size={16} strokeWidth={2} />,
+      icon: <IconInbox size={24} strokeWidth={2} />,
       action: () => { router.push("/inbox") },
       selected: props.selected === "inbox"
     },
     {
       label: "Issues",
-      icon: <IconTarget size={16} strokeWidth={2} />,
+      icon: <IconTarget size={24} strokeWidth={2} />,
       action: () => { router.push("/issues") },
       selected: props.selected === "issues"
     },
     {
       label: "Projects",
-      icon: <IconFolders size={16} strokeWidth={2} />,
+      icon: <IconFolders size={24} strokeWidth={2} />,
       action: () => { router.push("/projects") },
       selected: props.selected === "projects"
     },
     {
       label: "Agents",
-      icon: <IconPointer2 size={16} strokeWidth={2} />,
+      icon: <IconPointer2 size={24} strokeWidth={2} />,
       action: () => { router.push("/agents") },
       selected: props.selected === "agents"
     },
@@ -160,12 +160,12 @@ export default function Sidebar(props: Props) {
   if (!visibility) {
     return (
       <section
-        className="sticky top-0 z-10 h-auto w-full border-b border-background-focus px-3 py-3 md:h-dvh md:w-max md:border-b-0 md:px-2 md:py-4">
+        className="sticky top-0 z-10 h-auto w-full border-b border-background-focus px-3 py-3 md:h-dvh md:w-max md:border-b-0 md:px-3 md:py-6">
         <button
           type="button"
-          className="rounded-xs p-2 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground"
+          className="rounded-xs p-3 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground"
           onClick={toggle}>
-          <IconLayoutSidebar size={16} strokeWidth={2} />
+          <IconLayoutSidebar size={24} strokeWidth={2} />
         </button>
       </section>
     );
@@ -179,38 +179,38 @@ export default function Sidebar(props: Props) {
           setIsSidebarClosing(false);
         }
       }}
-      className={"sticky top-0 z-10 flex h-auto w-full flex-col items-center justify-start border-b border-background-focus bg-surface p-3 md:h-dvh md:w-[200px] md:border-b-0 md:p-3 " +
+      className={"sticky top-0 z-10 flex h-auto w-full flex-col items-center justify-start border-b border-background-focus bg-surface p-3 md:h-dvh md:w-[300px] md:border-b-0 md:p-[18px] " +
         (isSidebarClosing
           ? "animate-slide-out-left animate-duration-180 animate-ease-out animate-slide-distance-[8px]"
           : "animate-slide-in-left animate-duration-180 animate-ease-out animate-slide-distance-[8px]") +
         " motion-reduce:animate-none"}>
       <div className="flex w-full flex-col md:h-full">
-        <div className="flex w-full items-center justify-between px-2">
+        <div className="flex w-full items-center justify-between px-3">
           <Link href="/dashboard" aria-label="Eclipze dashboard" className="rounded-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
-            <Image src="/logo.svg" alt="" width={18} height={18} />
+            <Image src="/logo.svg" alt="" width={27} height={27} />
           </Link>
           <button
             type="button"
-            className="rounded-xs p-2 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground"
+            className="rounded-xs p-3 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground"
             onClick={toggle}
             aria-label="Collapse sidebar">
-            <IconLayoutSidebar size={16} strokeWidth={2} />
+            <IconLayoutSidebar size={24} strokeWidth={2} />
           </button>
         </div>
 
-        <label className="mt-4 flex h-8 w-full items-center gap-2 rounded-full bg-background-focus px-2.5 text-foreground-off focus-within:ring-1 focus-within:ring-accent">
-          <IconSearch size={14} strokeWidth={1.8} aria-hidden="true" />
+        <label className="mt-6 flex h-12 w-full items-center gap-3 rounded-full bg-background-focus px-4 text-foreground-off focus-within:ring-1 focus-within:ring-accent">
+          <IconSearch size={21} strokeWidth={1.8} aria-hidden="true" />
           <span className="sr-only">Search navigation</span>
           <input
             type="search"
             value={navigationQuery}
             onChange={event => setNavigationQuery(event.target.value)}
             placeholder="Search"
-            className="min-w-0 flex-1 bg-transparent text-[10px] text-foreground outline-hidden placeholder:text-foreground-off"
+            className="min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-hidden placeholder:text-foreground-off"
           />
         </label>
 
-        <nav aria-label="Main navigation" className="mt-5 flex w-full flex-row items-center justify-start gap-1 overflow-x-auto md:flex-col md:items-stretch">
+        <nav aria-label="Main navigation" className="mt-[30px] flex w-full flex-row items-center justify-start gap-1.5 overflow-x-auto md:flex-col md:items-stretch">
           {visibleOptions.map(option => (
             <Option
               key={option.label}
@@ -222,10 +222,10 @@ export default function Sidebar(props: Props) {
           ))}
         </nav>
 
-        <div ref={menuRef} className="relative mt-4 w-full md:mt-auto">
+        <div ref={menuRef} className="relative mt-6 w-full md:mt-auto">
           <button
             type="button"
-            className="flex w-full select-none items-center justify-start gap-2 rounded-xs px-2 py-2 transition-colors hover:bg-surface-raised"
+            className="flex w-full select-none items-center justify-start gap-3 rounded-xs px-3 py-3 transition-colors hover:bg-surface-raised"
             onClick={() => {
               if (menuOpen) {
                 closeMenu();
@@ -241,22 +241,22 @@ export default function Sidebar(props: Props) {
                 <Image
                   src={props.user.avatar}
                   alt={props.user.name}
-                  width={16}
-                  height={16}
-                  className="h-4 w-4 rounded-full"
+                  width={24}
+                  height={24}
+                  className="h-6 w-6 rounded-full"
                   unoptimized
                 />
-                <span className="min-w-0 flex-1 truncate text-start text-xs text-foreground">
+                <span className="min-w-0 flex-1 truncate text-start text-[18px] text-foreground">
                   {props.user.name}
                 </span>
               </>
             ) : (
               <div className="flex w-full animate-pulse gap-2">
-                <span className="block aspect-square w-4 rounded-full bg-background-focus" />
-                <span className="block h-4 w-full rounded-full bg-background-focus" />
+                <span className="block aspect-square w-6 rounded-full bg-background-focus" />
+                <span className="block h-6 w-full rounded-full bg-background-focus" />
               </div>
             )}
-            <IconChevronDown size={14} strokeWidth={2} />
+            <IconChevronDown size={21} strokeWidth={2} />
           </button>
 
           {menuOpen ? (
@@ -268,7 +268,7 @@ export default function Sidebar(props: Props) {
                 }
               }}
               aria-hidden={isMenuClosing}
-              className={"absolute bottom-full left-0 z-20 mb-2 w-full rounded-xs border border-background-focus bg-surface p-1 md:top-auto " +
+              className={"absolute bottom-full left-0 z-20 mb-3 w-full rounded-xs border border-background-focus bg-surface p-1.5 md:top-auto " +
                 (isMenuClosing
                   ? "animate-slide-out-top animate-duration-150 animate-ease-out"
                   : "animate-slide-in-top animate-duration-150 animate-ease-out") +
@@ -276,17 +276,17 @@ export default function Sidebar(props: Props) {
                 (isMenuClosing ? "pointer-events-none" : "")}>
               <button
                 type="button"
-                className="flex w-full items-center gap-2 rounded-xs px-3 py-2 text-xs text-foreground-off hover:bg-surface-raised hover:text-foreground"
+                className="flex w-full items-center gap-3 rounded-xs px-4 py-3 text-[18px] text-foreground-off hover:bg-surface-raised hover:text-foreground"
                 onClick={goToProfileSettings}>
-                <IconSettings size={16} strokeWidth={2} />
+                <IconSettings size={24} strokeWidth={2} />
                 <span>Profile settings</span>
               </button>
               <button
                 type="button"
-                className="flex w-full items-center gap-2 rounded-xs px-3 py-2 text-xs text-foreground-off hover:bg-surface-raised hover:text-foreground disabled:opacity-50"
+                className="flex w-full items-center gap-3 rounded-xs px-4 py-3 text-[18px] text-foreground-off hover:bg-surface-raised hover:text-foreground disabled:opacity-50"
                 onClick={() => void logout()}
                 disabled={isSigningOut}>
-                <IconLogout2 size={16} strokeWidth={2} />
+                <IconLogout2 size={24} strokeWidth={2} />
                 <span>{isSigningOut ? "Signing out..." : "Logout"}</span>
               </button>
             </div>
