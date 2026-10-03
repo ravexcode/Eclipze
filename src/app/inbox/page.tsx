@@ -1,283 +1,224 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { IconEdit, IconInbox, IconRefresh, IconSend } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
-import {
-  IconArchive,
-  IconChevronLeft,
-  IconChevronRight,
-  IconExternalLink,
-  IconSearch,
-  IconSend,
-} from "@tabler/icons-react";
 
+import MailComposeForm from "@/components/inbox/mail-compose-form";
+import MailDetail from "@/components/inbox/mail-detail";
+import MailList from "@/components/inbox/mail-list";
 import DashLayout from "@/components/layouts/dash";
-import type { IssueItem } from "@/types/issues";
-import type { UserRole } from "@/types/user";
+import type { MailFolder, MailFormValues, MailItem } from "@/types/mail";
 import { apiFetch } from "@/utils/api-fetch";
 
-type IssueMessage = {
-  id: string;
-  body: string;
-  createdAt: string;
-  author: { username: string | null; email: string; role: UserRole };
-};
-
-type IssueDetail = IssueItem & {
-  requester: { username: string | null; email: string };
-  messages: IssueMessage[];
-};
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
+const EMPTY_FORM: MailFormValues = { to: "", subject: "", body: "" };
 
 export default function InboxPage() {
   const router = useRouter();
-  const [issues, setIssues] = useState<IssueItem[]>([]);
+  const [folder, setFolder] = useState<MailFolder>("inbox");
+  const [mails, setMails] = useState<MailItem[]>([]);
   const [selectedId, setSelectedId] = useState("");
-  const [selectedIssue, setSelectedIssue] = useState<IssueDetail | null>(null);
   const [query, setQuery] = useState("");
-  const [reply, setReply] = useState("");
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [form, setForm] = useState<MailFormValues>(EMPTY_FORM);
   const [loading, setLoading] = useState(true);
-  const [detailLoading, setDetailLoading] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [replyBusy, setReplyBusy] = useState(false);
 
-  const loadIssues = useCallback(async () => {
+  const loadMails = useCallback(async (nextFolder: MailFolder = folder) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await apiFetch("/api/issues", { cache: "no-store" });
-      const payload = await response.json() as { issues?: IssueItem[]; message?: string };
+      const response = await apiFetch(`/api/mails?folder=${nextFolder}`, { cache: "no-store" });
+      const payload = await response.json() as { mails?: MailItem[]; message?: string };
 
-      if (!response.ok) {
-        throw new Error(payload.message ?? "Unable to load your inbox.");
-      }
+      if (!response.ok) throw new Error(payload.message ?? "Unable to load your mail.");
 
-      const nextIssues = payload.issues ?? [];
-      setIssues(nextIssues);
-      setSelectedId(current => current || nextIssues[0]?.id || "");
+      const nextMails = payload.mails ?? [];
+      setMails(nextMails);
+      setSelectedId(current => nextMails.some(mail => mail.id === current) ? current : nextMails[0]?.id ?? "");
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Unable to load your inbox.");
+      setError(loadError instanceof Error ? loadError.message : "Unable to load your mail.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [folder]);
 
   useEffect(() => {
-    void loadIssues();
-  }, [loadIssues]);
+    void loadMails(folder);
+  }, [folder, loadMails]);
 
-  useEffect(() => {
-    if (!selectedId) {
-      setSelectedIssue(null);
-      return;
-    }
+  const selectedMail = mails.find(mail => mail.id === selectedId) ?? null;
 
-    let cancelled = false;
-    setDetailLoading(true);
-
-    async function loadSelectedIssue() {
-      try {
-        const response = await apiFetch(`/api/issues/${selectedId}`, { cache: "no-store" });
-        const payload = await response.json() as { issue?: IssueDetail; message?: string };
-
-        if (!response.ok || !payload.issue) {
-          throw new Error(payload.message ?? "Unable to load this message.");
-        }
-
-        if (!cancelled) {
-          setSelectedIssue(payload.issue);
-          setError(null);
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : "Unable to load this message.");
-          setSelectedIssue(null);
-        }
-      } finally {
-        if (!cancelled) setDetailLoading(false);
-      }
-    }
-
-    void loadSelectedIssue();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedId]);
-
-  const filteredIssues = useMemo(() => {
+  const filteredMails = useMemo(() => {
     const search = query.trim().toLocaleLowerCase();
-    if (!search) return issues;
+    if (!search) return mails;
 
-    return issues.filter(issue =>
-      `${issue.title} ${issue.description ?? ""} ${issue.requester?.username ?? ""} ${issue.requester?.email ?? ""}`
+    return mails.filter(mail => {
+      const person = folder === "inbox" ? mail.sender : mail.recipient;
+      return `${mail.subject} ${mail.body} ${person.username ?? ""} ${person.email}`
         .toLocaleLowerCase()
-        .includes(search),
-    );
-  }, [issues, query]);
+        .includes(search);
+    });
+  }, [folder, mails, query]);
 
-  const sendReply = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!selectedIssue || !reply.trim()) return;
+  const selectFolder = (nextFolder: MailFolder) => {
+    setFolder(nextFolder);
+    setSelectedId("");
+    setComposeOpen(false);
+  };
 
-    setReplyBusy(true);
-    setError(null);
+  const selectMail = async (mail: MailItem) => {
+    setSelectedId(mail.id);
+    setComposeOpen(false);
+    if (folder !== "inbox" || mail.readAt) return;
+
+    const readAt = new Date().toISOString();
+    setMails(current => current.map(item => item.id === mail.id ? { ...item, readAt } : item));
 
     try {
-      const response = await apiFetch(`/api/issues/${selectedIssue.id}/messages`, {
-        method: "POST",
+      const response = await apiFetch(`/api/mails/${mail.id}`, {
+        method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ body: reply }),
+        body: JSON.stringify({ read: true }),
       });
-      const payload = await response.json().catch(() => null) as { message?: string } | null;
-
-      if (!response.ok) {
-        throw new Error(payload?.message ?? "Unable to send your reply.");
-      }
-
-      setReply("");
-      await Promise.all([loadIssues(), (async () => {
-        const detailResponse = await apiFetch(`/api/issues/${selectedIssue.id}`, { cache: "no-store" });
-        const detailPayload = await detailResponse.json() as { issue?: IssueDetail };
-        if (detailResponse.ok && detailPayload.issue) setSelectedIssue(detailPayload.issue);
-      })()]);
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Unable to send your reply.");
-    } finally {
-      setReplyBusy(false);
+      if (!response.ok) throw new Error("Unable to mark this message as read.");
+    } catch (readError) {
+      setMails(current => current.map(item => item.id === mail.id ? { ...item, readAt: null } : item));
+      setError(readError instanceof Error ? readError.message : "Unable to mark this message as read.");
     }
   };
 
-  const selectedIndex = issues.findIndex(issue => issue.id === selectedId);
-  const selectAdjacent = (offset: number) => {
-    const nextIssue = issues[selectedIndex + offset];
-    if (nextIssue) setSelectedId(nextIssue.id);
+  const startCompose = (replyTo?: MailItem) => {
+    if (!replyTo) {
+      setForm(EMPTY_FORM);
+    } else {
+      const subject = /^re:\s/i.test(replyTo.subject) ? replyTo.subject : `Re: ${replyTo.subject}`;
+      setForm({ to: replyTo.sender.email, subject: subject.slice(0, 200), body: "" });
+    }
+
+    setError(null);
+    setComposeOpen(true);
+  };
+
+  const sendMail = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSending(true);
+    setError(null);
+
+    try {
+      const response = await apiFetch("/api/mails", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const payload = await response.json().catch(() => null) as { mail?: MailItem; message?: string } | null;
+
+      if (!response.ok || !payload?.mail) {
+        throw new Error(payload?.message ?? "Unable to send your message.");
+      }
+
+      const sentMail = payload.mail;
+      setFolder("sent");
+      setMails(current => [sentMail, ...current.filter(mail => mail.id !== sentMail.id)]);
+      setSelectedId(sentMail.id);
+      setForm(EMPTY_FORM);
+      setComposeOpen(false);
+    } catch (sendError) {
+      setError(sendError instanceof Error ? sendError.message : "Unable to send your message.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
     <DashLayout current="inbox" router={router}>
       <main className="flex min-h-dvh min-w-0 flex-col lg:h-dvh lg:flex-row lg:overflow-hidden">
         <aside className="flex min-h-0 w-full flex-col border-b border-background-focus bg-background-card lg:w-[375px] lg:shrink-0 lg:border-b-0 lg:border-r">
-          <div className="border-b border-background-focus p-[15px]">
-            <label className="flex h-10 items-center gap-2.5 rounded-full bg-background-focus px-[15px] text-foreground-off focus-within:ring-1 focus-within:ring-accent">
-              <IconSearch size={18} strokeWidth={1.8} aria-hidden="true" />
-              <span className="sr-only">Search inbox</span>
-              <input
-                type="search"
-                value={query}
-                onChange={event => setQuery(event.target.value)}
-                placeholder="Search"
-                className="min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-hidden placeholder:text-foreground-off"
-              />
-            </label>
+          <div className="flex items-center justify-between gap-3 border-b border-background-focus p-4">
+            <h1 className="text-[18px] font-medium">Mail</h1>
+            <button
+              type="button"
+              onClick={() => startCompose()}
+              className="inline-flex h-9 items-center gap-2 rounded-xs bg-accent px-3 text-[13px] font-medium text-white transition-colors hover:bg-accent-strong"
+            >
+              <IconEdit size={16} /> Compose
+            </button>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            {loading ? (
-              <p role="status" className="p-5 text-[15px] text-foreground-off">Loading inbox…</p>
-            ) : filteredIssues.length === 0 ? (
-              <p className="p-5 text-[15px] text-foreground-off">No messages found.</p>
-            ) : (
-              filteredIssues.map(issue => (
-                <button
-                  key={issue.id}
-                  type="button"
-                  onClick={() => setSelectedId(issue.id)}
-                  aria-current={selectedId === issue.id ? "true" : undefined}
-                  className={`flex w-full flex-col gap-1.5 border-b border-background-focus/70 px-5 py-[15px] text-left transition-colors hover:bg-background-focus ${selectedId === issue.id ? "bg-background-focus" : ""}`}
-                >
-                  <span className="truncate text-[15px] font-medium text-foreground">{issue.title}</span>
-                  <span className="truncate text-[13px] text-foreground-off">{issue.requester?.username ?? issue.requester?.email ?? issue.type}</span>
-                  <span className="line-clamp-2 text-[13px] leading-5 text-foreground-off">{issue.description ?? "No additional details."}</span>
-                </button>
-              ))
-            )}
+          <div className="grid grid-cols-2 border-b border-background-focus p-2">
+            {(["inbox", "sent"] as const).map(item => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => selectFolder(item)}
+                aria-pressed={folder === item}
+                className={`rounded-xs px-3 py-2 text-[13px] capitalize transition-colors ${folder === item ? "bg-background-focus text-foreground" : "text-foreground-off hover:text-foreground"}`}
+              >
+                {item}
+              </button>
+            ))}
           </div>
+
+          <div className="border-b border-background-focus p-3">
+            <label className="sr-only" htmlFor="mail-search">Search mail</label>
+            <input
+              id="mail-search"
+              type="search"
+              value={query}
+              onChange={event => setQuery(event.target.value)}
+              placeholder="Search mail"
+              className="h-10 w-full rounded-full bg-background-focus px-4 text-[14px] text-foreground outline-hidden placeholder:text-foreground-off focus-visible:ring-1 focus-visible:ring-accent"
+            />
+          </div>
+
+          {loading ? (
+            <p role="status" className="p-5 text-[14px] text-foreground-off">Loading {folder}…</p>
+          ) : filteredMails.length ? (
+            <MailList folder={folder} mails={filteredMails} selectedId={selectedId} onSelect={mail => void selectMail(mail)} />
+          ) : (
+            <p className="p-5 text-[14px] text-foreground-off">{query ? "No matching messages." : "No messages in this folder."}</p>
+          )}
         </aside>
 
         <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <header className="flex h-[50px] shrink-0 items-center justify-between border-b border-background-focus px-5 sm:px-[25px]">
-            <div className="flex items-center gap-1 text-foreground-off">
-              <button type="button" onClick={() => router.push("/issues")} aria-label="Open issues" className="rounded-xs p-2 hover:bg-background-focus hover:text-foreground">
-                <IconExternalLink size={19} strokeWidth={1.8} />
-              </button>
+          <header className="flex h-[50px] shrink-0 items-center justify-between border-b border-background-focus px-5 sm:px-7">
+            <div className="flex items-center gap-2 text-[14px] text-foreground-off">
+              <IconInbox size={18} />
+              <span className="capitalize">{folder}</span>
             </div>
-            <div className="flex items-center gap-1 text-foreground-off">
-              <span className="mr-2.5 text-[13px]">{selectedIndex >= 0 ? `${selectedIndex + 1} of ${issues.length}` : ""}</span>
-              <button type="button" onClick={() => selectAdjacent(-1)} disabled={selectedIndex <= 0} aria-label="Previous message" className="rounded-xs p-2 hover:bg-background-focus hover:text-foreground disabled:opacity-30">
-                <IconChevronLeft size={19} />
-              </button>
-              <button type="button" onClick={() => selectAdjacent(1)} disabled={selectedIndex < 0 || selectedIndex >= issues.length - 1} aria-label="Next message" className="rounded-xs p-2 hover:bg-background-focus hover:text-foreground disabled:opacity-30">
-                <IconChevronRight size={19} />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => void loadMails()}
+              aria-label="Refresh mail"
+              className="rounded-xs p-2 text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground"
+            >
+              <IconRefresh size={18} />
+            </button>
           </header>
 
-          {error ? <p role="alert" className="border-b border-alert-red/30 px-[25px] py-2.5 text-[15px] text-alert-red">{error}</p> : null}
+          {error && !composeOpen ? <p role="alert" className="border-b border-alert-red/30 px-6 py-2.5 text-[14px] text-alert-red">{error}</p> : null}
 
-          {detailLoading ? (
-            <p role="status" className="p-7 text-[18px] text-foreground-off">Loading message…</p>
-          ) : selectedIssue ? (
-            <article className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-[35px] lg:px-10">
-              <div className="mx-auto w-full max-w-5xl">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <h1 className="break-words text-[25px] font-medium tracking-[-0.02em] sm:text-3xl">{selectedIssue.title}</h1>
-                    <p className="mt-2.5 text-[15px] text-foreground-off">{selectedIssue.requester?.email ?? ""}</p>
-                  </div>
-                  <div className="text-right text-[13px] text-foreground-off">{formatDate(selectedIssue.createdAt)}</div>
-                </div>
-
-                <div className="mt-6 space-y-6 text-[15px] leading-[1.6] text-foreground-off sm:text-[18px]">
-                  {selectedIssue.description ? <p className="whitespace-pre-wrap">{selectedIssue.description}</p> : null}
-                  {selectedIssue.messages.map(message => (
-                    <section key={message.id} className="border-t border-background-focus pt-5">
-                      <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2.5 text-[13px] text-foreground-off">
-                        <span>{message.author.username ?? message.author.email}</span>
-                        <time>{formatDate(message.createdAt)}</time>
-                      </div>
-                      <p className="whitespace-pre-wrap">{message.body}</p>
-                    </section>
-                  ))}
-                </div>
-
-                <div className="mt-7 flex justify-end">
-                  <button type="button" onClick={() => router.push(`/issues/${selectedIssue.id}`)} className="inline-flex items-center gap-1.5 rounded-xs px-2.5 py-2 text-[14px] text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground">
-                    Open issue <IconExternalLink size={17} />
-                  </button>
-                </div>
-
-                <form onSubmit={sendReply} className="sticky bottom-0 mt-5 rounded-sm bg-background-card p-[15px] shadow-[0_-12px_28px_#010101] sm:p-5">
-                  <label htmlFor="inbox-reply" className="sr-only">Reply to this issue</label>
-                  <textarea
-                    id="inbox-reply"
-                    value={reply}
-                    onChange={event => setReply(event.target.value)}
-                    rows={2}
-                    placeholder="Write a reply…"
-                    className="w-full resize-y bg-transparent text-[15px] text-foreground outline-hidden placeholder:text-foreground-off"
-                  />
-                  <div className="mt-2.5 flex items-center justify-between">
-                    <button type="button" onClick={() => router.push("/issues")} className="text-[13px] text-foreground-off hover:text-foreground">All issues</button>
-                    <button type="submit" disabled={!reply.trim() || replyBusy} className="inline-flex items-center gap-1.5 rounded-xs bg-accent px-[15px] py-2 text-[14px] font-medium text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-50">
-                      {replyBusy ? "Sending…" : "Reply"}<IconSend size={17} />
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </article>
+          {composeOpen ? (
+            <MailComposeForm
+              values={form}
+              busy={sending}
+              error={error}
+              onChange={updates => setForm(current => ({ ...current, ...updates }))}
+              onSubmit={sendMail}
+              onCancel={() => { setComposeOpen(false); setError(null); }}
+            />
+          ) : loading ? (
+            <p role="status" className="p-7 text-[15px] text-foreground-off">Loading message…</p>
+          ) : selectedMail ? (
+            <MailDetail mail={selectedMail} folder={folder} onReply={() => startCompose(selectedMail)} />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-foreground-off">
-                <IconArchive size={22} strokeWidth={1.6} />
-              <p className="text-[18px]">Select a message to read it.</p>
-              <p className="text-[15px]">{loading ? "" : "Your issue updates will appear here."}</p>
+              <IconInbox size={22} strokeWidth={1.6} />
+              <p className="text-[16px]">Select a message to read it.</p>
+              <p className="text-[14px]">{folder === "inbox" ? "Messages sent to you will appear here." : "Messages you send will appear here."}</p>
+              {error ? <p role="alert" className="mt-2 text-[14px] text-alert-red">{error}</p> : null}
             </div>
           )}
         </section>

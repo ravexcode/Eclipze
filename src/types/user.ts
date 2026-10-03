@@ -98,13 +98,12 @@ export type DashboardMetrics = {
   activeSessionsTotal: number;
 };
 
-export type WorkspaceNotification = {
+export type WorkspaceMail = {
   id: string;
-  issueId: string | null;
-  type: "ISSUE_CREATED" | "ISSUE_MESSAGE" | "ISSUE_STATUS_CHANGED" | "ISSUE_PRIORITY_CHANGED";
+  subject: string;
   createdAt: string;
   readAt: string | null;
-  issue: { id: string; title: string } | null;
+  sender: { id: string; username: string | null; email: string };
 };
 
 export type WorkspaceSnapshot = {
@@ -114,7 +113,7 @@ export type WorkspaceSnapshot = {
   agents: WorkspaceAgent[];
   agentSessions: WorkspaceAgentSession[];
   metrics: DashboardMetrics;
-  notifications?: WorkspaceNotification[];
+  mails?: WorkspaceMail[];
 };
 
 export type AuthApiResponse = {

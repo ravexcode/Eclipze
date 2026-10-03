@@ -139,7 +139,7 @@ export function buildDashboardMetrics(input: {
 
 export async function getWorkspaceSnapshot(user: WorkspaceUser): Promise<WorkspaceSnapshot> {
   const userId = user.id;
-  const [projects, issues, agents, agentSessions, notifications] = await Promise.all([
+  const [projects, issues, agents, agentSessions, mails] = await Promise.all([
     prisma.project.findMany({
       where: { userId },
       orderBy: { updatedAt: "desc" },
@@ -160,17 +160,16 @@ export async function getWorkspaceSnapshot(user: WorkspaceUser): Promise<Workspa
       orderBy: { startedAt: "desc" },
       select: { id: true, agentId: true, projectId: true, description: true, model: true, status: true, startedAt: true, endedAt: true, createdAt: true, updatedAt: true },
     }),
-    prisma.notification.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
+    prisma.mail.findMany({
+      where: { recipientId: userId },
+      orderBy: { sentAt: "desc" },
       take: 8,
       select: {
         id: true,
-        issueId: true,
-        type: true,
-        createdAt: true,
+        subject: true,
+        sentAt: true,
         readAt: true,
-        issue: { select: { id: true, title: true } },
+        sender: { select: { id: true, username: true, email: true } },
       },
     }),
   ]);
@@ -181,10 +180,10 @@ export async function getWorkspaceSnapshot(user: WorkspaceUser): Promise<Workspa
     issues: issues.map(serializeIssue),
     agents: agents.map(serializeAgent),
     agentSessions: agentSessions.map(serializeAgentSession),
-    notifications: notifications.map(notification => ({
-      ...notification,
-      createdAt: notification.createdAt.toISOString(),
-      readAt: iso(notification.readAt),
+    mails: mails.map(mail => ({
+      ...mail,
+      createdAt: mail.sentAt.toISOString(),
+      readAt: iso(mail.readAt),
     })),
     metrics: buildDashboardMetrics({ issues, projectsTotal: projects.length, activeSessionsTotal: agentSessions.filter(session => session.status === "ACTIVE").length }),
   };

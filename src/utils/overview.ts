@@ -1,4 +1,4 @@
-import type { WorkspaceAgentSession, WorkspaceIssue, WorkspaceNotification } from "@/types/user";
+import type { WorkspaceAgentSession, WorkspaceIssue } from "@/types/user";
 
 export type MonthIssueDay = {
   day: number;
@@ -164,19 +164,4 @@ export function formatUsageDuration(milliseconds: number) {
   }
 
   return `${hours}h ${minutes}m`;
-}
-
-export function getNotificationLabel(notification: WorkspaceNotification) {
-  const issueTitle = notification.issue?.title ?? "an issue";
-
-  switch (notification.type) {
-    case "ISSUE_CREATED":
-      return `New issue: ${issueTitle}`;
-    case "ISSUE_MESSAGE":
-      return `New message: ${issueTitle}`;
-    case "ISSUE_STATUS_CHANGED":
-      return `Issue status changed: ${issueTitle}`;
-    case "ISSUE_PRIORITY_CHANGED":
-      return `Issue priority changed: ${issueTitle}`;
-  }
 }

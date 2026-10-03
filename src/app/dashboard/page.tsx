@@ -36,7 +36,7 @@ export default function OverviewPage() {
         loading={loading}
         error={error}
         onOpenIssue={issue => router.push(`/issues/${issue.id}`)}
-        onOpenIssues={() => router.push("/inbox")}
+        onOpenInbox={() => router.push("/inbox")}
       />
     </DashLayout>
   );

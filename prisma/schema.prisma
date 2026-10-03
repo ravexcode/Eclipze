@@ -127,6 +127,8 @@ model User {
   issues                Issue[]
   issueMessages         IssueMessage[]
   notifications         Notification[]
+  sentMails             Mail[]                 @relation("SentMails")
+  receivedMails         Mail[]                 @relation("ReceivedMails")
   agents                Agent[]
   agentSessions         AgentSession[]
   workspaceRepositories WorkspaceRepository[]
@@ -205,6 +207,22 @@ model Notification {
   @@index([userId, readAt, createdAt])
   @@index([issueId, createdAt])
   @@map("notifications")
+}
+
+model Mail {
+  id          String   @id @default(cuid())
+  senderId    String
+  recipientId String
+  subject     String
+  body        String
+  readAt      DateTime?
+  sentAt      DateTime @default(now())
+  sender      User     @relation("SentMails", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient   User     @relation("ReceivedMails", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, sentAt])
+  @@index([senderId, sentAt])
+  @@map("mails")
 }
 
 model Agent {
