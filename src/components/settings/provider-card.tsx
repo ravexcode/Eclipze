@@ -102,18 +102,6 @@ export default function ProviderCard(props: {
             </span>
           </label>
         ) : null}
-        <label className="flex flex-col gap-1.5 text-sm" htmlFor={`${props.provider.id}-model`}>
-          Model
-          <SettingsInput
-            id={`${props.provider.id}-model`}
-            value={props.model}
-            onChange={(event) => props.onModelChange(props.provider.id, event.target.value)}
-            placeholder="e.g. gpt-5-mini"
-            autoComplete="off"
-            disabled={props.isBusy}
-            spellCheck={false}
-          />
-        </label>
         <div className="flex flex-wrap items-center justify-end gap-2">
           {isConnected ? (
             <Button

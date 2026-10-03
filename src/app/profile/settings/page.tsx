@@ -12,7 +12,9 @@ import ProfileHeader from "@/components/settings/profile-header";
 import ProfileSection from "@/components/settings/profile-section";
 import ProvidersSection from "@/components/settings/providers-section";
 import Heading from "@/components/ui/heading";
+
 import type { SessionUser } from "@/types/user";
+
 import { isValidAvatarUrl, normalizeAvatarUrl } from "@/utils/avatar-url";
 import { getSessionUser } from "@/utils/session";
 
