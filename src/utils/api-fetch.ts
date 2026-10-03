@@ -20,6 +20,5 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
   if (response.ok && method !== "GET" && method !== "HEAD") {
     CacheDB.delete();
   }
-
   return response;
 }

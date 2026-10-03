@@ -15,41 +15,19 @@ export default function OverviewPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    (async () => {
+      const res = await apiFetch("/api/workspace");
 
-    const loadWorkspace = async () => {
-      try {
-        const response = await apiFetch("/api/workspace");
+      if (!res.ok) {
+        setError("Workspace not found");
+        return router.push("/auth");
+      };
 
-        if (!response.ok) {
-          throw new Error("Could not load workspace activity.");
-        }
-
-        const workspace = await response.json() as WorkspaceSnapshot;
-
-        if (!cancelled) {
-          setSnapshot(workspace);
-          setError(null);
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(loadError instanceof Error
-            ? loadError.message
-            : "Could not load workspace activity.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    void loadWorkspace();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+      const workspace = await res.json() as WorkspaceSnapshot;
+      setSnapshot(workspace);
+      setLoading(false);
+    })();
+  }, [router]);
 
   return (
     <DashLayout current="overview" router={router}>

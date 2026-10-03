@@ -204,7 +204,7 @@ export default function Sidebar(props: Props) {
           setIsSidebarClosing(false);
         }
       }}
-      className={"sticky top-0 z-10 flex h-auto w-full flex-col items-center justify-start border-b border-background-focus bg-surface p-3 md:h-dvh md:w-[250px] md:border-b-0 md:p-[15px] " +
+      className={"sticky top-0 z-10 flex h-auto w-full flex-col items-center justify-start border-b border-background-focus bg-surface p-3 md:h-dvh md:w-62 md:border-b-0 md:p-4 " +
         (isSidebarClosing
           ? "animate-slide-out-left animate-duration-140 animate-linear animate-slide-distance-[6px]"
           : "animate-slide-in-left animate-duration-140 animate-linear animate-slide-distance-[6px]") +
@@ -212,7 +212,13 @@ export default function Sidebar(props: Props) {
       <div className="flex w-full flex-col md:h-full">
         <div className="flex w-full items-center justify-between px-2.5">
           <Link href="/dashboard" aria-label="Eclipze dashboard" className="rounded-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
-            <Image src="/logo.svg" alt="" width={23} height={23} />
+            <Image
+              src="/logo.svg"
+              alt="Logo image"
+              width={23}
+              height={23}
+              loading="eager"
+            />
           </Link>
           <button
             type="button"
@@ -235,7 +241,7 @@ export default function Sidebar(props: Props) {
           />
         </label>
 
-        <nav aria-label="Main navigation" className="mt-[25px] flex w-full flex-row items-center justify-start gap-1.5 overflow-x-auto md:flex-col md:items-stretch">
+        <nav aria-label="Main navigation" className="mt-6 flex w-full flex-row items-center justify-start gap-1.5 overflow-x-auto md:flex-col md:items-stretch">
           {visibleOptions.map(option => (
             <Option
               key={option.label}
