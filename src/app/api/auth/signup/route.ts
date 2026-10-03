@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import prisma from "@/lib/prisma";
+import { createInitialAiCreditGrant } from "@/lib/ai-credits";
 import {
   createVerificationCode,
   hashPassword,
@@ -60,13 +61,17 @@ export async function POST(request: Request) {
 
   const passwordHash = await hashPassword(password);
 
-  const user = await prisma.user.create({
-    data: {
-      email,
-      username,
-      passwordHash,
-      role: "USER",
-    },
+  const user = await prisma.$transaction(async transaction => {
+    const createdUser = await transaction.user.create({
+      data: {
+        email,
+        username,
+        passwordHash,
+        role: "USER",
+      },
+    });
+    await createInitialAiCreditGrant(transaction, createdUser.id);
+    return createdUser;
   });
 
   const verification = await createVerificationCode({

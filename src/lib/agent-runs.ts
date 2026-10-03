@@ -1,12 +1,15 @@
 import "server-only";
 
 import { generateAgentResponse } from "@/lib/agent-completion";
+import { releaseAiCreditReservation, settleAiCreditReservation } from "@/lib/ai-credits";
+import { Prisma } from "@prisma/client";
 import type { AgentRunEventType } from "@/types/agent-runner";
 import prisma from "@/lib/prisma";
 import {
   cancelCommandForRun,
   cleanupRunWorkspace,
   createRunWorkspace,
+  getIsolatedWorkspaceDiff,
   materializePublicRepository,
   resolveAllowedCommand,
   runAllowedCommand,
@@ -20,6 +23,8 @@ type RunWithRelations = {
   agentSessionId: string | null;
   repositoryId: string;
   status: string;
+  permissionMode: string;
+  creditReservation: number;
   model: string;
   prompt: string | null;
   commandKey: string;
@@ -28,6 +33,7 @@ type RunWithRelations = {
   workspaceKey: string;
   errorCode: string | null;
   resultSummary: string | null;
+  changePatch: string | null;
   cancelRequestedAt: Date | null;
   startedAt: Date | null;
   finishedAt: Date | null;
@@ -64,6 +70,8 @@ export function serializeAgentRun(run: RunWithRelations) {
     agentSessionId: run.agentSessionId,
     repositoryId: run.repositoryId,
     status: run.status,
+    permissionMode: run.permissionMode,
+    creditReservation: run.creditReservation,
     model: run.model,
     prompt: run.prompt,
     commandKey: run.commandKey,
@@ -72,6 +80,7 @@ export function serializeAgentRun(run: RunWithRelations) {
     workspaceKey: run.workspaceKey,
     errorCode: run.errorCode,
     resultSummary: run.resultSummary,
+    changePatch: run.changePatch,
     cancelRequestedAt: iso(run.cancelRequestedAt),
     startedAt: iso(run.startedAt),
     finishedAt: iso(run.finishedAt),
@@ -102,9 +111,70 @@ export async function appendRunEvent(runId: string, event: RunnerEvent) {
       sequence: (previous?.sequence ?? 0) + 1,
       type: event.type as AgentRunEventType,
       message: event.message.slice(0, 8_000),
-      metadata: event.metadata ?? undefined,
+      metadata: event.metadata ? JSON.parse(JSON.stringify(event.metadata)) as Prisma.InputJsonValue : undefined,
     },
   });
+}
+
+export async function requestAgentToolApproval(input: {
+  runId: string;
+  userId: string;
+  toolName: string;
+  toolInput: Record<string, unknown>;
+}) {
+  const approval = await prisma.agentRunApproval.create({
+    data: {
+      runId: input.runId,
+      userId: input.userId,
+      toolName: input.toolName,
+      input: JSON.parse(JSON.stringify(input.toolInput)) as Prisma.InputJsonValue,
+    },
+  });
+
+  await prisma.agentRun.update({
+    where: { id: input.runId },
+    data: { status: "WAITING_FOR_APPROVAL" },
+  });
+  await appendRunEvent(input.runId, {
+    type: "APPROVAL",
+    message: `Approval required: ${input.toolName}`,
+    metadata: { approvalId: approval.id, toolName: input.toolName, input: input.toolInput },
+  });
+
+  const expiresAt = Date.now() + 10 * 60_000;
+  while (Date.now() < expiresAt) {
+    const currentApproval = await prisma.agentRunApproval.findUnique({
+      where: { id: approval.id },
+      select: {
+        status: true,
+        run: { select: { status: true, cancelRequestedAt: true } },
+      },
+    });
+    const run = currentApproval?.run;
+
+    if (currentApproval?.status === "APPROVED") {
+      if (!run?.cancelRequestedAt && run?.status !== "CANCELLED") {
+        await prisma.agentRun.update({ where: { id: input.runId }, data: { status: "RUNNING" } });
+      }
+      return "APPROVED" as const;
+    }
+    if (currentApproval?.status === "DENIED") {
+      if (!run?.cancelRequestedAt && run?.status !== "CANCELLED") {
+        await prisma.agentRun.update({ where: { id: input.runId }, data: { status: "RUNNING" } });
+      }
+      return "DENIED" as const;
+    }
+    if (!run || run.status === "CANCELLED" || run.cancelRequestedAt) return "CANCELLED" as const;
+
+    await new Promise(resolve => setTimeout(resolve, 2_000));
+  }
+
+  await prisma.agentRunApproval.updateMany({
+    where: { id: approval.id, status: "PENDING" },
+    data: { status: "DENIED", decidedAt: new Date() },
+  });
+  await prisma.agentRun.update({ where: { id: input.runId }, data: { status: "RUNNING" } });
+  return "DENIED" as const;
 }
 
 async function updateRunFailure(runId: string, errorCode: string, resultSummary: string, status: "FAILED" | "BLOCKED" = "FAILED") {
@@ -130,6 +200,8 @@ async function executeAgentRun(runId: string, userId: string) {
   }
 
   const workspacePath = await createRunWorkspace(userId, run.id);
+  const repositoryPath = join(workspacePath, "repo");
+  let creditsSettled = false;
   let eventQueue = Promise.resolve();
   const persistEvent = (event: RunnerEvent) => {
     eventQueue = eventQueue.then(() => appendRunEvent(run.id, event)).then(() => undefined);
@@ -152,7 +224,6 @@ async function executeAgentRun(runId: string, userId: string) {
     });
     await persistEvent({ type: "SYSTEM", message: "Run started." });
 
-    const repositoryPath = join(workspacePath, "repo");
     const cloneResult = await materializePublicRepository({
       repositoryUrl: run.repository.repositoryUrl,
       defaultBranch: run.repository.defaultBranch,
@@ -191,13 +262,45 @@ async function executeAgentRun(runId: string, userId: string) {
       return;
     }
 
-    const answer = await generateAgentResponse({
+    const completion = await generateAgentResponse({
       userId,
+      runId: run.id,
       model: run.model,
+      permissionMode: run.permissionMode as "ASK" | "PLAN" | "USER_APPROVE" | "AUTO_APPROVE",
       prompt: run.prompt,
       repositoryPath,
       skillSnapshot: run.skillSnapshot,
+      onEvent: persistEvent,
+      requestApproval: (toolName, toolInput) => requestAgentToolApproval({
+        runId: run.id,
+        userId,
+        toolName,
+        toolInput,
+      }),
     });
+
+    if (run.creditReservation > 0) {
+      if (completion.costUsd === null) {
+        throw new Error("OpenRouter did not return task cost. Reserved credits were released.");
+      }
+      const spentCredits = await settleAiCreditReservation({
+        userId,
+        runId: run.id,
+        reservedCredits: run.creditReservation,
+        costUsd: completion.costUsd,
+      });
+      creditsSettled = true;
+      await persistEvent({
+        type: "SYSTEM",
+        message: `Usage: $${completion.costUsd.toFixed(6)} USD · ${spentCredits} credits.`,
+        metadata: {
+          costUsd: completion.costUsd,
+          credits: spentCredits,
+          inputTokens: completion.usage.inputTokens ?? 0,
+          outputTokens: completion.usage.outputTokens ?? 0,
+        },
+      });
+    }
 
     const completionRun = await prisma.agentRun.findUnique({
       where: { id: run.id },
@@ -205,12 +308,14 @@ async function executeAgentRun(runId: string, userId: string) {
     });
 
     if (!completionRun || completionRun.status === "CANCELLED" || completionRun.cancelRequestedAt) {
+      const changePatch = await getIsolatedWorkspaceDiff(repositoryPath);
       await prisma.agentRun.update({
         where: { id: run.id },
         data: {
           status: "CANCELLED",
           errorCode: "CANCELLED",
           resultSummary: null,
+          changePatch: changePatch || null,
           finishedAt: new Date(),
         },
       });
@@ -219,14 +324,15 @@ async function executeAgentRun(runId: string, userId: string) {
       return;
     }
 
-    for (let offset = 0; offset < answer.length; offset += 7_500) {
+    for (let offset = 0; offset < completion.answer.length; offset += 7_500) {
       await persistEvent({
         type: "OUTPUT",
-        message: sanitizeRunnerOutput(answer.slice(offset, offset + 7_500)),
+        message: sanitizeRunnerOutput(completion.answer.slice(offset, offset + 7_500)),
       });
     }
 
-    const resultSummary = sanitizeRunnerOutput(answer).slice(0, 500);
+    const changePatch = await getIsolatedWorkspaceDiff(repositoryPath);
+    const resultSummary = sanitizeRunnerOutput(completion.answer).slice(0, 500);
     await persistEvent({ type: "RESULT", message: "Task completed." });
 
     await prisma.agentRun.update({
@@ -235,16 +341,49 @@ async function executeAgentRun(runId: string, userId: string) {
         status: "SUCCEEDED",
         errorCode: null,
         resultSummary,
+        changePatch: changePatch || null,
         finishedAt: new Date(),
       },
     });
     await eventQueue;
   } catch (error) {
     const message = sanitizeRunnerOutput(error instanceof Error ? error.message : "Runner failed unexpectedly.");
+    const cancellation = await prisma.agentRun.findUnique({
+      where: { id: run.id },
+      select: { status: true, cancelRequestedAt: true },
+    }).catch(() => null);
+    if (cancellation?.status === "CANCELLED" || cancellation?.cancelRequestedAt) {
+      const changePatch = await getIsolatedWorkspaceDiff(repositoryPath);
+      await prisma.agentRun.update({
+        where: { id: run.id },
+        data: {
+          status: "CANCELLED",
+          errorCode: "CANCELLED",
+          changePatch: changePatch || null,
+          finishedAt: new Date(),
+        },
+      });
+      await persistEvent({ type: "SYSTEM", message: "Run cancelled." });
+      await eventQueue;
+      return;
+    }
     await persistEvent({ type: "ERROR", message: "Runner failed unexpectedly." });
-    await updateRunFailure(run.id, "RUNNER_ERROR", message.slice(0, 500));
+    const changePatch = await getIsolatedWorkspaceDiff(repositoryPath);
+    await prisma.agentRun.update({
+      where: { id: run.id },
+      data: {
+        status: "FAILED",
+        errorCode: "RUNNER_ERROR",
+        resultSummary: message.slice(0, 500),
+        changePatch: changePatch || null,
+        finishedAt: new Date(),
+      },
+    });
     await eventQueue;
   } finally {
+    if (run.creditReservation > 0 && !creditsSettled) {
+      await releaseAiCreditReservation({ userId, runId: run.id, reservedCredits: run.creditReservation }).catch(() => undefined);
+    }
     await cleanupRunWorkspace(userId, run.id);
   }
 }
@@ -271,7 +410,7 @@ export async function cancelAgentRun(runId: string, userId: string) {
     return cancelled;
   }
 
-  if (run.status === "RUNNING") {
+  if (run.status === "RUNNING" || run.status === "WAITING_FOR_APPROVAL") {
     await prisma.agentRun.update({ where: { id: run.id }, data: { cancelRequestedAt: new Date() } });
     cancelCommandForRun(run.id);
     return prisma.agentRun.findUnique({ where: { id: run.id } });

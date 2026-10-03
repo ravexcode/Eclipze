@@ -29,6 +29,21 @@ enum AiProvider {
   GPT_SUBSCRIPTION
 }
 
+enum AiCreditEntryType {
+  INITIAL_GRANT
+  MONTHLY_GRANT
+  RESERVATION
+  SPEND
+  RELEASE
+}
+
+enum AgentPermissionMode {
+  ASK
+  PLAN
+  USER_APPROVE
+  AUTO_APPROVE
+}
+
 enum ProjectStatus {
   ACTIVE
   AT_RISK
@@ -94,6 +109,7 @@ enum WorkspaceRepositoryStatus {
 enum AgentRunStatus {
   QUEUED
   RUNNING
+  WAITING_FOR_APPROVAL
   SUCCEEDED
   FAILED
   CANCELLED
@@ -106,6 +122,13 @@ enum AgentRunEventType {
   OUTPUT
   ERROR
   RESULT
+  APPROVAL
+}
+
+enum AgentApprovalStatus {
+  PENDING
+  APPROVED
+  DENIED
 }
 
 model User {
@@ -133,6 +156,9 @@ model User {
   agentSessions         AgentSession[]
   workspaceRepositories WorkspaceRepository[]
   agentRuns              AgentRun[]
+  agentRunApprovals      AgentRunApproval[]
+  aiCreditWallet         AiCreditWallet?
+  aiCreditEntries        AiCreditLedgerEntry[]
 
   @@map("users")
 }
@@ -323,6 +349,8 @@ model AgentRun {
   agentSessionId     String?
   repositoryId       String
   status             AgentRunStatus     @default(QUEUED)
+  permissionMode     AgentPermissionMode @default(ASK)
+  creditReservation  Int                @default(0)
   model              String
   commandKey         String
   instructionsDigest String
@@ -331,6 +359,7 @@ model AgentRun {
   workspaceKey       String             @unique
   errorCode          String?
   resultSummary      String?
+  changePatch        String?            @db.Text
   cancelRequestedAt  DateTime?
   startedAt          DateTime?
   finishedAt         DateTime?
@@ -340,12 +369,63 @@ model AgentRun {
   agentSession       AgentSession?      @relation(fields: [agentSessionId], references: [id], onDelete: SetNull)
   repository         WorkspaceRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   events             AgentRunEvent[]
+  approvals          AgentRunApproval[]
 
   @@index([userId, createdAt])
   @@index([agentSessionId, createdAt])
   @@index([repositoryId])
   @@index([status, updatedAt])
   @@map("agent_runs")
+}
+
+model AgentRunApproval {
+  id        String              @id @default(cuid())
+  runId     String
+  userId    String
+  toolName  String
+  input     Json
+  status    AgentApprovalStatus @default(PENDING)
+  createdAt DateTime            @default(now())
+  decidedAt DateTime?
+  run       AgentRun            @relation(fields: [runId], references: [id], onDelete: Cascade)
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([runId, status, createdAt])
+  @@index([userId, status, createdAt])
+  @@map("agent_run_approvals")
+}
+
+model AiCreditWallet {
+  id                 String                @id @default(cuid())
+  userId             String                @unique
+  balance            Int                   @default(0)
+  reservedCredits    Int                   @default(0)
+  monthlyAllowance   Int                   @default(300)
+  lastMonthlyGrantAt DateTime?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  user               User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries            AiCreditLedgerEntry[]
+
+  @@map("ai_credit_wallets")
+}
+
+model AiCreditLedgerEntry {
+  id             String             @id @default(cuid())
+  userId         String
+  walletId       String
+  type           AiCreditEntryType
+  deltaCredits   Int
+  amountUsd      Decimal?           @db.Decimal(18, 9)
+  idempotencyKey String             @unique
+  metadata       Json?
+  createdAt      DateTime           @default(now())
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet         AiCreditWallet     @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([walletId, createdAt])
+  @@map("ai_credit_ledger_entries")
 }
 
 model AgentRunEvent {

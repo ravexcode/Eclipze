@@ -4,6 +4,8 @@ export type AvailableModel = {
   id: string;
   name: string;
   provider: AiProviderConnection["provider"];
+  inputPricePerToken?: number;
+  outputPricePerToken?: number;
 };
 
 function getReadableModelName(id: string) {

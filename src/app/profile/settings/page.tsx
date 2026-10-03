@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import DashLayout from "@/components/layouts/dash";
 import DangerZone from "@/components/settings/danger-zone";
 import DeveloperAccountSection from "@/components/settings/developer-account-section";
+import AiCreditsSection from "@/components/settings/ai-credits-section";
 import PasswordSection from "@/components/settings/password-section";
 import ProfileHeader from "@/components/settings/profile-header";
 import ProfileSection from "@/components/settings/profile-section";
@@ -71,6 +72,7 @@ export default function SettingsPage() {
                   onSaved={setUser} />
                 <PasswordSection
                   onSaved={setUser} />
+                <AiCreditsSection />
                 <ProvidersSection />
                 <DangerZone
                   user={user}

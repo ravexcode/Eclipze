@@ -4,7 +4,8 @@ import { createHash } from "node:crypto";
 import { mkdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { execFile as executeFile, spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { promisify } from "node:util";
 
 import { isSafeWorkspacePath } from "@/lib/workspace-repository";
 
@@ -31,9 +32,9 @@ export const ALLOWED_COMMANDS = {
 export type AllowedCommand = keyof typeof ALLOWED_COMMANDS;
 
 export type RunnerEvent = {
-  type: "SYSTEM" | "COMMAND" | "OUTPUT" | "ERROR" | "RESULT";
+  type: "SYSTEM" | "COMMAND" | "OUTPUT" | "ERROR" | "RESULT" | "APPROVAL";
   message: string;
-  metadata?: Record<string, string | number | boolean>;
+  metadata?: Record<string, unknown>;
 };
 
 export type RunnerResult = {
@@ -44,6 +45,7 @@ export type RunnerResult = {
 };
 
 const activeProcesses = new Map<string, ChildProcessWithoutNullStreams>();
+const execFile = promisify(executeFile);
 
 export function createInstructionsDigest(instructions: string) {
   return createHash("sha256").update(instructions).digest("hex");
@@ -92,6 +94,35 @@ export async function cleanupRunWorkspace(userId: string, runId: string) {
   }
 
   await rm(workspacePath, { recursive: true, force: true });
+}
+
+export async function getIsolatedWorkspaceDiff(repositoryPath: string) {
+  try {
+    const untracked = await execFile("git", ["ls-files", "--others", "--exclude-standard", "-z"], {
+      cwd: repositoryPath,
+      env: createRunnerEnvironment(dirname(repositoryPath)),
+      timeout: RUNNER_LIMITS.timeoutMs,
+      maxBuffer: RUNNER_LIMITS.maxOutputBytes * 4,
+    });
+    const untrackedPaths = untracked.stdout.split("\0").filter(Boolean).slice(0, 500);
+    if (untrackedPaths.length) {
+      await execFile("git", ["add", "--intent-to-add", "--", ...untrackedPaths], {
+        cwd: repositoryPath,
+        env: createRunnerEnvironment(dirname(repositoryPath)),
+        timeout: RUNNER_LIMITS.timeoutMs,
+        maxBuffer: RUNNER_LIMITS.maxOutputBytes * 4,
+      });
+    }
+    const result = await execFile("git", ["diff", "--no-ext-diff", "--no-color", "--unified=3", "HEAD", "--"], {
+      cwd: repositoryPath,
+      env: createRunnerEnvironment(dirname(repositoryPath)),
+      timeout: RUNNER_LIMITS.timeoutMs,
+      maxBuffer: RUNNER_LIMITS.maxOutputBytes * 4,
+    });
+    return sanitizeRunnerOutput(result.stdout).slice(0, 120_000);
+  } catch {
+    return "";
+  }
 }
 
 export function sanitizeRunnerOutput(value: string) {

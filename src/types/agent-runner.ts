@@ -1,6 +1,7 @@
 export const AGENT_RUN_STATUSES = [
   "QUEUED",
   "RUNNING",
+  "WAITING_FOR_APPROVAL",
   "SUCCEEDED",
   "FAILED",
   "CANCELLED",
@@ -9,12 +10,22 @@ export const AGENT_RUN_STATUSES = [
 
 export type AgentRunStatus = (typeof AGENT_RUN_STATUSES)[number];
 
+export const AGENT_PERMISSION_MODES = [
+  "ASK",
+  "PLAN",
+  "USER_APPROVE",
+  "AUTO_APPROVE",
+] as const;
+
+export type AgentPermissionMode = (typeof AGENT_PERMISSION_MODES)[number];
+
 export const AGENT_RUN_EVENT_TYPES = [
   "SYSTEM",
   "COMMAND",
   "OUTPUT",
   "ERROR",
   "RESULT",
+  "APPROVAL",
 ] as const;
 
 export type AgentRunEventType = (typeof AGENT_RUN_EVENT_TYPES)[number];
@@ -101,6 +112,8 @@ export type AgentRun = {
   repositoryId: string;
   status: AgentRunStatus;
   model: string;
+  permissionMode: AgentPermissionMode;
+  creditReservation: number;
   prompt: string | null;
   commandKey: string;
   instructionsDigest: string;
@@ -108,6 +121,7 @@ export type AgentRun = {
   workspaceKey: string;
   errorCode: string | null;
   resultSummary: string | null;
+  changePatch: string | null;
   cancelRequestedAt: string | null;
   startedAt: string | null;
   finishedAt: string | null;

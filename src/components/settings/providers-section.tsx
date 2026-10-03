@@ -158,7 +158,7 @@ export default function ProvidersSection() {
           AI providers
         </h2>
         <p className="mt-1 text-sm text-foreground-off">
-          Connect personal API keys for your AI providers.
+          Connect personal API keys, or use your Eclipse-funded OpenRouter credits when available.
         </p>
       </div>
       <SettingsFeedback error={error} message={message} />

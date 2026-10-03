@@ -126,6 +126,7 @@ export async function GET() {
 
       return [serializeConnection({ ...connection, provider })];
     }),
+    serviceOpenRouterAvailable: Boolean(process.env.OPENROUTER_API_KEY?.trim()),
   }, { headers: PRIVATE_NO_STORE_HEADERS });
 }
 

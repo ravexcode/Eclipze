@@ -10,7 +10,7 @@ import Snackbar from "@/components/ui/snackbar";
 import Button from "@/components/ui/button";
 import { IconAdjustments, IconArrowUp, IconSparkles } from "@tabler/icons-react";
 import type { AiProviderConnection } from "@/types/ai";
-import type { AgentRun, LibrarySkill, WorkspaceRepository } from "@/types/agent-runner";
+import type { AgentPermissionMode, AgentRun, LibrarySkill, WorkspaceRepository } from "@/types/agent-runner";
 import MarkdownMessage from "@/components/agents/markdown-message";
 import { apiFetch } from "@/utils/api-fetch";
 import { getSessionUser } from "@/utils/session";
@@ -23,6 +23,9 @@ export default function AgentsPage() {
   const [prompt, setPrompt] = useState("");
   const [models, setModels] = useState<AvailableModel[]>([]);
   const [model, setModel] = useState("");
+  const [permissionMode, setPermissionMode] = useState<AgentPermissionMode>("ASK");
+  const [availableCredits, setAvailableCredits] = useState<number | null>(null);
+  const [creditFundedOpenRouter, setCreditFundedOpenRouter] = useState(false);
   const [skills, setSkills] = useState<LibrarySkill[]>([]);
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
   const [repositoryId, setRepositoryId] = useState("");
@@ -31,6 +34,7 @@ export default function AgentsPage() {
   const [showRepositoryForm, setShowRepositoryForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDecidingApproval, setIsDecidingApproval] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showNoProvidersSnackbar, setShowNoProvidersSnackbar] = useState(false);
   const [showTaskSettings, setShowTaskSettings] = useState(false);
@@ -56,26 +60,32 @@ export default function AgentsPage() {
           return;
         }
 
-        const [providerResponse, repositoryResponse, skillResponse] = await Promise.all([
+        const [providerResponse, repositoryResponse, skillResponse, creditsResponse] = await Promise.all([
           apiFetch("/api/ai-providers", { credentials: "include", cache: "no-store" }),
           apiFetch("/api/repositories", { cache: "no-store" }),
           apiFetch("/api/skills", { cache: "no-store" }),
+          apiFetch("/api/ai-credits", { cache: "no-store" }),
         ]);
-        const [providerPayload, repositoryPayload, skillPayload] = await Promise.all([
-          readJson(providerResponse), readJson(repositoryResponse), readJson(skillResponse),
+        const [providerPayload, repositoryPayload, skillPayload, creditsPayload] = await Promise.all([
+          readJson(providerResponse), readJson(repositoryResponse), readJson(skillResponse), readJson(creditsResponse),
         ]) as [
-            { connections?: AiProviderConnection[]; message?: string },
+            { connections?: AiProviderConnection[]; serviceOpenRouterAvailable?: boolean; message?: string },
             { repositories?: WorkspaceRepository[]; message?: string },
             { skills?: LibrarySkill[]; message?: string },
+            { availableCredits?: number; message?: string },
           ];
 
         if (cancelled) return;
         if (!providerResponse.ok) throw new Error(providerPayload.message ?? "Unable to load your AI provider.");
         if (!repositoryResponse.ok) throw new Error(repositoryPayload.message ?? "Unable to load repositories.");
         if (!skillResponse.ok) throw new Error(skillPayload.message ?? "Unable to load your skills.");
+        if (!creditsResponse.ok) throw new Error(creditsPayload.message ?? "Unable to load your AI credit balance.");
 
         const connections = providerPayload.connections ?? [];
-        const hasOpenRouter = connections.some(connection => connection.provider === "OPENROUTER" && connection.connected);
+        const hasOpenRouterConnection = connections.some(connection => connection.provider === "OPENROUTER" && connection.connected);
+        const hasOpenRouter = hasOpenRouterConnection || Boolean(providerPayload.serviceOpenRouterAvailable);
+        setCreditFundedOpenRouter(Boolean(providerPayload.serviceOpenRouterAvailable));
+        setAvailableCredits(creditsPayload.availableCredits ?? 0);
         let discoveredModels: AvailableModel[] = [];
         if (hasOpenRouter) {
           const modelsResponse = await apiFetch("/api/ai-providers/models", { cache: "no-store" });
@@ -118,7 +128,7 @@ export default function AgentsPage() {
   }, []);
 
   useEffect(() => {
-    if (!activeRun || !["QUEUED", "RUNNING"].includes(activeRun.status)) return;
+    if (!activeRun || !["QUEUED", "RUNNING", "WAITING_FOR_APPROVAL"].includes(activeRun.status)) return;
     const timer = window.setTimeout(async () => {
       try {
         const response = await apiFetch(`/api/agent-runs/${activeRun.id}`, { cache: "no-store" });
@@ -130,6 +140,16 @@ export default function AgentsPage() {
     }, 1_500);
     return () => window.clearTimeout(timer);
   }, [activeRun]);
+
+  useEffect(() => {
+    if (!activeRun || !creditFundedOpenRouter || ["QUEUED", "RUNNING", "WAITING_FOR_APPROVAL"].includes(activeRun.status)) return;
+    void apiFetch("/api/ai-credits", { cache: "no-store" })
+      .then(response => readJson(response) as Promise<{ availableCredits?: number }>)
+      .then(payload => {
+        if (typeof payload.availableCredits === "number") setAvailableCredits(payload.availableCredits);
+      })
+      .catch(() => undefined);
+  }, [activeRun, creditFundedOpenRouter]);
 
   useEffect(() => {
     const openRepositoryForm = () => setShowRepositoryForm(true);
@@ -180,17 +200,41 @@ export default function AgentsPage() {
       const response = await apiFetch("/api/agent-runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ repositoryId, prompt, model, skillIds: selectedSkillIds }),
+        body: JSON.stringify({ repositoryId, prompt, model, skillIds: selectedSkillIds, permissionMode }),
       });
-      const payload = await readJson(response) as { run?: AgentRun; message?: string };
+      const payload = await readJson(response) as { run?: AgentRun; message?: string; availableCredits?: number };
       if (!response.ok || !payload.run) throw new Error(payload.message ?? "Unable to start this task.");
       setPrompt("");
       setActiveRun(payload.run);
+      if (creditFundedOpenRouter && typeof availableCredits === "number") {
+        setAvailableCredits(Math.max(0, availableCredits - payload.run.creditReservation));
+      }
       window.dispatchEvent(new Event("agent-runs-updated"));
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Unable to start this task.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const decideApproval = async (approvalId: string, approved: boolean) => {
+    if (!activeRun) return;
+    setIsDecidingApproval(true);
+    try {
+      const response = await apiFetch(`/api/agent-runs/${activeRun.id}/approvals`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ approvalId, approved }),
+      });
+      const payload = await readJson(response) as { message?: string };
+      if (!response.ok) throw new Error(payload.message ?? "Unable to update approval.");
+      const runResponse = await apiFetch(`/api/agent-runs/${activeRun.id}`, { cache: "no-store" });
+      const runPayload = await readJson(runResponse) as { run?: AgentRun };
+      if (runResponse.ok && runPayload.run) setActiveRun(runPayload.run);
+    } catch (approvalError) {
+      setError(approvalError instanceof Error ? approvalError.message : "Unable to update approval.");
+    } finally {
+      setIsDecidingApproval(false);
     }
   };
 
@@ -208,6 +252,12 @@ export default function AgentsPage() {
     ?.filter(event => event.type === "OUTPUT")
     .map(event => event.message)
     .join("") ?? "";
+  const decidedApprovalIds = new Set(activeRun?.events
+    ?.filter(event => event.type === "SYSTEM" && typeof event.metadata?.approvalId === "string")
+    .map(event => event.metadata?.approvalId as string) ?? []);
+  const pendingApproval = activeRun?.events
+    ?.filter(event => event.type === "APPROVAL" && typeof event.metadata?.approvalId === "string")
+    .find(event => !decidedApprovalIds.has(event.metadata?.approvalId as string));
 
   return (
     <DashLayout current="agents" router={router}>
@@ -227,10 +277,26 @@ export default function AgentsPage() {
               </div>
               {activeRun.prompt ? <p className="ml-auto max-w-[min(100%,600px)] whitespace-pre-wrap rounded-sm bg-accent px-3 py-2.5 text-xs leading-5 text-white">{activeRun.prompt}</p> : null}
               {activeRunOutput ? <MarkdownMessage>{activeRunOutput}</MarkdownMessage> : null}
+              {activeRun.changePatch ? (
+                <details className="rounded-sm border border-background-focus bg-background-card p-3">
+                  <summary className="cursor-pointer text-xs font-medium">Review isolated changes</summary>
+                  <pre className="mt-3 max-h-100 overflow-auto whitespace-pre-wrap text-[10px] leading-5 text-foreground-off">{activeRun.changePatch}</pre>
+                </details>
+              ) : null}
+              {pendingApproval ? (
+                <div className="max-w-150 rounded-sm border border-background-focus bg-background-card p-3">
+                  <p className="text-xs font-medium">Approve {String(pendingApproval.metadata?.toolName ?? "agent action")}?</p>
+                  <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap text-[10px] leading-4 text-foreground-off">{JSON.stringify(pendingApproval.metadata?.input ?? {}, null, 2)}</pre>
+                  <div className="mt-3 flex justify-end gap-2">
+                    <Button variant="ghost" disabled={isDecidingApproval} onClick={() => void decideApproval(pendingApproval.metadata?.approvalId as string, false)}>Deny</Button>
+                    <Button variant="secondary" disabled={isDecidingApproval} onClick={() => void decideApproval(pendingApproval.metadata?.approvalId as string, true)}>{isDecidingApproval ? "Saving…" : "Approve"}</Button>
+                  </div>
+                </div>
+              ) : null}
               {activeRun.events?.filter(event => event.type === "ERROR").map(event => (
                 <p key={event.id} className="text-xs text-priority-high">{event.message}</p>
               ))}
-              {["QUEUED", "RUNNING"].includes(activeRun.status) ? <p role="status" className="text-xs text-foreground-off">{activeRun.status === "QUEUED" ? "Waiting for an agent…" : "Agent is working…"}</p> : null}
+              {["QUEUED", "RUNNING", "WAITING_FOR_APPROVAL"].includes(activeRun.status) ? <p role="status" className="text-xs text-foreground-off">{activeRun.status === "QUEUED" ? "Waiting for an agent…" : activeRun.status === "WAITING_FOR_APPROVAL" ? "Waiting for your approval…" : "Agent is working…"}</p> : null}
               {["FAILED", "BLOCKED", "CANCELLED"].includes(activeRun.status) ? <p className="text-xs text-priority-high">Task {activeRun.status.toLowerCase()}.</p> : null}
             </div>
           ) : null}
@@ -283,6 +349,24 @@ export default function AgentsPage() {
                   <IconArrowUp size={15} strokeWidth={2.2} />
                 </button>
 
+              </div>
+            </div>
+
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <label className="flex flex-col gap-1.5 text-[10px] text-foreground-off">
+                Permission mode
+                <select value={permissionMode} onChange={event => setPermissionMode(event.target.value as AgentPermissionMode)} className="rounded-sm border border-background-focus bg-background-card px-2.5 py-2 text-xs text-foreground">
+                  <option value="ASK">Ask · answer without tools</option>
+                  <option value="PLAN">Plan · prepare steps only</option>
+                  <option value="USER_APPROVE">User approve · approve each action</option>
+                  <option value="AUTO_APPROVE">Auto approve · run allowed actions</option>
+                </select>
+              </label>
+              <div className="flex flex-col justify-end gap-1.5 text-[10px] text-foreground-off">
+                AI credits
+                <p className="rounded-sm border border-background-focus bg-background-card px-2.5 py-2 text-xs text-foreground">
+                  {creditFundedOpenRouter ? `${availableCredits ?? "…"} credits available · OpenRouter usage` : "Personal OpenRouter key · billed by provider"}
+                </p>
               </div>
             </div>
 
@@ -341,7 +425,7 @@ export default function AgentsPage() {
 
       </main>
       {showNoProvidersSnackbar ? (
-        <Snackbar mode="warn" message="You don't have an active OpenRouter provider. Connect one in Settings to choose a model." onClose={() => setShowNoProvidersSnackbar(false)} />
+        <Snackbar mode="warn" message="Connect OpenRouter in Settings or contact the administrator to enable the Eclipse AI credit service." onClose={() => setShowNoProvidersSnackbar(false)} />
       ) : null}
     </DashLayout>
   );
