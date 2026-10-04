@@ -10,15 +10,23 @@ import PermissionModeSelector from "@/components/agents/permission-mode-selector
 import SelectorInput from "@/components/ui/selector";
 import Snackbar from "@/components/ui/snackbar";
 import Button from "@/components/ui/button";
-import { IconAdjustments, IconArrowUp, IconCoin, IconSparkles } from "@tabler/icons-react";
+import MarkdownMessage from "@/components/agents/markdown-message";
+import { AGENT_REPOSITORY_EVENT } from "@/components/layouts/workspace-sidebar";
+
+import {
+  IconAdjustments,
+  IconArrowUp,
+  IconCoin,
+  IconSparkles
+} from "@tabler/icons-react";
+
 import type { AiProviderConnection } from "@/types/ai";
 import type { AgentPermissionMode, AgentRun, LibrarySkill, WorkspaceRepository } from "@/types/agent-runner";
-import MarkdownMessage from "@/components/agents/markdown-message";
+
 import { apiFetch } from "@/utils/api-fetch";
 import { getSessionUser } from "@/utils/session";
 import { getAvailableModels, type AvailableModel } from "@/utils/agents";
 import { readJson } from "@/utils/json-payload";
-import { AGENT_REPOSITORY_EVENT } from "@/components/layouts/workspace-sidebar";
 
 export default function AgentsPage() {
   const router = useRouter();
@@ -254,9 +262,11 @@ export default function AgentsPage() {
     ?.filter(event => event.type === "OUTPUT")
     .map(event => event.message)
     .join("") ?? "";
+
   const decidedApprovalIds = new Set(activeRun?.events
     ?.filter(event => event.type === "SYSTEM" && typeof event.metadata?.approvalId === "string")
     .map(event => event.metadata?.approvalId as string) ?? []);
+
   const pendingApproval = activeRun?.events
     ?.filter(event => event.type === "APPROVAL" && typeof event.metadata?.approvalId === "string")
     .find(event => !decidedApprovalIds.has(event.metadata?.approvalId as string));
@@ -266,8 +276,10 @@ export default function AgentsPage() {
       <main
         className="flex min-h-dvh min-w-0 flex-col">
 
-        <header className="flex min-h-14 items-center justify-end px-5 py-2 sm:px-8">
-          <div className="flex min-h-10 items-center gap-2 rounded-sm border border-background-focus bg-background-card px-3">
+        <header
+          className="flex min-h-14 items-center justify-end px-5 py-2 sm:px-8">
+          <div
+            className="flex min-h-10 items-center gap-2 rounded-sm border border-background-focus bg-background-card px-3">
             <IconCoin size={15} strokeWidth={1.8} className="shrink-0 text-foreground-off" />
             <span className="text-xs tabular-nums text-foreground">
               {availableCredits === null

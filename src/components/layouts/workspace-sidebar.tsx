@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { IconArrowUpRight, IconChevronDown, IconCode, IconFolders, IconLayoutSidebarRightCollapse } from "@tabler/icons-react";
+import { IconArrowUpRight, IconCode, IconFolders, IconLayoutSidebarRightCollapse } from "@tabler/icons-react";
 import Link from "next/link";
 
+import MenuSelector from "@/components/ui/menu-selector";
 import type { WorkspaceRepository } from "@/types/agent-runner";
 import { apiFetch } from "@/utils/api-fetch";
 import { readJson } from "@/utils/json-payload";
@@ -106,27 +107,42 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
           </button>
         </div>
 
-        <label className="flex flex-col gap-1.5 px-2 text-xs text-foreground-off">
-          Project
-          <span className="relative">
-            <select value={projectId} onChange={event => selectProject(event.target.value)} className="min-h-9 w-full appearance-none rounded-xs bg-background-focus px-2.5 pr-8 text-xs text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
-              <option value="">All projects</option>
-              {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
-            </select>
-            <IconChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-foreground-off" />
-          </span>
-        </label>
+        <div className="flex flex-col gap-1.5 px-2">
+          <p className="text-xs text-foreground/80">Project</p>
+          <MenuSelector
+            ariaLabel="Project"
+            onChange={selectProject}
+            options={[
+              { value: "", label: "All projects" },
+              ...projects.map(project => ({ value: project.id, label: project.name })),
+            ]}
+            placeholder="All projects"
+            value={projectId}
+          />
+        </div>
 
-        <label className="flex flex-col gap-1.5 px-2 text-xs text-foreground-off">
-          Repository
-          <span className="relative">
-            <select value={repositoryId} onChange={event => selectRepository(event.target.value)} disabled={!filteredRepositories.length} className="min-h-9 w-full appearance-none rounded-xs bg-background-focus px-2.5 pr-8 text-xs text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent disabled:opacity-50">
-              <option value="">{filteredRepositories.length ? "Select a repository" : "No repository available"}</option>
-              {filteredRepositories.map(repository => <option key={repository.id} value={repository.id}>{repository.repositoryUrl}</option>)}
-            </select>
-            <IconChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-foreground-off" />
-          </span>
-        </label>
+        <div className="flex flex-col gap-1.5 px-2">
+          <p className="text-xs text-foreground/80">Repository</p>
+          <MenuSelector
+            ariaLabel="Repository"
+            disabled={!filteredRepositories.length}
+            onChange={selectRepository}
+            options={[
+              {
+                value: "",
+                label: filteredRepositories.length
+                  ? "Select a repository"
+                  : "No repository available",
+              },
+              ...filteredRepositories.map(repository => ({
+                value: repository.id,
+                label: repository.repositoryUrl,
+              })),
+            ]}
+            placeholder={filteredRepositories.length ? "Select a repository" : "No repository available"}
+            value={repositoryId}
+          />
+        </div>
 
         <nav aria-label="Agent workspace actions" className="flex flex-col gap-1.5">
           <Link href="/projects?action=create" className="group flex items-start gap-3 rounded-xs px-2.5 py-3 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
