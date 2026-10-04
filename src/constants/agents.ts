@@ -1,3 +1,5 @@
+import type { AgentPermissionMode } from "@/types/agent-runner";
+
 export type AgentStatus = "ACTIVE" | "INACTIVE";
 export type ProjectStatus = "ACTIVE" | "AT_RISK" | "COMPLETED";
 export type SessionStatus = "ACTIVE" | "COMPLETED" | "FAILED" | "CANCELLED";
@@ -100,3 +102,30 @@ export const COMMAND_OPTIONS = [
 
 export const RUN_ENDPOINT = "/api/agent-runs";
 export const SKILLS_ENDPOINT = "/api/skills";
+
+export const AGENT_PERMISSION_MODE_OPTIONS: Array<{
+  value: AgentPermissionMode;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: "ASK",
+    label: "Ask",
+    description: "Answer without using tools.",
+  },
+  {
+    value: "PLAN",
+    label: "Plan",
+    description: "Prepare steps without running them.",
+  },
+  {
+    value: "USER_APPROVE",
+    label: "Approve actions",
+    description: "Review each action before it runs.",
+  },
+  {
+    value: "AUTO_APPROVE",
+    label: "Auto approve",
+    description: "Run actions allowed for this task.",
+  },
+];

@@ -2,13 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import DashLayout from "@/components/layouts/dash";
 import SkillLibrary from "@/components/agents/skill-library";
+import PermissionModeSelector from "@/components/agents/permission-mode-selector";
 import SelectorInput from "@/components/ui/selector";
 import Snackbar from "@/components/ui/snackbar";
 import Button from "@/components/ui/button";
-import { IconAdjustments, IconArrowUp, IconSparkles } from "@tabler/icons-react";
+import { IconAdjustments, IconArrowUp, IconCoin, IconSparkles } from "@tabler/icons-react";
 import type { AiProviderConnection } from "@/types/ai";
 import type { AgentPermissionMode, AgentRun, LibrarySkill, WorkspaceRepository } from "@/types/agent-runner";
 import MarkdownMessage from "@/components/agents/markdown-message";
@@ -264,6 +266,27 @@ export default function AgentsPage() {
       <main
         className="flex min-h-dvh min-w-0 flex-col">
 
+        <header className="flex min-h-14 items-center justify-end px-5 py-2 sm:px-8">
+          <div className="flex min-h-10 items-center gap-2 rounded-sm border border-background-focus bg-background-card px-3">
+            <IconCoin size={15} strokeWidth={1.8} className="shrink-0 text-foreground-off" />
+            <span className="text-xs tabular-nums text-foreground">
+              {availableCredits === null
+                ? "Loading credits…"
+                : creditFundedOpenRouter
+                  ? `${availableCredits.toLocaleString()} available credits`
+                  : "Personal OpenRouter key"}
+            </span>
+            {availableCredits !== null && !creditFundedOpenRouter ? (
+              <span className="text-[10px] text-foreground/80">provider billing</span>
+            ) : null}
+            <Link
+              href="/dashboard/settings"
+              className="ml-1 rounded-xs px-2 py-1.5 text-[10px] text-foreground transition-colors hover:bg-background-focus focus-visible:outline-2 focus-visible:outline-accent">
+              Settings
+            </Link>
+          </div>
+        </header>
+
         <section className="flex min-h-0 flex-1 flex-col px-5 py-8 sm:px-8">
 
           {activeRun ? (
@@ -352,22 +375,11 @@ export default function AgentsPage() {
               </div>
             </div>
 
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <label className="flex flex-col gap-1.5 text-[10px] text-foreground-off">
-                Permission mode
-                <select value={permissionMode} onChange={event => setPermissionMode(event.target.value as AgentPermissionMode)} className="rounded-sm border border-background-focus bg-background-card px-2.5 py-2 text-xs text-foreground">
-                  <option value="ASK">Ask · answer without tools</option>
-                  <option value="PLAN">Plan · prepare steps only</option>
-                  <option value="USER_APPROVE">User approve · approve each action</option>
-                  <option value="AUTO_APPROVE">Auto approve · run allowed actions</option>
-                </select>
-              </label>
-              <div className="flex flex-col justify-end gap-1.5 text-[10px] text-foreground-off">
-                AI credits
-                <p className="rounded-sm border border-background-focus bg-background-card px-2.5 py-2 text-xs text-foreground">
-                  {creditFundedOpenRouter ? `${availableCredits ?? "…"} credits available · OpenRouter usage` : "Personal OpenRouter key · billed by provider"}
-                </p>
-              </div>
+            <div className="mt-3">
+              <PermissionModeSelector
+                value={permissionMode}
+                onChange={setPermissionMode}
+              />
             </div>
 
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1">
