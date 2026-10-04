@@ -346,7 +346,7 @@ export default function AgentsPage() {
               <div
                 className="flex flex-wrap items-center justify-between gap-2 pt-2">
                 <div
-                  className="flex min-w-0 flex-1 items-center gap-2">
+                  className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
                   {isLoading ?
                     <span
                       role="status"
@@ -361,6 +361,10 @@ export default function AgentsPage() {
                           disabled={!models.length || showNoProvidersSnackbar} />
                       </div>
                     )}
+                  <PermissionModeSelector
+                    value={permissionMode}
+                    onChange={setPermissionMode}
+                  />
                 </div>
 
                 <button
@@ -373,13 +377,6 @@ export default function AgentsPage() {
                 </button>
 
               </div>
-            </div>
-
-            <div className="mt-3">
-              <PermissionModeSelector
-                value={permissionMode}
-                onChange={setPermissionMode}
-              />
             </div>
 
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1">
