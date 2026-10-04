@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 import DashLayout from "@/components/layouts/dash";
 import SkillLibrary from "@/components/agents/skill-library";
@@ -11,12 +10,15 @@ import SelectorInput from "@/components/ui/selector";
 import Snackbar from "@/components/ui/snackbar";
 import Button from "@/components/ui/button";
 import MarkdownMessage from "@/components/agents/markdown-message";
-import { AGENT_REPOSITORY_EVENT } from "@/components/layouts/workspace-sidebar";
+import {
+  AGENT_CREDITS_UPDATED_EVENT,
+  AGENT_NEW_CHAT_EVENT,
+  AGENT_REPOSITORY_EVENT
+} from "@/components/layouts/workspace-sidebar";
 
 import {
   IconAdjustments,
   IconArrowUp,
-  IconCoin,
   IconSparkles
 } from "@tabler/icons-react";
 
@@ -34,8 +36,6 @@ export default function AgentsPage() {
   const [models, setModels] = useState<AvailableModel[]>([]);
   const [model, setModel] = useState("");
   const [permissionMode, setPermissionMode] = useState<AgentPermissionMode>("ASK");
-  const [availableCredits, setAvailableCredits] = useState<number | null>(null);
-  const [creditFundedOpenRouter, setCreditFundedOpenRouter] = useState(false);
   const [skills, setSkills] = useState<LibrarySkill[]>([]);
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
   const [repositoryId, setRepositoryId] = useState("");
@@ -82,7 +82,7 @@ export default function AgentsPage() {
             { connections?: AiProviderConnection[]; serviceOpenRouterAvailable?: boolean; message?: string },
             { repositories?: WorkspaceRepository[]; message?: string },
             { skills?: LibrarySkill[]; message?: string },
-            { availableCredits?: number; message?: string },
+            { message?: string },
           ];
 
         if (cancelled) return;
@@ -94,8 +94,6 @@ export default function AgentsPage() {
         const connections = providerPayload.connections ?? [];
         const hasOpenRouterConnection = connections.some(connection => connection.provider === "OPENROUTER" && connection.connected);
         const hasOpenRouter = hasOpenRouterConnection || Boolean(providerPayload.serviceOpenRouterAvailable);
-        setCreditFundedOpenRouter(Boolean(providerPayload.serviceOpenRouterAvailable));
-        setAvailableCredits(creditsPayload.availableCredits ?? 0);
         let discoveredModels: AvailableModel[] = [];
         if (hasOpenRouter) {
           const modelsResponse = await apiFetch("/api/ai-providers/models", { cache: "no-store" });
@@ -152,14 +150,9 @@ export default function AgentsPage() {
   }, [activeRun]);
 
   useEffect(() => {
-    if (!activeRun || !creditFundedOpenRouter || ["QUEUED", "RUNNING", "WAITING_FOR_APPROVAL"].includes(activeRun.status)) return;
-    void apiFetch("/api/ai-credits", { cache: "no-store" })
-      .then(response => readJson(response) as Promise<{ availableCredits?: number }>)
-      .then(payload => {
-        if (typeof payload.availableCredits === "number") setAvailableCredits(payload.availableCredits);
-      })
-      .catch(() => undefined);
-  }, [activeRun, creditFundedOpenRouter]);
+    if (!activeRun || ["QUEUED", "RUNNING", "WAITING_FOR_APPROVAL"].includes(activeRun.status)) return;
+    window.dispatchEvent(new Event(AGENT_CREDITS_UPDATED_EVENT));
+  }, [activeRun]);
 
   useEffect(() => {
     const openRepositoryForm = () => setShowRepositoryForm(true);
@@ -216,10 +209,8 @@ export default function AgentsPage() {
       if (!response.ok || !payload.run) throw new Error(payload.message ?? "Unable to start this task.");
       setPrompt("");
       setActiveRun(payload.run);
-      if (creditFundedOpenRouter && typeof availableCredits === "number") {
-        setAvailableCredits(Math.max(0, availableCredits - payload.run.creditReservation));
-      }
       window.dispatchEvent(new Event("agent-runs-updated"));
+      window.dispatchEvent(new Event(AGENT_CREDITS_UPDATED_EVENT));
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Unable to start this task.");
     } finally {
@@ -252,11 +243,16 @@ export default function AgentsPage() {
     setSelectedSkillIds(current => current.includes(id) ? current.filter(skillId => skillId !== id) : [...current, id]);
   };
 
-  const startNewChat = () => {
+  const startNewChat = useCallback(() => {
     setActiveRun(null);
     setPrompt("");
     setError(null);
-  };
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener(AGENT_NEW_CHAT_EVENT, startNewChat);
+    return () => window.removeEventListener(AGENT_NEW_CHAT_EVENT, startNewChat);
+  }, [startNewChat]);
 
   const activeRunOutput = activeRun?.events
     ?.filter(event => event.type === "OUTPUT")
@@ -276,40 +272,10 @@ export default function AgentsPage() {
       <main
         className="flex min-h-dvh min-w-0 flex-col">
 
-        <header
-          className="flex min-h-14 items-center justify-end px-5 py-2 sm:px-8">
-          <div
-            className="flex min-h-10 items-center gap-2 rounded-sm border border-background-focus bg-background-card px-3">
-            <IconCoin size={15} strokeWidth={1.8} className="shrink-0 text-foreground-off" />
-            <span className="text-xs tabular-nums text-foreground">
-              {availableCredits === null
-                ? "Loading credits…"
-                : creditFundedOpenRouter
-                  ? `${availableCredits.toLocaleString()} available credits`
-                  : "Personal OpenRouter key"}
-            </span>
-            {availableCredits !== null && !creditFundedOpenRouter ? (
-              <span className="text-[10px] text-foreground/80">provider billing</span>
-            ) : null}
-            <Link
-              href="/dashboard/settings"
-              className="ml-1 rounded-xs px-2 py-1.5 text-[10px] text-foreground transition-colors hover:bg-background-focus focus-visible:outline-2 focus-visible:outline-accent">
-              Settings
-            </Link>
-          </div>
-        </header>
-
         <section className="flex min-h-0 flex-1 flex-col px-5 py-8 sm:px-8">
 
           {activeRun ? (
             <div className="mx-auto flex w-full max-w-250 flex-1 flex-col gap-4 overflow-y-auto pb-6">
-              <div className="flex items-center justify-between border-b border-background-focus pb-3">
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-medium">{activeRun.prompt?.split("\n")[0] || "Agent session"}</p>
-                  <p className="mt-1 text-[10px] text-foreground-off">{activeRun.model}</p>
-                </div>
-                <button type="button" onClick={startNewChat} className="shrink-0 rounded-xs px-2 py-1.5 text-xs text-foreground-off hover:bg-background-focus hover:text-foreground">New chat</button>
-              </div>
               {activeRun.prompt ? <p className="ml-auto max-w-[min(100%,600px)] whitespace-pre-wrap rounded-sm bg-accent px-3 py-2.5 text-xs leading-5 text-white">{activeRun.prompt}</p> : null}
               {activeRunOutput ? <MarkdownMessage>{activeRunOutput}</MarkdownMessage> : null}
               {activeRun.changePatch ? (

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { IconLock } from "@tabler/icons-react";
 
 import Button from "@/components/ui/button";
 import { apiFetch } from "@/utils/api-fetch";
@@ -9,6 +8,7 @@ import { setSessionUser } from "@/utils/session";
 import type { SessionUser } from "@/types/user";
 import SettingsFeedback from "./settings-feedback";
 import SettingsInput from "./settings-input";
+import SettingsRow from "./settings-row";
 
 export default function PasswordSection(props: {
   onSaved(user: SessionUser): void;
@@ -65,27 +65,22 @@ export default function PasswordSection(props: {
   };
 
   return (
-    <section className="overflow-hidden rounded-sm border border-background-focus bg-background-card">
-      <button
-        type="button"
-        className={`flex min-h-14 w-full items-center justify-between px-4 text-left text-base font-semibold duration-300 hover:bg-background-focus focus:outline-none focus-visible:ring-1 focus-visible:ring-accent ${isOpen ? "bg-background-focus" : ""}`}
+    <section className="flex flex-col gap-1">
+      <SettingsRow
+        title="Change my password"
+        tone="danger"
+        expanded={isOpen}
+        controls="password-settings-panel"
         onClick={() => {
           setIsOpen((value) => !value);
           setError(null);
           setMessage(null);
-        }}
-        aria-expanded={isOpen}
-        aria-controls="password-settings-panel"
-      >
-        <span>Change password</span>
-        <IconLock size={20} strokeWidth={1.8} className="text-foreground-off" />
-      </button>
+        }} />
       {isOpen ? (
         <form
           id="password-settings-panel"
-          className="grid gap-4 px-4 py-5 md:grid-cols-3"
-          onSubmit={onSubmit}
-        >
+          className="grid gap-4 rounded-sm border border-alert-red/40 bg-background-card p-4 md:grid-cols-3"
+          onSubmit={onSubmit}>
           <label
             className="flex flex-col gap-1.5 text-sm"
             htmlFor="currentPassword"

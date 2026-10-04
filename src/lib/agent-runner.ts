@@ -46,6 +46,7 @@ export type RunnerResult = {
 
 const activeProcesses = new Map<string, ChildProcessWithoutNullStreams>();
 const execFile = promisify(executeFile);
+const FALLBACK_EXECUTABLE_PATH = "/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin";
 
 export function createInstructionsDigest(instructions: string) {
   return createHash("sha256").update(instructions).digest("hex");
@@ -135,12 +136,32 @@ export function sanitizeRunnerOutput(value: string) {
 
 function createRunnerEnvironment(workspacePath: string) {
   return {
-    PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
+    PATH: getExecutablePath(),
     HOME: workspacePath,
     LANG: "C",
     NODE_ENV: "production",
     TMPDIR: join(workspacePath, "tmp"),
   } as NodeJS.ProcessEnv;
+}
+
+function getExecutablePath() {
+  return [process.env.PATH, FALLBACK_EXECUTABLE_PATH]
+    .filter(Boolean)
+    .join(":");
+}
+
+function getProcessErrorMessage(executable: string, error: Error) {
+  const errorCode = (error as NodeJS.ErrnoException).code;
+
+  if (errorCode === "ENOENT") {
+    if (executable === "git") {
+      return "Git is not available on this server. Install git or add it to PATH before running repository-backed agents.";
+    }
+
+    return `The server could not find ${executable}. Install it or add it to PATH before running this command.`;
+  }
+
+  return error.message;
 }
 
 function terminateProcess(child: ChildProcessWithoutNullStreams) {
@@ -215,7 +236,10 @@ export async function runAllowedCommand(input: {
     child.stdout.on("data", chunk => appendOutput("OUTPUT", chunk));
     child.stderr.on("data", chunk => appendOutput("ERROR", chunk));
     child.on("error", error => {
-      void input.onEvent({ type: "ERROR", message: sanitizeRunnerOutput(error.message) });
+      void input.onEvent({
+        type: "ERROR",
+        message: sanitizeRunnerOutput(getProcessErrorMessage(command.executable, error)),
+      });
       finish({ status: "FAILED", exitCode: null, errorCode: "PROCESS_ERROR", outputBytes });
     });
     child.on("close", code => {
@@ -293,7 +317,7 @@ export async function materializePublicRepository(input: {
   });
 
   const cloneEnv: NodeJS.ProcessEnv = {
-    PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
+    PATH: getExecutablePath(),
     NODE_ENV: process.env.NODE_ENV ?? "production",
     GIT_TERMINAL_PROMPT: "0",
     GIT_ASKPASS: "true",
@@ -354,7 +378,7 @@ export async function materializePublicRepository(input: {
       finish({
         ok: false,
         code: "GIT_UNAVAILABLE",
-        message: sanitizeRunnerOutput(error.message),
+        message: sanitizeRunnerOutput(getProcessErrorMessage("git", error)),
       });
     });
 

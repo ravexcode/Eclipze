@@ -22,6 +22,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/utils/api-fetch";
 import CacheDB from "@/utils/cache";
 import { clearSessionUser } from "@/utils/session";
+import { AGENT_NEW_CHAT_EVENT } from "@/components/layouts/workspace-sidebar";
 import { Option } from "./ui/sidebar-option";
 import type { AgentRun } from "@/types/agent-runner";
 import { readJson } from "@/utils/json-payload";
@@ -257,7 +258,15 @@ export default function Sidebar(props: Props) {
           <section className="mt-5 flex min-h-0 w-full flex-col gap-2 md:flex-1" aria-label="Agent sessions">
             <div className="flex items-center justify-between px-2.5">
               <h2 className="text-[11px] font-medium text-foreground-off">Sessions</h2>
-              <button type="button" onClick={() => router.push("/agents")} className="text-[10px] text-foreground-off hover:text-foreground">New chat</button>
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new Event(AGENT_NEW_CHAT_EVENT));
+                  router.push("/agents");
+                }}
+                className="text-[10px] text-foreground-off hover:text-foreground">
+                New chat
+              </button>
             </div>
             <nav className="flex max-h-56 flex-col gap-0.5 overflow-y-auto md:max-h-none" aria-label="Agent sessions">
               {agentRuns.map(run => (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { IconArrowUpRight, IconCode, IconFolders, IconLayoutSidebarRightCollapse } from "@tabler/icons-react";
+import { IconArrowUpRight, IconCode, IconCoin, IconFolders, IconLayoutSidebarRightCollapse } from "@tabler/icons-react";
 import Link from "next/link";
 
 import MenuSelector from "@/components/ui/menu-selector";
@@ -11,29 +11,45 @@ import { readJson } from "@/utils/json-payload";
 
 type ProjectOption = { id: string; name: string };
 type Props = { onCollapse: () => void };
+type CreditBalance = {
+  availableCredits: number;
+  reservedCredits: number;
+  serviceOpenRouterAvailable: boolean;
+};
 
 export const AGENT_REPOSITORY_EVENT = "agent-repository-selected";
+export const AGENT_CREDITS_UPDATED_EVENT = "agent-credits-updated";
+export const AGENT_NEW_CHAT_EVENT = "agent-new-chat";
 
 export default function WorkspaceSidebar({ onCollapse }: Props) {
   const [repositories, setRepositories] = useState<WorkspaceRepository[]>([]);
   const [projects, setProjects] = useState<ProjectOption[]>([]);
+  const [creditBalance, setCreditBalance] = useState<CreditBalance | null>(null);
   const [repositoryId, setRepositoryId] = useState("");
   const [projectId, setProjectId] = useState("");
 
   useEffect(() => {
     let cancelled = false;
+
     async function loadWorkspaceOptions() {
       try {
-        const [repositoryResponse, projectResponse] = await Promise.all([
+        const [repositoryResponse, projectResponse, creditsResponse] = await Promise.all([
           apiFetch("/api/repositories", { cache: "no-store" }),
           apiFetch("/api/projects", { cache: "no-store" }),
+          apiFetch("/api/ai-credits", { cache: "no-store" }),
         ]);
-        const [repositoryPayload, projectPayload] = await Promise.all([
+        const [repositoryPayload, projectPayload, creditsPayload] = await Promise.all([
           readJson(repositoryResponse),
           readJson(projectResponse),
+          readJson(creditsResponse),
         ]) as [
           { repositories?: WorkspaceRepository[] },
           { projects?: ProjectOption[] },
+          {
+            availableCredits?: number;
+            reservedCredits?: number;
+            serviceOpenRouterAvailable?: boolean;
+          },
         ];
 
         if (cancelled) return;
@@ -48,6 +64,13 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
           : projectRepositories[0]?.id ?? "";
         setRepositories(nextRepositories);
         setProjects(projectPayload.projects ?? []);
+        if (creditsResponse.ok) {
+          setCreditBalance({
+            availableCredits: creditsPayload.availableCredits ?? 0,
+            reservedCredits: creditsPayload.reservedCredits ?? 0,
+            serviceOpenRouterAvailable: Boolean(creditsPayload.serviceOpenRouterAvailable),
+          });
+        }
         setProjectId(savedProjectId);
         setRepositoryId(selectedRepositoryId);
       } catch {
@@ -60,10 +83,14 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
 
     const loadTimer = window.setTimeout(() => { void loadWorkspaceOptions(); }, 0);
     window.addEventListener("agent-workspace-updated", loadWorkspaceOptions);
+    window.addEventListener("agent-runs-updated", loadWorkspaceOptions);
+    window.addEventListener(AGENT_CREDITS_UPDATED_EVENT, loadWorkspaceOptions);
     return () => {
       cancelled = true;
       window.clearTimeout(loadTimer);
       window.removeEventListener("agent-workspace-updated", loadWorkspaceOptions);
+      window.removeEventListener("agent-runs-updated", loadWorkspaceOptions);
+      window.removeEventListener(AGENT_CREDITS_UPDATED_EVENT, loadWorkspaceOptions);
     };
   }, []);
 
@@ -96,7 +123,7 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
 
   return (
     <aside className="w-full border-t border-background-focus bg-surface px-4 py-5 md:px-5 xl:sticky xl:top-0 xl:h-dvh xl:border-l xl:border-t-0 xl:px-4">
-      <div className="flex flex-col gap-4">
+      <div className="flex h-full flex-col gap-4">
         <div className="flex items-start justify-between px-2">
           <div>
             <h2 className="text-xs font-medium text-foreground">Agent workspace</h2>
@@ -162,6 +189,36 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
             <IconArrowUpRight size={15} strokeWidth={1.8} className="mt-0.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
           </Link>
         </nav>
+
+        <section className="mt-auto rounded-sm border border-background-focus bg-background-card p-3" aria-label="AI credit balance">
+          <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+            <IconCoin size={15} strokeWidth={1.8} className="shrink-0 text-foreground-off" />
+            <span>AI credits</span>
+          </div>
+          {creditBalance ? (
+            <>
+              <p className="mt-3 text-lg font-semibold tabular-nums">
+                {creditBalance.availableCredits.toLocaleString()}
+              </p>
+              <p className="mt-1 text-xs text-foreground-off">
+                Available
+                {creditBalance.reservedCredits > 0 ? ` · ${creditBalance.reservedCredits.toLocaleString()} reserved` : ""}
+              </p>
+              <p className="mt-3 text-[10px] leading-4 text-foreground-off">
+                {creditBalance.serviceOpenRouterAvailable
+                  ? "Eclipse-funded OpenRouter"
+                  : "Provider billing"}
+              </p>
+              <Link
+                href="/dashboard/settings"
+                className="mt-2 inline-flex rounded-xs px-2 py-1.5 text-[10px] text-foreground transition-colors hover:bg-background-focus focus-visible:outline-2 focus-visible:outline-accent">
+                Settings
+              </Link>
+            </>
+          ) : (
+            <p role="status" className="mt-3 text-xs text-foreground-off">Loading credits...</p>
+          )}
+        </section>
       </div>
     </aside>
   );

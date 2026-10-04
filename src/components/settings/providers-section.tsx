@@ -151,51 +151,57 @@ export default function ProvidersSection() {
     }
   };
 
-  return (
-    <section className="flex w-full flex-col gap-5 rounded-sm border border-background-focus bg-background-card p-5 md:p-6">
-      <div>
-        <h2 className="text-base font-semibold tracking-[-0.01em]">
-          AI providers
-        </h2>
-        <p className="mt-1 text-sm text-foreground-off">
-          Connect personal API keys, or use your Eclipse-funded OpenRouter credits when available.
-        </p>
+  const connectionProviders = AI_PROVIDERS.filter(
+    (provider) => provider.id === "GPT" || provider.id === "CLAUDE" || provider.id === "XAI",
+  );
+  const apiKeyProviders = AI_PROVIDERS.filter(
+    (provider) => provider.id === "OPENROUTER" || provider.id === "ZAI",
+  );
+
+  const renderProviderRows = (providers: readonly AiProviderConfig[]) => (
+    isLoading ? (
+      <div className="flex flex-col gap-2" role="status" aria-label="Loading provider connections">
+        {providers.map((provider) => (
+          <div key={provider.id} className="flex h-10 items-center justify-between rounded-sm bg-background-card px-2.5" aria-hidden="true">
+            <span className="h-3.5 w-28 animate-pulse rounded-sm bg-background-focus" />
+            <span className="h-3 w-16 animate-pulse rounded-sm bg-background-focus" />
+          </div>
+        ))}
       </div>
+    ) : (
+      <div className="flex flex-col gap-2">
+        {providers.map((provider) => (
+          <ProviderCard
+            key={provider.id}
+            provider={provider}
+            connection={connectionMap.get(provider.id)}
+            apiKey={apiKeys[provider.id]}
+            model={models[provider.id]}
+            isBusy={busyProvider === provider.id}
+            onApiKeyChange={(id, value) =>
+              setApiKeys((current) => ({ ...current, [id]: value }))
+            }
+            onModelChange={(id, value) =>
+              setModels((current) => ({ ...current, [id]: value }))
+            }
+            onConnect={onConnect}
+            onDisconnect={onDisconnect} />
+        ))}
+      </div>
+    )
+  );
+
+  return (
+    <div className="flex flex-col gap-7">
       <SettingsFeedback error={error} message={message} />
-      {isLoading ? (
-        <div
-          className="grid gap-3 md:grid-cols-2"
-          aria-label="Loading provider connections"
-        >
-          {AI_PROVIDERS.map((provider) => (
-            <div
-              key={provider.id}
-              className="h-43.5 animate-pulse rounded-sm bg-background-focus/40"
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {AI_PROVIDERS.map((provider) => (
-            <ProviderCard
-              key={provider.id}
-              provider={provider}
-              connection={connectionMap.get(provider.id)}
-              apiKey={apiKeys[provider.id]}
-              model={models[provider.id]}
-              isBusy={busyProvider === provider.id}
-              onApiKeyChange={(id, value) =>
-                setApiKeys((current) => ({ ...current, [id]: value }))
-              }
-              onModelChange={(id, value) =>
-                setModels((current) => ({ ...current, [id]: value }))
-              }
-              onConnect={onConnect}
-              onDisconnect={onDisconnect}
-            />
-          ))}
-        </div>
-      )}
-    </section>
+      <section className="flex flex-col gap-2.5">
+        <h2 className="text-sm font-medium">AI Connections</h2>
+        {renderProviderRows(connectionProviders)}
+      </section>
+      <section className="flex flex-col gap-2.5">
+        <h2 className="text-sm font-medium">API Keys</h2>
+        {renderProviderRows(apiKeyProviders)}
+      </section>
+    </div>
   );
 }

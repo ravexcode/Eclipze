@@ -8,6 +8,7 @@ import DashLayout from "@/components/layouts/dash";
 import Button from "@/components/ui/button";
 import SelectorInput from "@/components/ui/selector";
 import MarkdownMessage from "@/components/agents/markdown-message";
+import { AGENT_CREDITS_UPDATED_EVENT } from "@/components/layouts/workspace-sidebar";
 import type { AgentRun } from "@/types/agent-runner";
 import type { AiProviderConnection } from "@/types/ai";
 import { apiFetch } from "@/utils/api-fetch";
@@ -84,6 +85,11 @@ export default function AgentRunPage() {
     const timer = setTimeout(() => void loadRun(), 1_500);
     return () => clearTimeout(timer);
   }, [loadRun, run]);
+
+  useEffect(() => {
+    if (!run || ["QUEUED", "RUNNING", "WAITING_FOR_APPROVAL"].includes(run.status)) return;
+    window.dispatchEvent(new Event(AGENT_CREDITS_UPDATED_EVENT));
+  }, [run]);
 
   const cancelRun = async () => {
     if (!run) return;

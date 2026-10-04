@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type SyntheticEvent } from "react";
+import Image from "next/image";
+import { useState } from "react";
 import { IconPencil } from "@tabler/icons-react";
 
 import Button from "@/components/ui/button";
@@ -13,6 +14,7 @@ import SettingsInput from "./settings-input";
 
 export default function ProfileSection(props: {
   user: SessionUser;
+  avatarUrl: string;
   onSaved(user: SessionUser): void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -70,34 +72,40 @@ export default function ProfileSection(props: {
     }
   };
 
+  const displayName = props.user.username || props.user.email.split("@")[0] || "Your account";
+
   return (
-    <section className="overflow-hidden rounded-sm border border-background-focus bg-background-card">
+    <section className="flex flex-col gap-2">
       <button
         type="button"
-        className={`flex min-h-14 w-full items-center justify-between px-4 text-left text-base font-semibold duration-300 hover:bg-background-focus focus:outline-none focus-visible:ring-1 focus-visible:ring-accent ${isOpen ? "bg-background-focus" : ""}`}
+        className={`flex min-h-14 w-full items-center gap-3 rounded-sm bg-background-card px-3 py-2 text-left hover:bg-background-focus focus:outline-none focus-visible:ring-1 focus-visible:ring-accent ${isOpen ? "bg-background-focus" : ""}`}
         onClick={() => {
           setIsOpen((value) => !value);
           setError(null);
           setMessage(null);
-        }}>
-        <span>
-          Change username
+        }}
+        aria-expanded={isOpen}
+        aria-controls="profile-settings-panel">
+        <Image
+          src={props.avatarUrl}
+          alt=""
+          width={36}
+          height={36}
+          unoptimized
+          className="h-9 w-9 shrink-0 rounded-full bg-background-focus object-cover" />
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="flex min-w-0 items-center gap-1.5 text-base font-medium">
+            <span className="truncate">{displayName}</span>
+            <IconPencil size={14} strokeWidth={1.7} className="shrink-0 text-foreground-off" />
+          </span>
+          <span className="truncate text-xs text-foreground-off">{props.user.email}</span>
         </span>
-        <IconPencil
-          size={20}
-          strokeWidth={1.5}
-          className="text-foreground-off"/>
       </button>
       {isOpen ? (
         <form
           id="profile-settings-panel"
-          className="grid gap-4 px-4 py-5 md:grid-cols-2"
-          onSubmit={onSubmit}
-          onError={(event: SyntheticEvent) => {
-            event.preventDefault();
-            setError("Please review the form fields and try again.");
-          }}
-        >
+          className="grid gap-4 rounded-sm bg-background-card p-4 md:grid-cols-2"
+          onSubmit={onSubmit}>
           <label className="flex flex-col gap-1.5 text-sm" htmlFor="username">
             Username
             <SettingsInput

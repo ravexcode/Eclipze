@@ -18,7 +18,7 @@ export default function DeveloperAccountSection(props: {
   const [isChanging, setIsChanging] = useState(false);
 
   const changeAccount = async () => {
-    if (!window.confirm("¿Cambiar esta cuenta a desarrollador? Tendrá acceso a todos los Issues.")) return;
+    if (!window.confirm("Change this account to a developer account? It will be able to manage every issue.")) return;
     setError(null);
     setIsChanging(true);
 
@@ -46,13 +46,13 @@ export default function DeveloperAccountSection(props: {
   };
 
   return (
-    <section className="flex w-full flex-col gap-4 rounded-sm border border-background-focus bg-background-card p-5 md:p-6">
+    <section className="flex w-full flex-col gap-3 border-t border-background-focus pt-5">
       <div className="flex items-start gap-3">
         <IconCode className="mt-0.5 shrink-0 text-foreground-off" size={18} />
         <div>
           <h2 className="text-base font-semibold">Developer access</h2>
           <p className="mt-1 text-sm text-foreground-off">
-            Developer accounts can manage every Issue in Eclipze.
+            Developer accounts can manage every issue in Eclipze.
           </p>
         </div>
       </div>
@@ -64,7 +64,7 @@ export default function DeveloperAccountSection(props: {
           onClick={() => void changeAccount()}
           disabled={isChanging || props.user.role === "DEVELOPER"}
         >
-          {props.user.role === "DEVELOPER" ? "Cuenta de desarrollador" : isChanging ? "Cambiando..." : "Cambiar cuenta a desarollador"}
+          {props.user.role === "DEVELOPER" ? "Developer account" : isChanging ? "Changing..." : "Switch to developer account"}
         </Button>
       </div>
     </section>

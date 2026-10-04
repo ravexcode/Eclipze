@@ -8,10 +8,9 @@ import DangerZone from "@/components/settings/danger-zone";
 import DeveloperAccountSection from "@/components/settings/developer-account-section";
 import AiCreditsSection from "@/components/settings/ai-credits-section";
 import PasswordSection from "@/components/settings/password-section";
-import ProfileHeader from "@/components/settings/profile-header";
 import ProfileSection from "@/components/settings/profile-section";
 import ProvidersSection from "@/components/settings/providers-section";
-import Heading from "@/components/ui/heading";
+import SettingsSkeleton from "@/components/settings/settings-skeleton";
 
 import type { SessionUser } from "@/types/user";
 
@@ -43,52 +42,34 @@ export default function SettingsPage() {
       router={router}>
 
       <main
-        className="min-w-0 w-full pb-16">
-
-        <Heading
-          label="Settings" />
-
+        className="w-full pb-16">
         <div
-          className="mx-auto flex w-full max-w-212 flex-col gap-5 px-4 pt-7 md:px-6">
-
-          <ProfileHeader
-            user={user} avatarUrl={previewAvatar} />
-
-          <div
-            className="flex flex-col gap-1 pt-2">
-            <h2
-              className="text-base font-semibold tracking-[-0.01em]">
-              Profile settings
-            </h2>
-            <p
-              className="text-sm text-foreground-off">
-              Manage your account details and security preferences.
-            </p>
-          </div>
-
-          {
-            user ? (
-              <>
-                <ProfileSection
-                  user={user}
-                  onSaved={setUser} />
-                <PasswordSection
-                  onSaved={setUser} />
-                <AiCreditsSection />
-                <ProvidersSection />
-                <DangerZone
-                  user={user}
-                  onDeleted={
-                    () => {
+          className="mx-auto flex w-full max-w-250 flex-col px-4 pt-5 md:px-0">
+          {user ? (
+            <div className="flex flex-col gap-7 w-full">
+              <ProfileSection
+                user={user}
+                avatarUrl={previewAvatar}
+                onSaved={setUser} />
+              <AiCreditsSection />
+              <ProvidersSection />
+              <section className="flex flex-col gap-2.5">
+                <h2 className="text-sm font-medium text-alert-red">Danger zone</h2>
+                <div className="flex flex-col gap-2">
+                  <DangerZone
+                    user={user}
+                    onDeleted={() => {
                       router.replace("/auth/signin");
                       router.refresh();
                     }} />
-                <DeveloperAccountSection
-                  user={user}
-                  onChanged={setUser} />
-              </>
-            ) : null
-          }
+                  <PasswordSection onSaved={setUser} />
+                </div>
+              </section>
+              <DeveloperAccountSection user={user} onChanged={setUser} />
+            </div>
+          ) : (
+            <SettingsSkeleton />
+          )}
         </div>
 
       </main>
