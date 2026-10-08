@@ -1,18 +1,27 @@
 ![logo](./public/logo.svg)
 
-Eclipze is a **developer ↔ client contact tool** designed to centralize communication, project context, and workflow visibility in one interface.
+Eclipze is a focused workspace for independent developers who use AI agents across multiple client projects. It brings project context, issues, repository-backed agent work, and client communication together so developers can delegate outcomes without carrying the entire coordination process themselves.
 
 The current project is set up as a **Next.js** app with **pnpm**, using a dark visual system based on the Figma design documented in the [Designer skill](./.agents/skills/designer/SKILL.md).
 
-## Purpose
+## Product direction
 
-This app is intended to help developers and clients stay aligned by giving them a shared place to:
+The product is built around an outcome-first workflow:
 
-- review project status
-- submit and track issues, bugs, and feature ideas
-- keep communication organized
-- monitor agent/development sessions
-- build a clearer handoff between technical and non-technical stakeholders
+1. Give an agent the context for a project and describe the outcome you need.
+2. Turn that request into a concise plan with feature-sized, issue-ready tasks.
+3. Review the plan, then let the agent work in the selected repository with the chosen approval mode.
+4. Keep project issues, agent runs, and client communication visible in one workspace.
+
+The long-term direction includes connecting the tools developers already use to build apps, with products such as v0 and Base44 as candidates. Those integrations are not available in the current app yet.
+
+## Available today
+
+- Projects and client communication
+- Issues for tracking features, bugs, and project work
+- Repository-backed agent runs with Ask, Plan, User approve, and Auto approve modes
+- Reusable agent skills and model selection through connected providers
+- A dashboard for project, issue, and agent activity
 
 ## Tech stack
 

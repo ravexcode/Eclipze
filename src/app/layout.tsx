@@ -14,13 +14,13 @@ import { Analytics } from "@vercel/analytics/next"
 
 export const metadata: Metadata = {
   title: {
-    default: "Eclipze | Developer Workflow Platform",
+    default: "Eclipze | AI Agent Workspace for Independent Developers",
     template: "%s | Eclipze",
   },
   description:
-    "Eclipze gives developer teams a focused workspace for projects, issues, and AI agents.",
+    "Organize client projects, turn outcomes into implementation plans, and review repository changes from AI agents in one workspace.",
   applicationName: "Eclipze",
-  keywords: ["developer workflow", "project management", "AI agents", "developer teams"],
+  keywords: ["independent developers", "AI agent workspace", "client projects", "repository agents"],
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },

@@ -127,7 +127,7 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
         <div className="flex items-start justify-between px-2">
           <div>
             <h2 className="text-xs font-medium text-foreground">Agent workspace</h2>
-            <p className="mt-1 text-xs text-foreground-off">Choose where your agent works.</p>
+            <p className="mt-1 text-xs text-foreground-off">Choose a project and repository before you delegate work.</p>
           </div>
           <button type="button" onClick={onCollapse} aria-label="Hide right sidebar" className="rounded-xs p-1.5 text-foreground-off hover:bg-surface-raised hover:text-foreground">
             <IconLayoutSidebarRightCollapse size={17} strokeWidth={1.8} />

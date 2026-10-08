@@ -304,6 +304,17 @@ export default function AgentsPage() {
 
           <div className={`mx-auto w-full max-w-250 ${activeRun ? "shrink-0" : "my-auto"}`}>
 
+            {!activeRun ? (
+              <div className="mb-6 max-w-150 px-1">
+                <h1 className="font-heading text-3xl">
+                  Describe the outcome your project needs
+                </h1>
+                <p className="mt-2 text-sm leading-6 text-foreground-off">
+                  Your agent can inspect the selected repository, turn the request into a focused plan, and make approved changes.
+                </p>
+              </div>
+            ) : null}
+
             <div
               className="rounded-sm bg-background-card p-2.5 sm:p-3">
 
@@ -317,7 +328,7 @@ export default function AgentsPage() {
                     void submitTask();
                   }
                 }}
-                placeholder="Ask me anything…"
+                placeholder="What should your agent help you deliver?"
                 className="min-h-12 w-full bg-transparent px-1.5 py-1 text-sm outline-hidden placeholder:text-foreground-off"
               />
 

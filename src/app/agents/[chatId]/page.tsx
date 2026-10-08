@@ -173,7 +173,7 @@ export default function AgentRunPage() {
             <input
               id="agent-follow-up"
               onChange={event => setPrompt(event.target.value)}
-              placeholder="Ask me anything…"
+                placeholder="What should your agent do next?"
               className="min-h-11 w-full bg-transparent px-1.5 py-1 text-sm outline-hidden placeholder:text-foreground-off"
             />
             <div className="flex items-center justify-between px-1 pt-1.5">

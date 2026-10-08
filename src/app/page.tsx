@@ -23,12 +23,15 @@ export default async function HomePage() {
 
         <div className="flex flex-col items-center justify-center text-start animate-blurred-fade-in">
           <h1 className="font-heading text-6xl w-full">
-            Build <span className="text-accent">Faster</span>
+            Turn project
             <br />
-            Deploy with
+            needs into
             <br />
-            <span className="text-accent">Confidence</span>
+            <span className="text-accent">focused plans</span>
           </h1>
+          <p className="mt-5 w-full max-w-125 text-sm leading-6 text-foreground-off">
+            Give an agent a project outcome. Keep its plan, repository work, issues, and client updates together.
+          </p>
 
           <div className="mt-6 flex items-center gap-2 w-full">
             <Button
@@ -54,7 +57,7 @@ export default async function HomePage() {
 
         <Image
           src="/images/dashboard-preview.png"
-          alt="Eclipze dashboard showing issues, projects, and agent sessions"
+          alt="Eclipze workspace showing projects, issues, and agent activity"
           className="animate-fade-in-up w-200 rounded-md animate-duration-700"
           width={1280}
           height={645}
@@ -73,12 +76,12 @@ export default async function HomePage() {
 
         <div className="flex flex-col items-end justify-center text-end gap-3">
           <h2 className="font-heading text-4xl w-full animate-blurred-fade-in">
-            Work with agents <span className="text-accent">from anywhere</span>
+            Give agents the outcome. <span className="text-accent">Review the plan.</span>
           </h2>
           <Link
             href="/agents"
             className="cursor-pointer px-3 text-foreground-off flex items-center justify-center gap-2 duration-300 hover:text-foreground">
-            Explore the agents
+            Explore agent workspace
             <IconArrowRight
               stroke={1}
               size={20} />
@@ -89,7 +92,7 @@ export default async function HomePage() {
 
       <section className="mx-auto w-full max-w-7xl items-center py-20 flex justify-between">
         <h2 className="font-heading text-4xl w-full animate-blurred-fade-in max-w-100">
-          Improve project <span className="text-accent">communication</span>
+          Keep projects, issues, and client updates <span className="text-accent">in one place</span>
         </h2>
         <Image
           src="/images/inbox-preview-anon.png"
