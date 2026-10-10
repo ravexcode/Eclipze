@@ -12,7 +12,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 // React imports
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 // Icons
 import {
@@ -37,9 +37,19 @@ export default function Sidebar(props: Props) {
 
   // Components
   const search_field = useRef<HTMLInputElement>(null);
+  const [search_query, setSearchQuery] = useState("");
 
   // Constants
   const labels_data = labels(props.selected);
+  const filtered_labels = useMemo(() => {
+    const normalized_query = search_query.trim().toLowerCase();
+
+    if (!normalized_query) return labels_data;
+
+    return labels_data.filter((label) =>
+      label.label.toLowerCase().includes(normalized_query)
+    );
+  }, [labels_data, search_query]);
 
   //Functions
   useEffect(() => {
@@ -83,6 +93,9 @@ export default function Sidebar(props: Props) {
         <input
           ref={search_field}
           type="text"
+          value={search_query}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          aria-label="Search navigation"
           className="w-full h-full py-2 text-start placeholder:text-foreground-off text-foreground outline-none"
           placeholder="Search" />
 
@@ -97,9 +110,9 @@ export default function Sidebar(props: Props) {
       <section
         className="w-full flex flex-col gap-1 text-xs">
         {
-          labels_data.map((label, index) =>
+          filtered_labels.map((label) =>
             <Link
-              key={index}
+              key={label.redirection}
               href={label.redirection}
               className={"w-full flex gap-2 items-center justify-start px-3 py-2 rounded-sm " + (label.selected ? "bg-background-focus" : "hover:bg-background-focus/50 text-foreground-off")}>
               {label.icon}
@@ -108,6 +121,11 @@ export default function Sidebar(props: Props) {
             </Link>
           )
         }
+        {filtered_labels.length === 0 ? (
+          <p className="px-3 py-2 text-foreground-off" role="status">
+            No navigation options found.
+          </p>
+        ) : null}
       </section>
 
       {props.user ? (
