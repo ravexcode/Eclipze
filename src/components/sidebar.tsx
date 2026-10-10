@@ -3,7 +3,7 @@
 
 interface Props {
   selected: SelectedSection;
-  user: User
+  user?: User
   router: AppRouterInstance
 };
 
