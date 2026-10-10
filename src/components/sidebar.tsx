@@ -3,16 +3,13 @@
 
 interface Props {
   selected: SelectedSection;
-  user?: {
-    name: string;
-    avatar: string;
-    id: string;
-    role: "USER" | "DEVELOPER";
-  };
+  user: User
   router: AppRouterInstance
 };
 
+// Next imports
 import Image from "next/image";
+import Link from "next/link";
 
 // React imports
 import { useEffect, useRef } from "react";
@@ -24,15 +21,16 @@ import {
 } from "@tabler/icons-react";
 
 // Components
-
 import {
   labels,
   type SelectedSection
 } from "@/constants/components/sidebar-labels";
 
+import UserProfile from "./ui/profile";
+
 // Types
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import Link from "next/link";
+import type { User } from "@/types/user";
 
 // Main content
 export default function Sidebar(props: Props) {
@@ -113,24 +111,7 @@ export default function Sidebar(props: Props) {
       </section>
 
       {props.user ? (
-        <button
-          className="mt-auto flex w-full items-center gap-3 rounded-md px-3 py-2 hover:bg-background-focus/50 text-sm cursor-pointer"
-          aria-label={`Open settings for ${props.user.name}`}
-        >
-          <Image
-            src={props.user.avatar || "/logo.svg"}
-            alt=""
-            width={20}
-            height={20}
-            className="w-5 block aspect-square shrink-0 rounded-full bg-background-focus object-cover"
-            unoptimized
-          />
-          <span className="min-w-0 text-left">
-            <span className="block truncate text-sm font-medium text-foreground">
-              {props.user.name}
-            </span>
-          </span>
-        </button>
+        <UserProfile profile={props.user} />
       ) : null}
 
     </aside>

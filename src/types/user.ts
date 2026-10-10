@@ -127,3 +127,10 @@ export type AuthApiResponse = {
 };
 
 export default UserCredentials;
+
+export type User = {
+  name: string;
+  avatar: string;
+  id: string;
+  role: "USER" | "DEVELOPER";
+}

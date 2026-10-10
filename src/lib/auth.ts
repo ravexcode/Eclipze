@@ -252,13 +252,7 @@ export async function clearSession() {
     });
   }
 
-  cookieStore.set(SESSION_COOKIE_NAME, "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    expires: new Date(0),
-  });
+  cookieStore.delete(SESSION_COOKIE_NAME);
 }
 
 export async function getCurrentSession() {

@@ -1,6 +1,5 @@
 import Image from "next/image";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import MarketingLayout from "@/components/layouts/marketing";
@@ -8,11 +7,10 @@ import Button from "@/components/ui/button";
 
 import Link from "next/link";
 import { IconArrowRight, IconInfoCircle } from "@tabler/icons-react";
+import { getCurrentSession } from "@/lib/auth";
 
 export default async function HomePage() {
-  const cookieStore = await cookies();
-
-  const hasToken = !!cookieStore.get("token");
+  const hasToken = Boolean(await getCurrentSession());
 
   if (hasToken) redirect("/dashboard");
 
