@@ -40,7 +40,7 @@ export default function Header({ hasToken = false }: { hasToken?: boolean }) {
       <Button
         variant="main"
         href={cta.link}
-        className="w-30 text-sm">
+        className="w-30 text-sm! rounded-md!">
         {cta.label}
       </Button>
     </header>

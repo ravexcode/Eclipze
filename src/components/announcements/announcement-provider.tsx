@@ -65,13 +65,13 @@ function AnnouncementToast({
 
   return (
     <div
-      className={`pointer-events-auto flex w-full items-start gap-3 rounded-sm border bg-background-card px-4 py-3 text-sm animate-fade-in-down ${variantStyles[announcement.variant]}`}
+      className={`pointer-events-auto flex w-full items-start gap-3 rounded-sm border bg-background-card px-4 py-3 text-base animate-fade-in-down ${variantStyles[announcement.variant]}`}
       role={isError ? "alert" : "status"}
       aria-live={isError ? "assertive" : "polite"}
       aria-atomic="true"
     >
       <AnnouncementIcon variant={announcement.variant} />
-      <p className="min-w-0 flex-1 leading-5">{announcement.message}</p>
+      <p className="min-w-0 flex-1 leading-6">{announcement.message}</p>
       <button
         type="button"
         className="-mr-1 -mt-1 shrink-0 rounded-sm p-1 text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground focus-visible:outline-1 focus-visible:outline-accent"

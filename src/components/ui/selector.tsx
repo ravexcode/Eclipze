@@ -28,7 +28,7 @@ export default function SelectorInput(props: Props) {
   const selectedModel = props.values.find(model => model.id === props.current);
 
   return (
-    <div className="relative w-full text-xs">
+    <div className="relative w-full text-base">
       <button
         type="button"
         aria-haspopup="listbox"
@@ -75,17 +75,17 @@ export default function SelectorInput(props: Props) {
                   props.setCurrent(model.id);
                   setExpanded(false);
                 }}
-                className={`flex w-full items-center justify-between gap-3 rounded-xs px-3 py-2 text-left hover:bg-background-focus ${model.id === props.current ? "bg-background-focus" : ""}`}>
+                className={`flex w-full items-center justify-between gap-3 rounded-sm px-3 py-2 text-left hover:bg-background-focus ${model.id === props.current ? "bg-background-focus" : ""}`}>
                 <span className="flex min-w-0 flex-col">
                   <span className="truncate font-medium">{model.name}</span>
                   {model.id !== model.name ? (
-                    <span className="truncate text-xs text-foreground-off">{model.id}</span>
+                    <span className="truncate text-base text-foreground-off">{model.id}</span>
                   ) : null}
                 </span>
                 {model.provider === "OPENROUTER" ? <OpenRouterLogo /> : null}
               </button>
             )) : (
-              <p className="px-3 py-2 text-xs text-foreground-off">No matching models.</p>
+              <p className="px-3 py-2 text-base text-foreground-off">No matching models.</p>
             )}
           </div>
         </div>
@@ -102,6 +102,6 @@ function OpenRouterLogo() {
       title="OpenRouter"
       width={50}
       height={50}
-      className="h-5 w-5 shrink-0 rounded-xs" />
+      className="h-5 w-5 shrink-0 rounded-sm" />
   );
 }
