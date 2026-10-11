@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { badRequest, enumString, notFound, optionalString, ownedProject, parseBody, requiredString } from "@/lib/workspace-api";
 import { serializeIssue } from "@/lib/workspace";
 import prisma from "@/lib/prisma";
+import { getIssueAccessFilter } from "@/lib/issue-access";
 
 const TYPES = ["BUG", "FEATURE", "SUPPORT"] as const;
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH"] as const;
@@ -12,11 +13,14 @@ export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   const issues = await prisma.issue.findMany({
-    where: user.role === "DEVELOPER" ? {} : { userId: user.id },
+    where: getIssueAccessFilter(user.id),
     orderBy: { lastActivityAt: "desc" },
     include: { user: { select: { id: true, username: true, email: true } } },
   });
-  return NextResponse.json({ issues: issues.map(issue => ({ ...serializeIssue(issue), requester: issue.user })) });
+  return NextResponse.json(
+    { issues: issues.map(issue => ({ ...serializeIssue(issue), requester: issue.user })) },
+    { headers: { "Cache-Control": "private, no-store" } },
+  );
 }
 
 export async function POST(request: Request) {
@@ -35,8 +39,16 @@ export async function POST(request: Request) {
   const projectId = optionalString(body.projectId, "projectId");
   if (projectId.error) return projectId.error;
   if (projectId.value && !(await ownedProject(user.id, projectId.value))) return notFound("Project not found.");
-  const issue = await prisma.issue.create({ data: { userId: user.id, projectId: projectId.value, title: title.value, description: description.value, type: type.value, priority: priority.value, lastActivityAt: new Date() } });
-  const developers = await prisma.user.findMany({ where: { role: "DEVELOPER", id: { not: user.id } }, select: { id: true } });
-  if (developers.length) await prisma.notification.createMany({ data: developers.map(developer => ({ userId: developer.id, issueId: issue.id, type: "ISSUE_CREATED" as const })) });
+  const issue = await prisma.issue.create({
+    data: {
+      userId: user.id,
+      projectId: projectId.value,
+      title: title.value,
+      description: description.value,
+      type: type.value,
+      priority: priority.value,
+      lastActivityAt: new Date(),
+    },
+  });
   return NextResponse.json({ issue: serializeIssue(issue) }, { status: 201 });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type SubmitEvent } from "react";
+import { useCallback, useMemo, useState, type SubmitEvent } from "react";
 
 import IssueFilters from "@/components/issues/issue-filters";
 import IssueForm from "@/components/issues/issue-form";
@@ -14,7 +14,8 @@ import type { IssueStatus, IssueType, UserRole } from "@/types/user";
 import { apiFetch } from "@/utils/api-fetch";
 import { IssuesCache } from "@/utils/cache";
 import { filterIssues } from "@/utils/issues";
-import { getSessionUser } from "@/utils/session";
+import { refreshSessionUser } from "@/utils/session";
+import { useIssueRefresh } from "@/utils/use-issue-refresh";
 import { useRouter } from "next/navigation";
 
 export default function IssuesPage() {
@@ -29,84 +30,48 @@ export default function IssuesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<IssueFormValues>(initialIssueForm);
-  const loadPromise = useRef<Promise<void> | null>(null);
-
-  const load = useCallback(async (force = false) => {
-    if (loadPromise.current) return loadPromise.current;
-
-    const promise = (async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const sessionUser = await getSessionUser();
-
-        if (!sessionUser) return;
-
-        setRole(sessionUser.role);
-
-        if (!force) {
-          const cached = IssuesCache.get<IssueItem>(
-            sessionUser.id,
-            sessionUser.role,
-          );
-
-          if (cached) {
-            setIssues(cached.issues);
-            setUnread(cached.unread);
-            return;
-          }
-        }
-
-        const [issueResponse, notificationResponse] = await Promise.all([
-          apiFetch("/api/issues"),
-          apiFetch("/api/notifications"),
-        ]);
-
-        if (!issueResponse.ok) {
-          throw new Error("Unable to load issues.");
-        }
-
-        const data = (await issueResponse.json()) as {
-          issues: IssueItem[];
-        };
-        const nextUnread = notificationResponse.ok
-          ? ((await notificationResponse.json()) as { unread: number }).unread
-          : 0;
-
-        setIssues(data.issues);
-        setUnread(nextUnread);
-        IssuesCache.update(
-          sessionUser.id,
-          sessionUser.role,
-          data.issues,
-          nextUnread,
-        );
-      } catch (loadError) {
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Unable to load issues.",
-        );
-      } finally {
-        setLoading(false);
-      }
-    })();
-
-    loadPromise.current = promise;
-
-    try {
-      await promise;
-    } finally {
-      if (loadPromise.current === promise) {
-        loadPromise.current = null;
-      }
-    }
+  const clearIssues = useCallback(() => {
+    setIssues([]);
+    setUnread(0);
+    setRole("USER");
+    setShowForm(false);
+    setForm({ ...initialIssueForm });
   }, []);
 
-  useEffect(() => {
-    queueMicrotask(() => void load());
-  }, [load]);
+  const refresh = useCallback(async (signal: AbortSignal) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const sessionUser = await refreshSessionUser();
+      if (signal.aborted) return;
+      if (!sessionUser) {
+        clearIssues();
+        return;
+      }
+      setRole(sessionUser.role);
+      const [issueResponse, notificationResponse] = await Promise.all([
+        apiFetch("/api/issues", { signal }),
+        apiFetch("/api/notifications?countOnly=true", { signal }),
+      ]);
+      if (!issueResponse.ok || !notificationResponse.ok) {
+        throw new Error("Unable to load issues.");
+      }
+      const data = await issueResponse.json() as { issues: IssueItem[] };
+      const notifications = await notificationResponse.json() as { unread: number };
+      if (signal.aborted) return;
+      setIssues(data.issues);
+      setUnread(notifications.unread);
+      IssuesCache.update(sessionUser.id, sessionUser.role, data.issues, notifications.unread, "all-issues");
+    } catch (loadError) {
+      if (signal.aborted) return;
+      clearIssues();
+      setError(loadError instanceof Error ? loadError.message : "Unable to load issues.");
+    } finally {
+      if (!signal.aborted) setLoading(false);
+    }
+  }, [clearIssues]);
+
+  const load = useIssueRefresh(refresh, clearIssues);
 
   const filteredIssues = useMemo(
     () => filterIssues(issues, query, status, type),
@@ -134,8 +99,6 @@ export default function IssuesPage() {
     setForm({ ...initialIssueForm });
     setShowForm(false);
 
-    const sessionUser = await getSessionUser();
-    IssuesCache.delete(sessionUser?.id);
     await load(true);
   };
 
@@ -150,11 +113,9 @@ export default function IssuesPage() {
         <div
           className="mx-auto flex w-full max-w-350 flex-col gap-5 p-4 md:p-6">
           <IssueToolbar
-            role={role}
             unread={unread}
             loading={loading}
             onRefresh={() => void load(true)}
-            onManageAccess={() => router.push("/developer/users")}
             onCreateIssue={() => setShowForm((value) => !value)}
           />
 

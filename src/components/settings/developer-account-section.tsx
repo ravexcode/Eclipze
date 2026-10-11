@@ -6,7 +6,6 @@ import { IconCode } from "@tabler/icons-react";
 import Button from "@/components/ui/button";
 import type { SessionUser } from "@/types/user";
 import { apiFetch } from "@/utils/api-fetch";
-import CacheDB, { IssuesCache } from "@/utils/cache";
 import { setSessionUser } from "@/utils/session";
 import SettingsFeedback from "./settings-feedback";
 
@@ -34,8 +33,6 @@ export default function DeveloperAccountSection(props: {
       }
 
       setSessionUser(data.user);
-      CacheDB.delete(data.user.id);
-      IssuesCache.delete(data.user.id);
       props.onChanged(data.user);
       window.dispatchEvent(new Event("user-updated"));
     } catch {
@@ -52,7 +49,7 @@ export default function DeveloperAccountSection(props: {
         <div>
           <h2 className="text-lg font-medium">Developer access</h2>
           <p className="mt-1 text-base text-foreground-off">
-            Developer accounts can manage every issue in Eclipze.
+            Developer accounts have access to developer tools.
           </p>
         </div>
       </div>

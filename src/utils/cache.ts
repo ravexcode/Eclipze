@@ -1,215 +1,146 @@
-import { AES, enc } from "crypto-ts";
+import type { SessionUser, WorkspaceSnapshot } from "@/types/user";
+import {
+  ISSUES_CACHE_DURATION,
+  ISSUES_CACHE_INVALIDATED_EVENT,
+  LEGACY_PRIVATE_CACHE_PREFIXES,
+} from "@/constants/cache";
 
-import type { WorkspaceSnapshot } from "@/types/user";
+type UserRole = SessionUser["role"];
 
-const CRYPTO_SK = process.env.NEXT_PUBLIC_CRYPTO_SECRET_KEY!;
+type IssuesCacheEntry<T> = {
+  issues: T[];
+  unread: number;
+  expiresAt: number;
+};
 
-const CACHE_KEY_PREFIX = "eclipze-workspace";
-const CACHE_VERSION = 3;
-const CACHE_DURATION = 3 * 60 * 60 * 1000;
-const ISSUES_CACHE_KEY_PREFIX = "eclipze-issues";
-const ISSUES_CACHE_VERSION = 1;
-const ISSUES_CACHE_DURATION = 3 * 60 * 1000;
+const issueEntries = new Map<string, IssuesCacheEntry<unknown>>();
 
-interface CacheData {
-  version: number;
-  userId: string;
-  workspace: WorkspaceSnapshot;
-  expiration: number;
-}
-
-function cacheKey(userId: string) {
-  return `${CACHE_KEY_PREFIX}:${userId}:v${CACHE_VERSION}`;
-}
-
-function isWorkspaceSnapshot(value: unknown): value is WorkspaceSnapshot {
-  if (!value || typeof value !== "object") return false;
-  const workspace = value as Partial<WorkspaceSnapshot>;
-  return Boolean(
-    workspace.user &&
-    typeof workspace.user.id === "string" &&
-    Array.isArray(workspace.projects) &&
-    Array.isArray(workspace.issues) &&
-    Array.isArray(workspace.agents) &&
-    Array.isArray(workspace.agentSessions) &&
-    workspace.metrics &&
-    typeof workspace.metrics === "object"
-  );
-}
-
-export default class CacheDB {
-  static update(workspace: WorkspaceSnapshot) {
-    if (!CRYPTO_SK) {
-      throw new Error("CRYPTO_SECRET_KEY is not configured");
-    }
-
-    if (typeof window === "undefined") {
-      return {
-        message: "error",
-      };
-    }
-
-    const content: CacheData = {
-      version: CACHE_VERSION,
-      userId: workspace.user.id,
-      workspace,
-      expiration: Date.now() + CACHE_DURATION,
-    };
-
-    const encrypted = AES.encrypt(
-      JSON.stringify(content),
-      CRYPTO_SK
-    ).toString();
-
-    window.localStorage.setItem(cacheKey(workspace.user.id), encrypted);
-
-    return {
-      message: "ok",
-    };
+function removeExpiredIssueEntries(now = Date.now()) {
+  for (const [key, entry] of issueEntries) {
+    if (now >= entry.expiresAt) issueEntries.delete(key);
   }
+}
 
-  static delete(userId?: string) {
-    if (typeof window === "undefined") {
-      return {
-        message: "error",
-      };
-    }
+function issuesCacheKey(userId: string, role: UserRole, scopeKey: string) {
+  return JSON.stringify([userId, role, scopeKey]);
+}
 
-    if (userId) {
-      window.localStorage.removeItem(cacheKey(userId));
-    } else {
-      const keysToDelete: string[] = [];
-      for (let index = 0; index < window.localStorage.length; index += 1) {
-        const key = window.localStorage.key(index);
-        if (key?.startsWith(`${CACHE_KEY_PREFIX}:`)) {
-          keysToDelete.push(key);
-        }
+function dispatchIssuesCacheInvalidated() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(ISSUES_CACHE_INVALIDATED_EVENT));
+  }
+}
+
+function removeLegacyPrivateCacheRecords(userId?: string) {
+  if (typeof window === "undefined") return;
+
+  try {
+    const storage = window.localStorage;
+    const keys: string[] = [];
+
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (!key) continue;
+
+      const matchesPrefix = LEGACY_PRIVATE_CACHE_PREFIXES.some(prefix =>
+        key.startsWith(prefix),
+      );
+      if (!matchesPrefix) continue;
+      if (userId && !key.startsWith(`eclipze-workspace:${userId}:`) && !key.startsWith(`eclipze-issues:${userId}:`)) {
+        continue;
       }
-      keysToDelete.forEach(key => window.localStorage.removeItem(key));
+
+      keys.push(key);
     }
 
-    return {
-      message: "ok",
-    };
+    keys.forEach(key => storage.removeItem(key));
+  } catch {
+    // Storage can be unavailable in restricted browser contexts.
+  }
+}
+
+/** Removes private cache records written by older versions of the client. */
+export function purgeLegacyPrivateCacheRecords() {
+  removeLegacyPrivateCacheRecords();
+}
+
+/** Clears all ephemeral private data and any legacy persisted copies. */
+export function clearPrivateCaches() {
+  issueEntries.clear();
+  removeLegacyPrivateCacheRecords();
+  dispatchIssuesCacheInvalidated();
+}
+
+/**
+ * Workspace snapshots are intentionally no longer cached. Older callers receive
+ * the same result shape while always falling through to the authenticated API.
+ */
+export default class CacheDB {
+  static update(_workspace: WorkspaceSnapshot) {
+    return { message: "error" };
   }
 
-  static get(userId: string): {
+  static get(_userId: string): {
     message: string;
     workspace?: WorkspaceSnapshot;
   } {
-    if (!CRYPTO_SK || typeof window === "undefined") {
-      return {
-        message: "error",
-      };
-    }
-
-    const encrypted = window.localStorage.getItem(cacheKey(userId));
-
-    if (!encrypted) {
-      return {
-        message: "error",
-      };
-    }
-
-    try {
-      const decryptedRaw = AES.decrypt(
-        encrypted,
-        CRYPTO_SK
-      );
-
-      const decrypted = decryptedRaw.toString(enc.Utf8);
-      const cache = JSON.parse(decrypted) as Partial<CacheData>;
-
-      if (
-        cache.version !== CACHE_VERSION ||
-        cache.userId !== userId ||
-        typeof cache.expiration !== "number" ||
-        Date.now() >= cache.expiration ||
-        !isWorkspaceSnapshot(cache.workspace) ||
-        cache.workspace.user.id !== userId
-      ) {
-        this.delete(userId);
-        return { message: "error" };
-      }
-
-      return { message: "ok", workspace: cache.workspace };
-    } catch {
-      this.delete(userId);
-
-      return {
-        message: "error",
-      };
-    }
-  }
-}
-
-type IssuesCacheData<T> = {
-  version: number;
-  userId: string;
-  role: "USER" | "DEVELOPER";
-  issues: T[];
-  unread: number;
-  expiration: number;
-};
-
-function issuesCacheKey(userId: string) {
-  return `${ISSUES_CACHE_KEY_PREFIX}:${userId}:v${ISSUES_CACHE_VERSION}`;
-}
-
-export class IssuesCache {
-  static update<T>(userId: string, role: "USER" | "DEVELOPER", issues: T[], unread: number) {
-    if (!CRYPTO_SK || typeof window === "undefined") return;
-
-    const content: IssuesCacheData<T> = {
-      version: ISSUES_CACHE_VERSION,
-      userId,
-      role,
-      issues,
-      unread,
-      expiration: Date.now() + ISSUES_CACHE_DURATION,
-    };
-
-    window.localStorage.setItem(issuesCacheKey(userId), AES.encrypt(JSON.stringify(content), CRYPTO_SK).toString());
-  }
-
-  static get<T>(userId: string, role: "USER" | "DEVELOPER") {
-    if (!CRYPTO_SK || typeof window === "undefined") return null;
-    const encrypted = window.localStorage.getItem(issuesCacheKey(userId));
-    if (!encrypted) return null;
-
-    try {
-      const raw = AES.decrypt(encrypted, CRYPTO_SK).toString(enc.Utf8);
-      const cache = JSON.parse(raw) as Partial<IssuesCacheData<T>>;
-      if (
-        cache.version !== ISSUES_CACHE_VERSION ||
-        cache.userId !== userId ||
-        cache.role !== role ||
-        !Array.isArray(cache.issues) ||
-        typeof cache.unread !== "number" ||
-        typeof cache.expiration !== "number" ||
-        Date.now() >= cache.expiration
-      ) {
-        this.delete(userId);
-        return null;
-      }
-      return { issues: cache.issues, unread: cache.unread };
-    } catch {
-      this.delete(userId);
-      return null;
-    }
+    return { message: "error" };
   }
 
   static delete(userId?: string) {
-    if (typeof window === "undefined") return;
-    if (userId) {
-      window.localStorage.removeItem(issuesCacheKey(userId));
-      return;
-    }
-    const keysToDelete: string[] = [];
-    for (let index = 0; index < window.localStorage.length; index += 1) {
-      const key = window.localStorage.key(index);
-      if (key?.startsWith(`${ISSUES_CACHE_KEY_PREFIX}:`)) keysToDelete.push(key);
-    }
-    keysToDelete.forEach(key => window.localStorage.removeItem(key));
+    issueEntries.clear();
+    removeLegacyPrivateCacheRecords(userId);
+    dispatchIssuesCacheInvalidated();
+    return { message: "ok" };
   }
 }
+
+export class IssuesCache {
+  static update<T>(
+    userId: string,
+    role: UserRole,
+    issues: T[],
+    unread: number,
+    scopeKey = "default",
+  ) {
+    if (!userId || typeof unread !== "number" || !Number.isFinite(unread)) return;
+
+    removeExpiredIssueEntries();
+    issueEntries.set(issuesCacheKey(userId, role, scopeKey), {
+      issues,
+      unread,
+      expiresAt: Date.now() + ISSUES_CACHE_DURATION,
+    });
+  }
+
+  static get<T>(userId: string, role: UserRole, scopeKey = "default") {
+    if (!userId || typeof window === "undefined") return null;
+
+    removeExpiredIssueEntries();
+    const key = issuesCacheKey(userId, role, scopeKey);
+    const entry = issueEntries.get(key) as IssuesCacheEntry<T> | undefined;
+    if (!entry) return null;
+
+    return { issues: entry.issues, unread: entry.unread };
+  }
+
+  static delete(userId?: string, role?: UserRole, scopeKey?: string) {
+    if (!userId) {
+      issueEntries.clear();
+      removeLegacyPrivateCacheRecords();
+    } else if (role && scopeKey) {
+      issueEntries.delete(issuesCacheKey(userId, role, scopeKey));
+      removeLegacyPrivateCacheRecords(userId);
+    } else {
+      for (const key of issueEntries.keys()) {
+        const [entryUserId] = JSON.parse(key) as [string, UserRole, string];
+        if (entryUserId === userId) issueEntries.delete(key);
+      }
+      removeLegacyPrivateCacheRecords(userId);
+    }
+
+    dispatchIssuesCacheInvalidated();
+  }
+}
+
+purgeLegacyPrivateCacheRecords();

@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import DashLayout from "@/components/layouts/dash";
 import Heading from "@/components/ui/heading";
 import { apiFetch } from "@/utils/api-fetch";
-import { IssuesCache } from "@/utils/cache";
-import { getSessionUser } from "@/utils/session";
+import { refreshSessionUser } from "@/utils/session";
+import { useIssueRefresh } from "@/utils/use-issue-refresh";
 import type {
   IssuePriority,
   IssueStatus,
@@ -68,59 +68,51 @@ export default function IssueDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async () => {
+  const clearIssue = useCallback(() => {
+    setRequest(null);
+    setRole("USER");
+    setBody("");
+  }, []);
+
+  const refresh = useCallback(async (signal: AbortSignal) => {
     setLoading(true);
-    const [response, notificationResponse] = await Promise.all([
-      apiFetch(`/api/issues/${params.id}`),
-      apiFetch("/api/notifications"),
-    ]);
-    const data = (await response.json().catch(() => null)) as {
-      issue?: Detail;
-      message?: string;
-    } | null;
-
-    if (!response.ok || !data?.issue) {
-      setError(data?.message ?? "Unable to load issue.");
-    } else {
+    try {
+      const user = await refreshSessionUser();
+      if (signal.aborted) return;
+      if (!user) {
+        clearIssue();
+        return;
+      }
+      const response = await apiFetch(`/api/issues/${params.id}`, { signal });
+      const data = await response.json().catch(() => null) as {
+        issue?: Detail;
+        message?: string;
+      } | null;
+      if (signal.aborted) return;
+      if (!response.ok || !data?.issue) {
+        clearIssue();
+        setError(data?.message ?? "Unable to load issue.");
+        return;
+      }
       setError(null);
+      setRole(user.role);
       setRequest(data.issue);
+      await apiFetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ issueId: params.id }),
+        signal,
+      }, { invalidatePrivateCache: false });
+    } catch (loadError) {
+      if (signal.aborted) return;
+      clearIssue();
+      setError(loadError instanceof Error ? loadError.message : "Unable to load issue.");
+    } finally {
+      if (!signal.aborted) setLoading(false);
     }
+  }, [clearIssue, params.id]);
 
-    if (notificationResponse.ok) {
-      const notifications = (await notificationResponse.json()) as {
-        notifications?: Array<{
-          id: string;
-          issueId: string | null;
-          readAt: string | null;
-        }>;
-      };
-      const unreadForIssue = (notifications.notifications ?? []).filter(
-        (notification) =>
-          notification.issueId === params.id && !notification.readAt,
-      );
-
-      await Promise.all(
-        unreadForIssue.map((notification) =>
-          apiFetch("/api/notifications", {
-            method: "PATCH",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ id: notification.id }),
-          }),
-        ),
-      );
-    }
-
-    setLoading(false);
-  }, [params.id]);
-
-  useEffect(() => {
-    queueMicrotask(() => {
-      void getSessionUser().then((user) => {
-        if (user) setRole(user.role);
-      });
-      void load();
-    });
-  }, [load]);
+  const load = useIssueRefresh(refresh, clearIssue);
 
   const update = async (field: "status" | "priority", value: string) => {
     const response = await apiFetch(`/api/issues/${params.id}`, {
@@ -137,8 +129,6 @@ export default function IssueDetailPage() {
       return;
     }
 
-    const sessionUser = await getSessionUser();
-    IssuesCache.delete(sessionUser?.id);
     await load();
   };
 
@@ -161,8 +151,6 @@ export default function IssueDetailPage() {
     }
 
     setBody("");
-    const sessionUser = await getSessionUser();
-    IssuesCache.delete(sessionUser?.id);
     await load();
   };
 
