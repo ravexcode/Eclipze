@@ -23,13 +23,13 @@ export default function MailComposeForm({
     <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
       <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-5 sm:p-8">
         <div>
-          <h1 className="text-[22px] font-medium">New message</h1>
-          <p className="mt-1 text-[14px] text-foreground-off">Send a message to another verified Eclipze user.</p>
+          <h1 className="text-lg font-medium">New message</h1>
+          <p className="mt-1 text-base text-foreground-off">Send a message to another verified Eclipze user.</p>
         </div>
 
-        {error ? <p role="alert" className="text-[14px] text-alert-red">{error}</p> : null}
+        {error ? <p role="alert" className="text-base text-alert-red">{error}</p> : null}
 
-        <label className="flex flex-col gap-2 text-[14px] text-foreground-off">
+        <label className="flex flex-col gap-2 text-base text-foreground-off">
           To
           <input
             value={values.to}
@@ -37,40 +37,40 @@ export default function MailComposeForm({
             maxLength={255}
             autoComplete="off"
             placeholder="Username or email address"
-            className="h-11 rounded-xs border border-background-focus bg-background-card px-3 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+            className="h-11 rounded-sm border border-background-focus bg-background-card px-3 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
             required
           />
         </label>
 
-        <label className="flex flex-col gap-2 text-[14px] text-foreground-off">
+        <label className="flex flex-col gap-2 text-base text-foreground-off">
           Subject
           <input
             value={values.subject}
             onChange={event => onChange({ subject: event.target.value })}
             maxLength={200}
-            className="h-11 rounded-xs border border-background-focus bg-background-card px-3 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+            className="h-11 rounded-sm border border-background-focus bg-background-card px-3 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
             required
           />
         </label>
 
-        <label className="flex min-h-48 flex-1 flex-col gap-2 text-[14px] text-foreground-off">
+        <label className="flex min-h-48 flex-1 flex-col gap-2 text-base text-foreground-off">
           Message
           <textarea
             value={values.body}
             onChange={event => onChange({ body: event.target.value })}
             maxLength={20000}
-            className="min-h-48 flex-1 resize-y rounded-xs border border-background-focus bg-background-card p-3 text-[15px] leading-6 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+            className="min-h-48 flex-1 resize-y rounded-sm border border-background-focus bg-background-card p-3 text-base leading-6 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
             required
           />
-          <span className="text-right text-[12px]">{values.body.length}/20,000</span>
+          <span className="text-right text-base">{values.body.length}/20,000</span>
         </label>
       </div>
 
       <div className="flex shrink-0 items-center justify-end gap-2.5 border-t border-background-focus p-4 sm:px-8">
-        <button type="button" onClick={onCancel} className="rounded-xs px-4 py-2 text-[14px] text-foreground-off hover:bg-background-focus hover:text-foreground">
+        <button type="button" onClick={onCancel} className="rounded-sm px-4 py-2 text-base text-foreground-off hover:bg-background-focus hover:text-foreground">
           Cancel
         </button>
-        <button type="submit" disabled={busy} className="rounded-xs bg-accent px-4 py-2 text-[14px] font-medium text-white hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-50">
+        <button type="submit" disabled={busy} className="rounded-sm bg-accent px-4 py-2 text-base font-medium text-white hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-50">
           {busy ? "Sending…" : "Send message"}
         </button>
       </div>

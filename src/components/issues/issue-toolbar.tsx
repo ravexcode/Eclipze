@@ -21,17 +21,17 @@ export default function IssueToolbar({
   return (
     <section className="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <p className="text-xl font-medium">
+        <p className="text-lg font-medium">
           {role === "DEVELOPER" ? "All user issues" : "Your issues"}
         </p>
-        <p className="mt-1 text-sm text-foreground-off">
+        <p className="mt-1 text-base text-foreground-off">
           Track bugs, ideas, and support conversations in one place.
         </p>
       </div>
 
       <div className="flex items-center gap-2">
         <span
-          className="flex items-center gap-1 rounded-sm bg-background-card px-3 py-2 text-xs text-foreground-off"
+          className="flex items-center gap-1 rounded-sm bg-background-card px-3 py-2 text-base text-foreground-off"
           title="Unread notifications">
           <IconBell size={15} /> {unread}
         </span>
@@ -50,7 +50,7 @@ export default function IssueToolbar({
           <button
             type="button"
             onClick={onManageAccess}
-            className="rounded-sm bg-background-card px-3 py-2 text-xs text-foreground-off hover:bg-background-focus focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+            className="rounded-sm bg-background-card px-3 py-2 text-base text-foreground-off hover:bg-background-focus focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
             Manage access
           </button>
         )}
@@ -59,7 +59,7 @@ export default function IssueToolbar({
           <button
             type="button"
             onClick={onCreateIssue}
-            className="flex items-center gap-2 rounded-sm bg-accent px-3 py-2 text-sm transition-colors hover:bg-accent-strong focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+            className="flex items-center gap-2 rounded-sm bg-accent px-3 py-2 text-base transition-colors hover:bg-accent-strong focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
             <IconPlus size={16} /> New issue
           </button>
         )}
