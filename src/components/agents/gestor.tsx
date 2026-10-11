@@ -211,24 +211,24 @@ export default function AgentsGestor() {
       {error ? (
         <p
           role="alert"
-          className="rounded-xs border border-alert-red bg-surface p-4 text-sm text-alert-red">
+          className="rounded-sm border border-alert-red bg-surface p-4 text-base text-alert-red">
           {error}
         </p>
       ) : null}
 
       <section className="flex flex-col gap-4">
         <div>
-          <p className="text-base font-semibold tracking-[-0.02em]">Agents</p>
-          <p className="mt-1 text-xs text-foreground-off">
+          <p className="text-lg font-medium tracking-[-0.02em]">Agents</p>
+          <p className="mt-1 text-base text-foreground-off">
             Create agents, pick a default model, and attach skills.
           </p>
         </div>
 
         <form
           onSubmit={saveAgent}
-          className="flex flex-col gap-4 rounded-xs bg-surface p-5">
+          className="flex flex-col gap-4 rounded-sm bg-surface p-5">
           <div className="grid gap-4 md:grid-cols-2">
-            <label className="flex flex-col gap-2 text-sm">
+            <label className="flex flex-col gap-2 text-base">
               Name
               <input
                 required
@@ -239,11 +239,11 @@ export default function AgentsGestor() {
                     name: event.target.value,
                   }))
                 }
-                className="rounded-xs bg-surface-raised px-3 py-2 text-sm outline-hidden"
+                className="rounded-sm bg-surface-raised px-3 py-2 text-base outline-hidden"
                 placeholder="Reviewer"
               />
             </label>
-            <label className="flex flex-col gap-2 text-sm">
+            <label className="flex flex-col gap-2 text-base">
               Default model
               <input
                 required
@@ -254,12 +254,12 @@ export default function AgentsGestor() {
                     defaultModel: event.target.value,
                   }))
                 }
-                className="rounded-xs bg-surface-raised px-3 py-2 text-sm outline-hidden"
+                className="rounded-sm bg-surface-raised px-3 py-2 text-base outline-hidden"
                 placeholder="openai/gpt-5-mini"
               />
             </label>
           </div>
-          <label className="flex flex-col gap-2 text-sm">
+          <label className="flex flex-col gap-2 text-base">
             Status
             <select
               value={form.status}
@@ -269,7 +269,7 @@ export default function AgentsGestor() {
                   status: event.target.value as AgentForm["status"],
                 }))
               }
-              className="max-w-xs rounded-xs bg-surface-raised px-3 py-2 text-sm outline-hidden">
+              className="max-w-xs rounded-sm bg-surface-raised px-3 py-2 text-base outline-hidden">
               <option value="ACTIVE">Active</option>
               <option value="INACTIVE">Inactive</option>
             </select>
@@ -297,9 +297,9 @@ export default function AgentsGestor() {
         </form>
 
         {loading ? (
-          <p className="text-sm text-foreground-off">Loading agents…</p>
+          <p className="text-base text-foreground-off">Loading agents…</p>
         ) : agents.length === 0 ? (
-          <p className="text-sm text-foreground-off">
+          <p className="text-base text-foreground-off">
             No agents yet. Create one to start a session.
           </p>
         ) : (
@@ -307,11 +307,11 @@ export default function AgentsGestor() {
             {agents.map((agent) => (
               <article
                 key={agent.id}
-                className="flex flex-col gap-4 rounded-xs bg-surface p-5">
+                className="flex flex-col gap-4 rounded-sm bg-surface p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold">{agent.name}</p>
-                    <p className="mt-1 text-xs text-foreground-off">
+                    <p className="text-lg font-medium">{agent.name}</p>
+                    <p className="mt-1 text-base text-foreground-off">
                       {agent.defaultModel} · {agent.status.toLowerCase()}
                     </p>
                   </div>
@@ -348,7 +348,7 @@ export default function AgentsGestor() {
                         key={skill.slug}
                         type="button"
                         onClick={() => void toggleSkill(agent.id, skill.slug)}
-                        className={`rounded-xs px-3 py-1.5 text-xs ${selected ? "bg-surface-raised text-foreground" : "text-foreground-off hover:bg-surface-raised"}`}>
+                        className={`rounded-sm px-3 py-1.5 text-base ${selected ? "bg-surface-raised text-foreground" : "text-foreground-off hover:bg-surface-raised"}`}>
                         {skill.name}
                       </button>
                     );
@@ -362,10 +362,10 @@ export default function AgentsGestor() {
 
       <section className="flex flex-col gap-4">
         <div>
-          <p className="text-base font-semibold tracking-[-0.02em]">
+          <p className="text-lg font-medium tracking-[-0.02em]">
             Repositories
           </p>
-          <p className="mt-1 text-xs text-foreground-off">
+          <p className="mt-1 text-base text-foreground-off">
             Connect a public HTTPS repository so agent runs can clone and inspect
             it.
           </p>
@@ -373,33 +373,33 @@ export default function AgentsGestor() {
 
         <form
           onSubmit={connectRepository}
-          className="grid gap-4 rounded-xs bg-surface p-5 md:grid-cols-[1fr_140px_180px_auto]">
-          <label className="flex flex-col gap-2 text-sm">
+          className="grid gap-4 rounded-sm bg-surface p-5 md:grid-cols-[1fr_140px_180px_auto]">
+          <label className="flex flex-col gap-2 text-base">
             Repository URL
             <input
               required
               type="url"
               value={repoUrl}
               onChange={(event) => setRepoUrl(event.target.value)}
-              className="rounded-xs bg-surface-raised px-3 py-2 text-sm outline-hidden"
+              className="rounded-sm bg-surface-raised px-3 py-2 text-base outline-hidden"
               placeholder="https://github.com/org/repo"
             />
           </label>
-          <label className="flex flex-col gap-2 text-sm">
+          <label className="flex flex-col gap-2 text-base">
             Branch
             <input
               required
               value={repoBranch}
               onChange={(event) => setRepoBranch(event.target.value)}
-              className="rounded-xs bg-surface-raised px-3 py-2 text-sm outline-hidden"
+              className="rounded-sm bg-surface-raised px-3 py-2 text-base outline-hidden"
             />
           </label>
-          <label className="flex flex-col gap-2 text-sm">
+          <label className="flex flex-col gap-2 text-base">
             Project
             <select
               value={repoProjectId}
               onChange={(event) => setRepoProjectId(event.target.value)}
-              className="rounded-xs bg-surface-raised px-3 py-2 text-sm outline-hidden">
+              className="rounded-sm bg-surface-raised px-3 py-2 text-base outline-hidden">
               <option value="">None</option>
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>
@@ -414,7 +414,7 @@ export default function AgentsGestor() {
         </form>
 
         {repositories.length === 0 ? (
-          <p className="text-sm text-foreground-off">
+          <p className="text-base text-foreground-off">
             No repositories connected.
           </p>
         ) : (
@@ -422,10 +422,10 @@ export default function AgentsGestor() {
             {repositories.map((repository) => (
               <article
                 key={repository.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xs bg-surface px-4 py-3">
+                className="flex flex-wrap items-center justify-between gap-3 rounded-sm bg-surface px-4 py-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm">{repository.repositoryUrl}</p>
-                  <p className="mt-1 text-xs text-foreground-off">
+                  <p className="truncate text-base">{repository.repositoryUrl}</p>
+                  <p className="mt-1 text-base text-foreground-off">
                     {repository.provider} · {repository.defaultBranch} ·{" "}
                     {repository.status.toLowerCase()}
                   </p>

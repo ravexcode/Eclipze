@@ -178,8 +178,8 @@ export default function SkillLibrary(props: Props) {
     <section className="flex flex-col gap-4 rounded-sm border border-background-focus bg-background-card p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold">Skills</h2>
-          <p className="mt-1 text-sm text-foreground-off">
+          <h2 className="text-lg font-medium">Skills</h2>
+          <p className="mt-1 text-base text-foreground-off">
             Add a reusable skill to this task or write one of your own.
           </p>
         </div>
@@ -190,13 +190,13 @@ export default function SkillLibrary(props: Props) {
         </div>
       </div>
 
-      {error ? <p role="alert" className="text-sm text-priority-high">{error}</p> : null}
-      {message ? <p role="status" className="text-sm text-green-400">{message}</p> : null}
+      {error ? <p role="alert" className="text-base text-priority-high">{error}</p> : null}
+      {message ? <p role="status" className="text-base text-green-400">{message}</p> : null}
 
       {mode === "installed" ? (
         <div className="flex flex-col gap-2">
           {props.skills.length === 0 ? (
-            <p className="rounded-sm bg-background-focus p-4 text-sm text-foreground-off">
+            <p className="rounded-sm bg-background-focus p-4 text-base text-foreground-off">
               Your library is empty. Search skills.sh or create a skill to get started.
             </p>
           ) : props.skills.map(skill => {
@@ -209,12 +209,12 @@ export default function SkillLibrary(props: Props) {
                   aria-pressed={selected}
                   onClick={() => props.onToggle(skill.id)}
                   className="flex min-w-0 flex-1 items-start gap-3 text-left">
-                  <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-xs border ${selected ? "border-accent bg-accent text-white" : "border-foreground-off/50 text-transparent"}`}>
+                  <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border ${selected ? "border-accent bg-accent text-white" : "border-foreground-off/50 text-transparent"}`}>
                     <IconCheck size={13} />
                   </span>
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium">{skill.name}</span>
-                    <span className="mt-0.5 block truncate text-xs text-foreground-off">
+                    <span className="block truncate text-base font-medium">{skill.name}</span>
+                    <span className="mt-0.5 block truncate text-base text-foreground-off">
                       {skill.description || skill.source}
                     </span>
                   </span>
@@ -223,7 +223,7 @@ export default function SkillLibrary(props: Props) {
                   type="button"
                   aria-label={`Remove ${skill.name}`}
                   onClick={() => void removeSkill(skill)}
-                  className="shrink-0 rounded-xs p-2 text-foreground-off hover:bg-background-card hover:text-priority-high">
+                  className="shrink-0 rounded-sm p-2 text-foreground-off hover:bg-background-card hover:text-priority-high">
                   <IconTrash size={15} />
                 </button>
               </article>
@@ -242,7 +242,7 @@ export default function SkillLibrary(props: Props) {
                 onChange={event => setQuery(event.target.value)}
                 placeholder="Search skills.sh"
                 minLength={2}
-                className="min-w-0 flex-1 bg-transparent py-2 text-sm outline-hidden" />
+                className="min-w-0 flex-1 bg-transparent py-2 text-base outline-hidden" />
             </label>
             <Button type="submit" disabled={isSearching || query.trim().length < 2}>
               {isSearching ? "Searching…" : "Search"}
@@ -255,19 +255,19 @@ export default function SkillLibrary(props: Props) {
                 <article key={skill.id} className="flex flex-col justify-between gap-3 rounded-sm bg-background-focus p-3">
                   <div className="min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="truncate text-sm font-medium">{skill.name}</h3>
-                      <span className="shrink-0 text-xs text-foreground-off">{skill.installs.toLocaleString()} installs</span>
+                      <h3 className="truncate text-lg font-medium">{skill.name}</h3>
+                      <span className="shrink-0 text-base text-foreground-off">{skill.installs.toLocaleString()} installs</span>
                     </div>
-                    <p className="mt-1 truncate text-xs text-foreground-off">{skill.source}</p>
-                    {skill.description ? <p className="mt-2 line-clamp-2 text-xs">{skill.description}</p> : null}
-                    {skill.isDuplicate ? <p className="mt-1 text-xs text-warning">Detected duplicate</p> : null}
+                    <p className="mt-1 truncate text-base text-foreground-off">{skill.source}</p>
+                    {skill.description ? <p className="mt-2 line-clamp-2 text-base">{skill.description}</p> : null}
+                    {skill.isDuplicate ? <p className="mt-1 text-base text-warning">Detected duplicate</p> : null}
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button type="button" variant="ghost" onClick={() => void loadPreview(skill)}>
                       Preview
                     </Button>
                     {isInstalled(skill.id) ? (
-                      <span className="flex items-center gap-1 px-3 text-xs text-green-400">
+                      <span className="flex items-center gap-1 px-3 text-base text-green-400">
                         <IconCheck size={14} /> Added
                       </span>
                     ) : null}
@@ -276,21 +276,21 @@ export default function SkillLibrary(props: Props) {
               ))}
             </div>
           ) : query.length >= 2 && !isSearching ? (
-            <p className="text-sm text-foreground-off">No search results yet.</p>
+            <p className="text-base text-foreground-off">No search results yet.</p>
           ) : null}
 
           {preview && previewResult ? (
             <div className="flex flex-col gap-3 rounded-sm border border-background-focus bg-background p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h3 className="text-sm font-medium">{previewResult.name}</h3>
-                  <p className="mt-1 text-xs text-foreground-off">{preview.id}</p>
+                  <h3 className="text-lg font-medium">{previewResult.name}</h3>
+                  <p className="mt-1 text-base text-foreground-off">{preview.id}</p>
                 </div>
                 <button type="button" aria-label="Close preview" onClick={() => setPreview(null)} className="text-foreground-off hover:text-foreground">
                   <IconX size={17} />
                 </button>
               </div>
-              <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-xs bg-background-card p-3 text-xs text-foreground-off">{preview.content}</pre>
+              <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-sm bg-background-card p-3 text-base text-foreground-off">{preview.content}</pre>
               <div className="flex justify-end">
                 <Button type="button" onClick={() => void importSkill()} disabled={isSaving || isInstalled(preview.id)}>
                   <IconPlus size={15} className="mr-1.5" />
@@ -304,17 +304,17 @@ export default function SkillLibrary(props: Props) {
 
       {mode === "create" ? (
         <form onSubmit={createSkill} className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1.5 text-sm">
+          <label className="flex flex-col gap-1.5 text-base">
             Name
             <input required maxLength={100} value={name} onChange={event => setName(event.target.value)} className="rounded-sm bg-background-focus px-3 py-2" placeholder="Accessible UI review" />
           </label>
-          <label className="flex flex-col gap-1.5 text-sm">
+          <label className="flex flex-col gap-1.5 text-base">
             Description
             <input required maxLength={500} value={description} onChange={event => setDescription(event.target.value)} className="rounded-sm bg-background-focus px-3 py-2" placeholder="Checks a page for common accessibility issues." />
           </label>
-          <label className="flex flex-col gap-1.5 text-sm">
+          <label className="flex flex-col gap-1.5 text-base">
             Instructions
-            <textarea required maxLength={40_000} rows={7} value={content} onChange={event => setContent(event.target.value)} className="resize-y rounded-sm bg-background-focus px-3 py-2 text-sm outline-hidden" placeholder="Describe the steps and constraints the model should follow." />
+            <textarea required maxLength={40_000} rows={7} value={content} onChange={event => setContent(event.target.value)} className="resize-y rounded-sm bg-background-focus px-3 py-2 text-base outline-hidden" placeholder="Describe the steps and constraints the model should follow." />
           </label>
           <div className="flex justify-end">
             <Button type="submit" disabled={isSaving}>
@@ -326,12 +326,12 @@ export default function SkillLibrary(props: Props) {
 
       {mode !== "installed" && props.skills.length > 0 ? (
         <div className="border-t border-background-focus pt-3">
-          <p className="mb-2 text-xs text-foreground-off">Already in your library</p>
+          <p className="mb-2 text-base text-foreground-off">Already in your library</p>
           <div className="flex flex-wrap gap-2">
             {props.skills.map(skill => {
               const selected = props.selectedSkillIds.includes(skill.id);
               return (
-                <button key={skill.id} type="button" onClick={() => props.onToggle(skill.id)} className={`rounded-xs px-2.5 py-1.5 text-xs ${selected ? "bg-accent text-white" : "bg-background-focus text-foreground-off hover:text-foreground"}`}>
+                <button key={skill.id} type="button" onClick={() => props.onToggle(skill.id)} className={`rounded-sm px-2.5 py-1.5 text-base ${selected ? "bg-accent text-white" : "bg-background-focus text-foreground-off hover:text-foreground"}`}>
                   {skill.name}
                 </button>
               );
@@ -355,7 +355,7 @@ function ModeButton(props: {
       role="tab"
       aria-selected={props.current === props.mode}
       onClick={() => props.onClick(props.mode)}
-      className={`rounded-xs px-2.5 py-1.5 text-xs transition-colors ${props.current === props.mode ? "bg-background-card text-foreground" : "text-foreground-off hover:text-foreground"}`}>
+      className={`rounded-sm px-2.5 py-1.5 text-base transition-colors ${props.current === props.mode ? "bg-background-card text-foreground" : "text-foreground-off hover:text-foreground"}`}>
       {props.children}
     </button>
   );
