@@ -82,7 +82,7 @@ export default function PasswordSection(props: {
           className="grid gap-4 rounded-sm border border-alert-red/40 bg-background-card p-4 md:grid-cols-3"
           onSubmit={onSubmit}>
           <label
-            className="flex flex-col gap-1.5 text-sm"
+            className="flex flex-col gap-1.5 text-base"
             htmlFor="currentPassword"
           >
             Current password
@@ -97,7 +97,7 @@ export default function PasswordSection(props: {
             />
           </label>
           <label
-            className="flex flex-col gap-1.5 text-sm"
+            className="flex flex-col gap-1.5 text-base"
             htmlFor="newPassword"
           >
             New password
@@ -113,7 +113,7 @@ export default function PasswordSection(props: {
             />
           </label>
           <label
-            className="flex flex-col gap-1.5 text-sm"
+            className="flex flex-col gap-1.5 text-base"
             htmlFor="passwordConfirm"
           >
             Confirm password

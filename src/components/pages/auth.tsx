@@ -157,7 +157,7 @@ export default function AuthPage(
     <div
       className="relative flex min-h-dvh w-full items-center justify-center px-5 py-16 sm:px-8">
       <Link
-        className="absolute left-5 top-5 flex items-center justify-center gap-1 rounded-xs px-2.5 py-1.5 text-[15px] text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent sm:left-8 sm:top-8"
+        className="absolute left-5 top-5 flex items-center justify-center gap-1 rounded-sm px-2.5 py-1.5 text-sm text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent sm:left-8 sm:top-8"
         href="/">
         <IconArrowLeft
           size={19} />
@@ -171,7 +171,7 @@ export default function AuthPage(
         onError={onError}>
 
         <div className="mb-3 w-full text-center">
-          <h1 className="font-base text-3xl font-semibold tracking-[-0.04em]">{greeting}</h1>
+          <h1 className="font-base text-lg font-medium tracking-[-0.04em]">{greeting}</h1>
         </div>
 
         {
@@ -287,7 +287,7 @@ export default function AuthPage(
             </>
           ) : (
             <>
-              <p className="mb-2 text-center text-[15px] leading-6 text-foreground-off">
+              <p className="mb-2 text-center text-base leading-6 text-foreground-off">
                 {step === "verify_email"
                   ? "Enter the 6-digit code we sent to verify your email address."
                   : "Enter the 6-digit code we sent to finish signing you in."}
@@ -314,7 +314,7 @@ export default function AuthPage(
 
         {
           error &&
-          <p className="w-full rounded-xs border border-alert-red/40 bg-alert-red/10 px-3 py-2.5 text-[15px] leading-6 text-red-200">
+          <p className="w-full rounded-sm border border-alert-red/40 bg-alert-red/10 px-3 py-2.5 text-base leading-6 text-red-200">
             {error}
             {errorAction && <Link className="ml-2 underline" href={errorAction.href}>{errorAction.label}</Link>}
           </p>
@@ -324,13 +324,13 @@ export default function AuthPage(
           type="submit"
           variant="main"
           disabled={isSubmitting}
-          className="mt-1 h-10 min-h-0 w-full cursor-pointer rounded-lg text-[15px]">
+          className="mt-1 h-10 min-h-0 w-full cursor-pointer rounded-sm text-base">
           {isSubmitting ? "Please wait..." : step === "credentials" ? "Continue" : "Verify code"}
         </Button>
 
         {
           step !== "credentials" &&
-          <div className="flex w-full items-center justify-between gap-3 text-[15px] text-foreground-off">
+          <div className="flex w-full items-center justify-between gap-3 text-sm text-foreground-off">
             <button
               type="button"
               onClick={() => {
@@ -354,13 +354,13 @@ export default function AuthPage(
 
         {
           step === "credentials" && type === "in" &&
-          <Link href="/auth/forgot-password" className="text-[18px] text-foreground-off underline hover:text-accent duration-300">Forgot your password?</Link>
+          <Link href="/auth/forgot-password" className="text-sm text-foreground-off underline hover:text-accent duration-300">Forgot your password?</Link>
         }
 
         {
           step === "credentials" && type === "in" &&
           <p
-            className="mb-2 w-full text-center text-[15px] leading-6 text-foreground-off">
+            className="mb-2 w-full text-center text-sm leading-5 text-foreground-off">
             By signin in you accept our <Link
               href="/legal/tos"
               className="hover:text-accent duration-300 underline">
@@ -376,7 +376,7 @@ export default function AuthPage(
         {
           step === "credentials" && type === "up" &&
           <label
-            className="mb-2 inline-flex w-full cursor-pointer items-center justify-center gap-2.5 text-center text-[15px] text-foreground-off">
+            className="mb-2 inline-flex w-full cursor-pointer items-center justify-center gap-2.5 text-center text-sm leading-5 text-foreground-off">
             <input
               type="checkbox"
               checked={acceptedTerms}
@@ -400,7 +400,7 @@ export default function AuthPage(
         {
           step === "credentials" &&
           <p
-            className="w-full text-center text-[15px] text-foreground-off">
+            className="w-full text-center text-sm text-foreground-off">
             {type === "in" ? "Don't have an account?" : "Already have an account?"} <Link
               href={type === "in" ? "/auth/signup" : "/auth/signin"}
               className="hover:text-accent duration-300 underline">

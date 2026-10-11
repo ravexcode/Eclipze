@@ -50,8 +50,8 @@ export default function DeveloperAccountSection(props: {
       <div className="flex items-start gap-3">
         <IconCode className="mt-0.5 shrink-0 text-foreground-off" size={18} />
         <div>
-          <h2 className="text-base font-semibold">Developer access</h2>
-          <p className="mt-1 text-sm text-foreground-off">
+          <h2 className="text-lg font-medium">Developer access</h2>
+          <p className="mt-1 text-base text-foreground-off">
             Developer accounts can manage every issue in Eclipze.
           </p>
         </div>
