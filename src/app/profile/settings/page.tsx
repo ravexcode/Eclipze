@@ -54,7 +54,7 @@ export default function SettingsPage() {
               <AiCreditsSection />
               <ProvidersSection />
               <section className="flex flex-col gap-2.5">
-                <h2 className="text-sm font-medium text-alert-red">Danger zone</h2>
+                <h2 className="text-lg font-medium text-alert-red">Danger zone</h2>
                 <div className="flex flex-col gap-2">
                   <DangerZone
                     user={user}

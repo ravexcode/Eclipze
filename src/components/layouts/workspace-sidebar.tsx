@@ -126,16 +126,16 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
       <div className="flex h-full flex-col gap-4">
         <div className="flex items-start justify-between px-2">
           <div>
-            <h2 className="text-xs font-medium text-foreground">Agent workspace</h2>
-            <p className="mt-1 text-xs text-foreground-off">Choose a project and repository before you delegate work.</p>
+            <h2 className="text-lg font-medium text-foreground">Agent workspace</h2>
+            <p className="mt-1 text-base text-foreground-off">Choose a project and repository before you delegate work.</p>
           </div>
-          <button type="button" onClick={onCollapse} aria-label="Hide right sidebar" className="rounded-xs p-1.5 text-foreground-off hover:bg-surface-raised hover:text-foreground">
+          <button type="button" onClick={onCollapse} aria-label="Hide right sidebar" className="rounded-sm p-1.5 text-foreground-off hover:bg-surface-raised hover:text-foreground">
             <IconLayoutSidebarRightCollapse size={17} strokeWidth={1.8} />
           </button>
         </div>
 
         <div className="flex flex-col gap-1.5 px-2">
-          <p className="text-xs text-foreground/80">Project</p>
+          <p className="text-base text-foreground/80">Project</p>
           <MenuSelector
             ariaLabel="Project"
             onChange={selectProject}
@@ -149,7 +149,7 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
         </div>
 
         <div className="flex flex-col gap-1.5 px-2">
-          <p className="text-xs text-foreground/80">Repository</p>
+          <p className="text-base text-foreground/80">Repository</p>
           <MenuSelector
             ariaLabel="Repository"
             disabled={!filteredRepositories.length}
@@ -172,51 +172,51 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
         </div>
 
         <nav aria-label="Agent workspace actions" className="flex flex-col gap-1.5">
-          <Link href="/projects?action=create" className="group flex items-start gap-3 rounded-xs px-2.5 py-3 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+          <Link href="/projects?action=create" className="group flex items-start gap-3 rounded-sm px-2.5 py-3 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
             <IconFolders size={19} strokeWidth={1.8} className="mt-0.5 shrink-0" />
             <span className="min-w-0 flex-1">
-              <span className="block text-sm text-foreground">Create a project</span>
-              <span className="mt-1 block text-xs leading-5">Organize related work</span>
+              <span className="block text-base text-foreground">Create a project</span>
+              <span className="mt-1 block text-base leading-6">Organize related work</span>
             </span>
             <IconArrowUpRight size={15} strokeWidth={1.8} className="mt-0.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
           </Link>
-          <Link href="/agents?action=connect-repository" onClick={() => window.dispatchEvent(new Event("agent-connect-repository"))} className="group flex items-start gap-3 rounded-xs px-2.5 py-3 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+          <Link href="/agents?action=connect-repository" onClick={() => window.dispatchEvent(new Event("agent-connect-repository"))} className="group flex items-start gap-3 rounded-sm px-2.5 py-3 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
             <IconCode size={19} strokeWidth={1.8} className="mt-0.5 shrink-0" />
             <span className="min-w-0 flex-1">
-              <span className="block text-sm text-foreground">Connect repository</span>
-              <span className="mt-1 block text-xs leading-5">Add a public HTTPS repository</span>
+              <span className="block text-base text-foreground">Connect repository</span>
+              <span className="mt-1 block text-base leading-6">Add a public HTTPS repository</span>
             </span>
             <IconArrowUpRight size={15} strokeWidth={1.8} className="mt-0.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
           </Link>
         </nav>
 
         <section className="mt-auto rounded-sm border border-background-focus bg-background-card p-3" aria-label="AI credit balance">
-          <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+          <div className="flex items-center gap-2 text-base font-medium text-foreground">
             <IconCoin size={15} strokeWidth={1.8} className="shrink-0 text-foreground-off" />
             <span>AI credits</span>
           </div>
           {creditBalance ? (
             <>
-              <p className="mt-3 text-lg font-semibold tabular-nums">
+              <p className="mt-3 text-base font-medium tabular-nums">
                 {creditBalance.availableCredits.toLocaleString()}
               </p>
-              <p className="mt-1 text-xs text-foreground-off">
+              <p className="mt-1 text-base text-foreground-off">
                 Available
                 {creditBalance.reservedCredits > 0 ? ` · ${creditBalance.reservedCredits.toLocaleString()} reserved` : ""}
               </p>
-              <p className="mt-3 text-[10px] leading-4 text-foreground-off">
+              <p className="mt-3 text-base leading-6 text-foreground-off">
                 {creditBalance.serviceOpenRouterAvailable
                   ? "Eclipse-funded OpenRouter"
                   : "Provider billing"}
               </p>
               <Link
                 href="/dashboard/settings"
-                className="mt-2 inline-flex rounded-xs px-2 py-1.5 text-[10px] text-foreground transition-colors hover:bg-background-focus focus-visible:outline-2 focus-visible:outline-accent">
+                className="mt-2 inline-flex rounded-sm px-2 py-1.5 text-base text-foreground transition-colors hover:bg-background-focus focus-visible:outline-2 focus-visible:outline-accent">
                 Settings
               </Link>
             </>
           ) : (
-            <p role="status" className="mt-3 text-xs text-foreground-off">Loading credits...</p>
+            <p role="status" className="mt-3 text-base text-foreground-off">Loading credits...</p>
           )}
         </section>
       </div>

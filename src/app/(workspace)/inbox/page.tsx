@@ -137,11 +137,11 @@ export default function InboxPage() {
       <main className="flex min-h-dvh min-w-0 flex-col lg:h-dvh lg:flex-row lg:overflow-hidden">
         <aside className="flex min-h-0 w-full flex-col border-b border-background-focus bg-background-card lg:w-[375px] lg:shrink-0 lg:border-b-0 lg:border-r">
           <div className="flex items-center justify-between gap-3 border-b border-background-focus p-4">
-            <h1 className="text-[18px] font-medium">Mail</h1>
+            <h1 className="text-lg font-medium">Mail</h1>
             <button
               type="button"
               onClick={() => startCompose()}
-              className="inline-flex h-9 items-center gap-2 rounded-xs bg-accent px-3 text-[13px] font-medium text-white transition-colors hover:bg-accent-strong"
+              className="inline-flex h-9 items-center gap-2 rounded-sm bg-accent px-3 text-base font-medium text-white transition-colors hover:bg-accent-strong"
             >
               <IconEdit size={16} /> Compose
             </button>
@@ -154,7 +154,7 @@ export default function InboxPage() {
                 type="button"
                 onClick={() => selectFolder(item)}
                 aria-pressed={folder === item}
-                className={`rounded-xs px-3 py-2 text-[13px] capitalize transition-colors ${folder === item ? "bg-background-focus text-foreground" : "text-foreground-off hover:text-foreground"}`}
+                className={`rounded-sm px-3 py-2 text-base capitalize transition-colors ${folder === item ? "bg-background-focus text-foreground" : "text-foreground-off hover:text-foreground"}`}
               >
                 {item}
               </button>
@@ -169,22 +169,22 @@ export default function InboxPage() {
               value={query}
               onChange={event => setQuery(event.target.value)}
               placeholder="Search mail"
-              className="h-10 w-full rounded-full bg-background-focus px-4 text-[14px] text-foreground outline-hidden placeholder:text-foreground-off focus-visible:ring-1 focus-visible:ring-accent"
+              className="h-10 w-full rounded-sm bg-background-focus px-4 text-base text-foreground outline-hidden placeholder:text-foreground-off focus-visible:ring-1 focus-visible:ring-accent"
             />
           </div>
 
           {loading ? (
-            <p role="status" className="p-5 text-[14px] text-foreground-off">Loading {folder}…</p>
+            <p role="status" className="p-5 text-base text-foreground-off">Loading {folder}…</p>
           ) : filteredMails.length ? (
             <MailList folder={folder} mails={filteredMails} selectedId={selectedId} onSelect={mail => void selectMail(mail)} />
           ) : (
-            <p className="p-5 text-[14px] text-foreground-off">{query ? "No matching messages." : "No messages in this folder."}</p>
+            <p className="p-5 text-base text-foreground-off">{query ? "No matching messages." : "No messages in this folder."}</p>
           )}
         </aside>
 
         <section className="flex min-h-0 min-w-0 flex-1 flex-col">
           <header className="flex h-[50px] shrink-0 items-center justify-between border-b border-background-focus px-5 sm:px-7">
-            <div className="flex items-center gap-2 text-[14px] text-foreground-off">
+            <div className="flex items-center gap-2 text-base text-foreground-off">
               <IconInbox size={18} />
               <span className="capitalize">{folder}</span>
             </div>
@@ -192,13 +192,13 @@ export default function InboxPage() {
               type="button"
               onClick={() => void loadMails()}
               aria-label="Refresh mail"
-              className="rounded-xs p-2 text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground"
+              className="rounded-sm p-2 text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground"
             >
               <IconRefresh size={18} />
             </button>
           </header>
 
-          {error && !composeOpen ? <p role="alert" className="border-b border-alert-red/30 px-6 py-2.5 text-[14px] text-alert-red">{error}</p> : null}
+          {error && !composeOpen ? <p role="alert" className="border-b border-alert-red/30 px-6 py-2.5 text-base text-alert-red">{error}</p> : null}
 
           {composeOpen ? (
             <MailComposeForm
@@ -210,15 +210,15 @@ export default function InboxPage() {
               onCancel={() => { setComposeOpen(false); setError(null); }}
             />
           ) : loading ? (
-            <p role="status" className="p-7 text-[15px] text-foreground-off">Loading message…</p>
+            <p role="status" className="p-7 text-base text-foreground-off">Loading message…</p>
           ) : selectedMail ? (
             <MailDetail mail={selectedMail} folder={folder} onReply={() => startCompose(selectedMail)} />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-foreground-off">
               <IconInbox size={22} strokeWidth={1.6} />
-              <p className="text-[16px]">Select a message to read it.</p>
-              <p className="text-[14px]">{folder === "inbox" ? "Messages sent to you will appear here." : "Messages you send will appear here."}</p>
-              {error ? <p role="alert" className="mt-2 text-[14px] text-alert-red">{error}</p> : null}
+              <p className="text-base">Select a message to read it.</p>
+              <p className="text-base">{folder === "inbox" ? "Messages sent to you will appear here." : "Messages you send will appear here."}</p>
+              {error ? <p role="alert" className="mt-2 text-base text-alert-red">{error}</p> : null}
             </div>
           )}
         </section>

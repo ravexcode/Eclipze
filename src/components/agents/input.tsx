@@ -13,7 +13,7 @@ export default function AgentsInput(props: Props) {
       onChange={(e) => {
         props.setValue(e.target.value);
       }}
-      className="w-full rounded-sm outline-none text-sm"
+      className="w-full rounded-sm outline-none text-base"
       placeholder="Ask me anything.." />
   )
 }

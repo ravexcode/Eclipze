@@ -5,10 +5,10 @@ export default function SettingsFeedback(props: {
   return (
     <>
       {props.error ? (
-        <p className="text-sm text-red-400">{props.error}</p>
+        <p className="text-base text-red-400">{props.error}</p>
       ) : null}
       {props.message ? (
-        <p className="text-sm text-green-400">{props.message}</p>
+        <p className="text-base text-green-400">{props.message}</p>
       ) : null}
     </>
   );

@@ -22,7 +22,7 @@ export default function IssueFilters({
 }: IssueFiltersProps) {
   return (
     <section className="flex flex-wrap gap-2 rounded-sm bg-background-card p-3">
-      <label className="flex min-w-56 flex-1 items-center gap-2 rounded-sm bg-background-focus px-3 py-2 text-sm text-foreground-off">
+      <label className="flex min-w-56 flex-1 items-center gap-2 rounded-sm bg-background-focus px-3 py-2 text-base text-foreground-off">
         <IconSearch size={16} />
         <input
           value={query}
@@ -37,7 +37,7 @@ export default function IssueFilters({
         onChange={(event) =>
           onStatusChange(event.target.value as "ALL" | IssueStatus)
         }
-        className="rounded-sm bg-background-focus px-3 py-2 text-sm text-foreground outline-hidden">
+        className="rounded-sm bg-background-focus px-3 py-2 text-base text-foreground outline-hidden">
         <option value="ALL">All statuses</option>
         {Object.keys(statusLabels).map((value) => (
           <option key={value} value={value}>
@@ -51,7 +51,7 @@ export default function IssueFilters({
         onChange={(event) =>
           onTypeChange(event.target.value as "ALL" | IssueType)
         }
-        className="rounded-sm bg-background-focus px-3 py-2 text-sm text-foreground outline-hidden">
+        className="rounded-sm bg-background-focus px-3 py-2 text-base text-foreground outline-hidden">
         <option value="ALL">All types</option>
         {Object.keys(typeLabels).map((value) => (
           <option key={value} value={value}>

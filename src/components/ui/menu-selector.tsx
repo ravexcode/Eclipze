@@ -71,7 +71,7 @@ export default function MenuSelector<TValue extends string>({
   };
 
   return (
-    <div ref={containerRef} className={`relative min-w-0 text-xs ${className}`}>
+    <div ref={containerRef} className={`relative min-w-0 text-base ${className}`}>
       <button
         ref={triggerRef}
         type="button"
@@ -144,13 +144,13 @@ export default function MenuSelector<TValue extends string>({
                     triggerRef.current?.focus();
                   }
                 }}
-                className={`flex w-full flex-col gap-1 rounded-xs px-3 py-2 text-left transition-colors hover:bg-background-focus focus-visible:outline-2 focus-visible:outline-accent ${selected ? "bg-background-focus" : ""
+                className={`flex w-full flex-col gap-1 rounded-sm px-3 py-2 text-left transition-colors hover:bg-background-focus focus-visible:outline-2 focus-visible:outline-accent ${selected ? "bg-background-focus" : ""
                   }`}>
                 <span className="truncate font-medium text-foreground">
                   {option.label}
                 </span>
                 {option.description ? (
-                  <span className="text-[10px] leading-4 text-foreground/80">
+                  <span className="text-base leading-6 text-foreground/80">
                     {option.description}
                   </span>
                 ) : null}

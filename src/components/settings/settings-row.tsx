@@ -13,7 +13,7 @@ type SettingsRowProps = {
 
 export default function SettingsRow(props: SettingsRowProps) {
   const isDanger = props.tone === "danger";
-  const className = `flex min-h-10 w-full items-center gap-2 rounded-sm px-2.5 text-left ${
+  const className = `flex min-h-10 w-full items-center gap-2 rounded-sm px-2.5 py-2 text-left ${
     isDanger
       ? "border border-alert-red/70 bg-background text-alert-red hover:bg-alert-red/5"
       : "bg-background-card text-foreground hover:bg-background-focus"
@@ -27,15 +27,15 @@ export default function SettingsRow(props: SettingsRowProps) {
         </span>
       ) : null}
       <span className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        <span className={`truncate text-sm font-medium ${isDanger ? "text-alert-red" : "text-foreground"}`}>
+        <span className={`truncate text-base font-medium ${isDanger ? "text-alert-red" : "text-foreground"}`}>
           {props.title}
         </span>
         {props.detail ? (
-          <span className="text-xs text-foreground-off">{props.detail}</span>
+          <span className="min-w-0 break-words text-base text-foreground-off">{props.detail}</span>
         ) : null}
       </span>
       {props.action ? (
-        <span className="ml-auto flex shrink-0 items-center gap-1 text-xs">
+        <span className="ml-auto flex shrink-0 items-center gap-1 text-base">
           {props.action}
         </span>
       ) : null}

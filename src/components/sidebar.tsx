@@ -89,18 +89,18 @@ export default function Sidebar(props: Props) {
       </div>
 
       <section
-        className="w-full rounded-full bg-background-focus flex justify-center items-center text-xs px-5 gap-2">
+        className="w-full rounded-sm bg-background-focus flex justify-center items-center text-base px-5 gap-2">
         <input
           ref={search_field}
           type="text"
           value={search_query}
           onChange={(event) => setSearchQuery(event.target.value)}
           aria-label="Search navigation"
-          className="w-full h-full py-2 text-start placeholder:text-foreground-off text-foreground outline-none"
+          className="min-w-0 flex-1 h-full py-2 text-start placeholder:text-foreground-off text-foreground outline-none"
           placeholder="Search" />
 
         <p
-          className="text-foreground-off">
+          className="shrink-0 text-foreground-off">
           ⌘K
         </p>
         <IconSearch
@@ -108,7 +108,7 @@ export default function Sidebar(props: Props) {
       </section>
 
       <section
-        className="w-full flex flex-col gap-1 text-xs">
+        className="w-full flex flex-col gap-1 text-base">
         {
           filtered_labels.map((label) =>
             <Link

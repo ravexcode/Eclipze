@@ -195,11 +195,11 @@ export default function ProvidersSection() {
     <div className="flex flex-col gap-7">
       <SettingsFeedback error={error} message={message} />
       <section className="flex flex-col gap-2.5">
-        <h2 className="text-sm font-medium">AI Connections</h2>
+        <h2 className="text-lg font-medium">AI Connections</h2>
         {renderProviderRows(connectionProviders)}
       </section>
       <section className="flex flex-col gap-2.5">
-        <h2 className="text-sm font-medium">API Keys</h2>
+        <h2 className="text-lg font-medium">API Keys</h2>
         {renderProviderRows(apiKeyProviders)}
       </section>
     </div>

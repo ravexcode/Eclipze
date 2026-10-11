@@ -17,17 +17,17 @@ export default function ProfileHeader(props: {
           unoptimized
         />
         <div className="min-w-0">
-          <p className="truncate font-heading text-2xl leading-7 text-foreground">
+          <p className="truncate font-heading text-lg font-medium leading-7 text-foreground">
             {props.user?.displayName ?? "Loading..."}
           </p>
-          <p className="mt-1 truncate text-sm text-foreground-off">
+          <p className="mt-1 truncate text-base text-foreground-off">
             {props.user?.email ?? "Fetching your account details..."}
           </p>
         </div>
       </section> :
       <section className="flex min-h-28 items-center gap-4 rounded-sm border border-background-focus bg-background-card px-5 md:px-6">
         <span className="h-14 w-14 shrink-0 rounded-full bg-background-focus object-cover animate-pulse" />
-        <div className="w-full h-14 rounded-md bg-background-focus animate-pulse block" />
+        <div className="w-full h-14 rounded-sm bg-background-focus animate-pulse block" />
       </section>
   );
 }

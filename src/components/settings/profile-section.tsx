@@ -98,7 +98,7 @@ export default function ProfileSection(props: {
             <span className="truncate">{displayName}</span>
             <IconPencil size={14} strokeWidth={1.7} className="shrink-0 text-foreground-off" />
           </span>
-          <span className="truncate text-xs text-foreground-off">{props.user.email}</span>
+          <span className="truncate text-base text-foreground-off">{props.user.email}</span>
         </span>
       </button>
       {isOpen ? (
@@ -106,7 +106,7 @@ export default function ProfileSection(props: {
           id="profile-settings-panel"
           className="grid gap-4 rounded-sm bg-background-card p-4 md:grid-cols-2"
           onSubmit={onSubmit}>
-          <label className="flex flex-col gap-1.5 text-sm" htmlFor="username">
+          <label className="flex flex-col gap-1.5 text-base" htmlFor="username">
             Username
             <SettingsInput
               id="username"
@@ -121,11 +121,11 @@ export default function ProfileSection(props: {
               required
               disabled={isSaving}
             />
-            <span className="text-xs text-foreground-off">
+            <span className="text-base text-foreground-off">
               3-24 letters, numbers, underscores, or hyphens.
             </span>
           </label>
-          <label className="flex flex-col gap-1.5 text-sm" htmlFor="avatarUrl">
+          <label className="flex flex-col gap-1.5 text-base" htmlFor="avatarUrl">
             Image URL
             <SettingsInput
               id="avatarUrl"
@@ -136,7 +136,7 @@ export default function ProfileSection(props: {
               autoComplete="url"
               disabled={isSaving}
             />
-            <span className="text-xs text-foreground-off">
+            <span className="text-base text-foreground-off">
               Leave empty to use default avatar.
             </span>
           </label>

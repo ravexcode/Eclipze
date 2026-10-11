@@ -24,13 +24,13 @@ interface Props {
 export default function Input(props: Props) {
   const [visible, setVisible] = useState(false);
 
-  const inputClass = "h-10 w-full rounded-md border border-transparent bg-background-focus px-2.5 text-[15px] text-foreground outline-hidden transition-colors placeholder:text-foreground-off/70 focus:border-accent focus:ring-1 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50";
+  const inputClass = "h-10 w-full rounded-sm border border-transparent bg-background-focus px-2.5 text-base text-foreground outline-hidden transition-colors placeholder:text-foreground-off/70 focus:border-accent focus:ring-1 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <div
-      className="relative flex w-full flex-col items-center justify-center gap-1.5 text-[15px]">
+      className="relative flex w-full flex-col items-center justify-center gap-1.5 text-base">
       <label
-        className="w-full text-start text-[13px] text-foreground">
+        className="w-full text-start text-base text-foreground">
         {props.label}
       </label>
       {props.type === "password" ?
@@ -51,7 +51,7 @@ export default function Input(props: Props) {
           <button
             type="button"
             onClick={() => setVisible(!visible)}
-            className="absolute bottom-1.5 right-2.5 rounded-xs p-0.5 text-foreground-off outline-hidden transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-accent">
+            className="absolute bottom-1.5 right-2.5 rounded-sm p-0.5 text-foreground-off outline-hidden transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-accent">
             {
               visible ?
                 <IconEyeOff
