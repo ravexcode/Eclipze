@@ -24,7 +24,7 @@ export default function Header({ hasToken = false }: { hasToken?: boolean }) {
 
   return (
     <header
-      className="mx-auto mt-2 flex w-185 items-center justify-between rounded-lg backdrop-blur backdrop-brightness-20 px-10 py-4 animate-fade-in-down z-100 top-7 sticky">
+      className="mx-auto flex w-185 items-center justify-between rounded-lg backdrop-blur backdrop-brightness-60 px-5 py-2 animate-fade-in-down z-100 top-7 sticky duration-200">
       <Link
         href="/"
         aria-label="Eclipze home">
@@ -33,13 +33,14 @@ export default function Header({ hasToken = false }: { hasToken?: boolean }) {
           alt="Eclipze Logo"
           width={25}
           height={25}
+          loading="eager"
         />
       </Link>
 
       <Button
         variant="main"
         href={cta.link}
-        className="w-30">
+        className="w-30 text-sm">
         {cta.label}
       </Button>
     </header>

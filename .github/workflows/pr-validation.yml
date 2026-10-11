@@ -16,30 +16,68 @@ jobs:
   validate:
     name: validate
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
     env:
       DATABASE_URL: postgresql://ci:ci@localhost:5432/eclipse_ci
       NEXT_PUBLIC_CRYPTO_SECRET_KEY: ci-only-placeholder-key
 
     steps:
+      # Repository policy permits only actions owned by ravexcode.
+      # Keep setup in shell steps so validation can start under that policy.
       - name: Checkout pull request
-        uses: actions/checkout@v4
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11.22.0
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init .
+          git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          auth_header="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w 0)"
+          echo "::add-mask::$auth_header"
+          git -c "http.${GITHUB_SERVER_URL}/.extraheader=AUTHORIZATION: basic $auth_header" \
+            fetch --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
+        env:
+          NODE_VERSION: 24.18.0
+        run: |
+          node_archive="node-v${NODE_VERSION}-linux-x64.tar.xz"
+          node_download_dir="${RUNNER_TEMP}/node-download"
+          node_install_dir="${RUNNER_TEMP}/node"
+          mkdir -p "$node_download_dir" "$node_install_dir"
+          cd "$node_download_dir"
+          curl --fail --silent --show-error --location --retry 3 \
+            "https://nodejs.org/dist/v${NODE_VERSION}/${node_archive}" -o "$node_archive"
+          curl --fail --silent --show-error --location --retry 3 \
+            "https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt" -o SHASUMS256.txt
+          awk -v archive="$node_archive" '$2 == archive' SHASUMS256.txt > node-checksum.txt
+          test -s node-checksum.txt
+          sha256sum --check node-checksum.txt
+          tar -xJf "$node_archive" -C "$node_install_dir" --strip-components=1
+          echo "${node_install_dir}/bin" >> "$GITHUB_PATH"
+
+      - name: Set up pnpm
+        run: |
+          pnpm_spec="$(node -e '
+            const { packageManager } = require("./package.json");
+            if (!/^pnpm@\d+\.\d+\.\d+(\+sha\d+\.[a-f0-9]+)?$/.test(packageManager)) {
+              throw new Error("Expected a pinned pnpm packageManager");
+            }
+            console.log(packageManager.split("+")[0]);
+          ')"
+          npm install --global --prefix "${RUNNER_TEMP}/pnpm" "$pnpm_spec"
+          echo "${RUNNER_TEMP}/pnpm/bin" >> "$GITHUB_PATH"
+          node --version
+          "${RUNNER_TEMP}/pnpm/bin/pnpm" --version
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Prisma client
-        run: pnpm prisma:generate
-
       - name: Build application
         run: pnpm build
+
+      - name: Typecheck application
+        run: pnpm typecheck
