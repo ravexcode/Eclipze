@@ -25,7 +25,7 @@
 ### DON'T
 
 - **Never** read, modify, delete, or commit `.env` files or any of their variants. Only use `.env.example` as reference.
-- **Never** create commits. Leave version control decisions to the developer.
+- Create a commit whenever the user explicitly requests one. Use this format: `[branch type]: brief change description`, where the branch type is `dev`, `design`, `fix`, or `refactor` (for example, `[fix]: resolve route typecheck conflict`).
 - **Never** implement features or code that were not explicitly requested.
 - **Never** install new packages unless explicitly required.
 - **Never** hardcode new colors or design values when existing theme tokens are available.
