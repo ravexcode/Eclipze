@@ -1,0 +1,47 @@
+name: eclipse
+
+services:
+  app:
+    image: eclipse-app:local
+    build:
+      context: .
+      target: runtime
+      args:
+        NEXT_PUBLIC_API_KEY: ${NEXT_PUBLIC_API_KEY:?Set NEXT_PUBLIC_API_KEY before building}
+        NEXT_PUBLIC_CRYPTO_SECRET_KEY: ${NEXT_PUBLIC_CRYPTO_SECRET_KEY:-}
+    init: true
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://eclipse:${POSTGRES_PASSWORD:?Set a URL-safe POSTGRES_PASSWORD}@db:5432/eclipse
+      NEXT_PUBLIC_API_KEY: ${NEXT_PUBLIC_API_KEY:?Set NEXT_PUBLIC_API_KEY before building}
+      PORT: "3000"
+      AGENT_WORKSPACE_ROOT: /app/agent-workspaces
+    ports:
+      - "127.0.0.1:${APP_PORT:-4040}:3000"
+    volumes:
+      - agent-workspaces:/app/agent-workspaces
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: eclipse
+      POSTGRES_USER: eclipse
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a URL-safe POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  postgres-data:
+  agent-workspaces:

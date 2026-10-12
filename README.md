@@ -34,6 +34,8 @@ The long-term direction includes connecting the tools developers already use to 
 
 ## Getting started
 
+To run the app and PostgreSQL with Docker, follow the [Docker setup guide](./docs/docker.md).
+
 ### Requirements
 
 - Runner: Node.js `>=22x`
