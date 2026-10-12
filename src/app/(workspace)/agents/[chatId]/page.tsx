@@ -6,14 +6,12 @@ import { IconArrowLeft, IconArrowUp } from "@tabler/icons-react";
 
 import DashLayout from "@/components/layouts/dash";
 import Button from "@/components/ui/button";
-import SelectorInput from "@/components/ui/selector";
 import MarkdownMessage from "@/components/agents/markdown-message";
 import { AGENT_CREDITS_UPDATED_EVENT } from "@/components/layouts/workspace-sidebar";
 import type { AgentRun } from "@/types/agent-runner";
-import type { AiProviderConnection } from "@/types/ai";
+import { DEFAULT_AGENT_MODEL, DEFAULT_AGENT_PERMISSION_MODE } from "@/constants/agents";
 import { apiFetch } from "@/utils/api-fetch";
 import { readJson } from "@/utils/json-payload";
-import { getAvailableModels, type AvailableModel } from "@/utils/agents";
 
 export default function AgentRunPage() {
   const router = useRouter();
@@ -23,8 +21,6 @@ export default function AgentRunPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [models, setModels] = useState<AvailableModel[]>([]);
-  const [model, setModel] = useState("");
 
   const loadRun = useCallback(async () => {
     try {
@@ -48,32 +44,6 @@ export default function AgentRunPage() {
     (() => void loadRun())();
   }, [loadRun]);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function loadModels() {
-      try {
-        const providerResponse = await apiFetch("/api/ai-providers", { cache: "no-store" });
-        const providerPayload = await readJson(providerResponse) as { connections?: AiProviderConnection[] };
-        if (!providerResponse.ok) return;
-        const connections = providerPayload.connections ?? [];
-        const hasOpenRouter = connections.some(connection => connection.provider === "OPENROUTER" && connection.connected);
-        let discoveredModels: AvailableModel[] = [];
-        if (hasOpenRouter) {
-          const response = await apiFetch("/api/ai-providers/models", { cache: "no-store" });
-          const payload = await readJson(response) as { models?: AvailableModel[] };
-          if (response.ok) discoveredModels = payload.models ?? [];
-        }
-        if (cancelled) return;
-        setModels(getAvailableModels(connections, discoveredModels).filter(item => item.provider === "OPENROUTER"));
-      } catch {
-        if (!cancelled) setModels([]);
-      }
-    }
-    void loadModels();
-    return () => { cancelled = true; };
-  }, []);
-
-  const selectedModel = model || run?.model || "";
   const runOutput = run?.events
     ?.filter(event => event.type === "OUTPUT")
     .map(event => event.message)
@@ -115,7 +85,12 @@ export default function AgentRunPage() {
       const response = await apiFetch("/api/agent-runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ repositoryId: run.repositoryId, model: selectedModel, prompt }),
+        body: JSON.stringify({
+          repositoryId: run.repositoryId,
+          model: DEFAULT_AGENT_MODEL,
+          permissionMode: DEFAULT_AGENT_PERMISSION_MODE,
+          prompt,
+        }),
       });
       const payload = await readJson(response) as { run?: AgentRun; message?: string };
 
@@ -176,10 +151,7 @@ export default function AgentRunPage() {
                 placeholder="What should your agent do next?"
               className="min-h-11 w-full bg-transparent px-1.5 py-1 text-sm outline-hidden placeholder:text-foreground-off"
             />
-            <div className="flex items-center justify-between px-1 pt-1.5">
-              <div className="max-w-55">
-                {models.length ? <SelectorInput current={selectedModel} setCurrent={setModel} values={models} /> : <span className="text-[10px] text-foreground-off">{selectedModel || "Agent"}</span>}
-              </div>
+            <div className="flex items-center justify-end px-1 pt-1.5">
               <button type="submit" disabled={sending || !run || !prompt.trim()} aria-label="Send follow-up" className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40">
                 <IconArrowUp size={15} strokeWidth={2.2} />
               </button>

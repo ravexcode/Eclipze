@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { IconArrowUpRight, IconCode, IconCoin, IconFolders, IconLayoutSidebarRightCollapse } from "@tabler/icons-react";
+import { IconArrowUpRight, IconCode, IconFolders, IconLayoutSidebarRightCollapse } from "@tabler/icons-react";
 import Link from "next/link";
 
 import MenuSelector from "@/components/ui/menu-selector";
@@ -10,7 +10,7 @@ import { apiFetch } from "@/utils/api-fetch";
 import { readJson } from "@/utils/json-payload";
 
 type ProjectOption = { id: string; name: string };
-type Props = { onCollapse: () => void };
+type Props = { action: () => void };
 type CreditBalance = {
   availableCredits: number;
   reservedCredits: number;
@@ -21,7 +21,7 @@ export const AGENT_REPOSITORY_EVENT = "agent-repository-selected";
 export const AGENT_CREDITS_UPDATED_EVENT = "agent-credits-updated";
 export const AGENT_NEW_CHAT_EVENT = "agent-new-chat";
 
-export default function WorkspaceSidebar({ onCollapse }: Props) {
+export default function WorkspaceSidebar({ action }: Props) {
   const [repositories, setRepositories] = useState<WorkspaceRepository[]>([]);
   const [projects, setProjects] = useState<ProjectOption[]>([]);
   const [creditBalance, setCreditBalance] = useState<CreditBalance | null>(null);
@@ -33,7 +33,7 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
 
     async function loadWorkspaceOptions() {
       try {
-        const [repositoryResponse, projectResponse, creditsResponse] = await Promise.all([
+        const [repositoryResponse, projectResponse, creditsRequest] = await Promise.all([
           apiFetch("/api/repositories", { cache: "no-store" }),
           apiFetch("/api/projects", { cache: "no-store" }),
           apiFetch("/api/ai-credits", { cache: "no-store" }),
@@ -41,16 +41,16 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
         const [repositoryPayload, projectPayload, creditsPayload] = await Promise.all([
           readJson(repositoryResponse),
           readJson(projectResponse),
-          readJson(creditsResponse),
+          readJson(creditsRequest)
         ]) as [
-          { repositories?: WorkspaceRepository[] },
-          { projects?: ProjectOption[] },
-          {
-            availableCredits?: number;
-            reservedCredits?: number;
-            serviceOpenRouterAvailable?: boolean;
-          },
-        ];
+            { repositories?: WorkspaceRepository[] },
+            { projects?: ProjectOption[] },
+            {
+              availableCredits?: number;
+              reservedCredits?: number;
+              serviceOpenRouterAvailable?: boolean;
+            },
+          ];
 
         if (cancelled) return;
         const nextRepositories = repositoryPayload.repositories ?? [];
@@ -64,7 +64,7 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
           : projectRepositories[0]?.id ?? "";
         setRepositories(nextRepositories);
         setProjects(projectPayload.projects ?? []);
-        if (creditsResponse.ok) {
+        if (creditsRequest.ok) {
           setCreditBalance({
             availableCredits: creditsPayload.availableCredits ?? 0,
             reservedCredits: creditsPayload.reservedCredits ?? 0,
@@ -85,6 +85,7 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
     window.addEventListener("agent-workspace-updated", loadWorkspaceOptions);
     window.addEventListener("agent-runs-updated", loadWorkspaceOptions);
     window.addEventListener(AGENT_CREDITS_UPDATED_EVENT, loadWorkspaceOptions);
+
     return () => {
       cancelled = true;
       window.clearTimeout(loadTimer);
@@ -129,7 +130,7 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
             <h2 className="text-xs font-medium text-foreground">Agent workspace</h2>
             <p className="mt-1 text-xs text-foreground-off">Choose a project and repository before you delegate work.</p>
           </div>
-          <button type="button" onClick={onCollapse} aria-label="Hide right sidebar" className="rounded-xs p-1.5 text-foreground-off hover:bg-surface-raised hover:text-foreground">
+          <button type="button" onClick={action} aria-label="Hide right sidebar" className="rounded-xs p-1.5 text-foreground-off hover:bg-surface-raised hover:text-foreground">
             <IconLayoutSidebarRightCollapse size={17} strokeWidth={1.8} />
           </button>
         </div>
@@ -189,36 +190,6 @@ export default function WorkspaceSidebar({ onCollapse }: Props) {
             <IconArrowUpRight size={15} strokeWidth={1.8} className="mt-0.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
           </Link>
         </nav>
-
-        <section className="mt-auto rounded-sm border border-background-focus bg-background-card p-3" aria-label="AI credit balance">
-          <div className="flex items-center gap-2 text-xs font-medium text-foreground">
-            <IconCoin size={15} strokeWidth={1.8} className="shrink-0 text-foreground-off" />
-            <span>AI credits</span>
-          </div>
-          {creditBalance ? (
-            <>
-              <p className="mt-3 text-lg font-semibold tabular-nums">
-                {creditBalance.availableCredits.toLocaleString()}
-              </p>
-              <p className="mt-1 text-xs text-foreground-off">
-                Available
-                {creditBalance.reservedCredits > 0 ? ` · ${creditBalance.reservedCredits.toLocaleString()} reserved` : ""}
-              </p>
-              <p className="mt-3 text-[10px] leading-4 text-foreground-off">
-                {creditBalance.serviceOpenRouterAvailable
-                  ? "Eclipse-funded OpenRouter"
-                  : "Provider billing"}
-              </p>
-              <Link
-                href="/dashboard/settings"
-                className="mt-2 inline-flex rounded-xs px-2 py-1.5 text-[10px] text-foreground transition-colors hover:bg-background-focus focus-visible:outline-2 focus-visible:outline-accent">
-                Settings
-              </Link>
-            </>
-          ) : (
-            <p role="status" className="mt-3 text-xs text-foreground-off">Loading credits...</p>
-          )}
-        </section>
       </div>
     </aside>
   );

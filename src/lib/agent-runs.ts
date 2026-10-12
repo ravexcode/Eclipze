@@ -3,7 +3,8 @@ import "server-only";
 import { generateAgentResponse } from "@/lib/agent-completion";
 import { releaseAiCreditReservation, settleAiCreditReservation } from "@/lib/ai-credits";
 import { Prisma } from "@prisma/client";
-import type { AgentRunEventType } from "@/types/agent-runner";
+import type { AgentPermissionMode, AgentRunEventType } from "@/types/agent-runner";
+import { DEFAULT_AGENT_PERMISSION_MODE } from "@/constants/agents";
 import prisma from "@/lib/prisma";
 import {
   cancelCommandForRun,
@@ -266,7 +267,9 @@ async function executeAgentRun(runId: string, userId: string) {
       userId,
       runId: run.id,
       model: run.model,
-      permissionMode: run.permissionMode as "ASK" | "PLAN" | "USER_APPROVE" | "AUTO_APPROVE",
+      permissionMode: run.permissionMode === "ASK"
+        ? DEFAULT_AGENT_PERMISSION_MODE
+        : run.permissionMode as AgentPermissionMode,
       prompt: run.prompt,
       repositoryPath,
       skillSnapshot: run.skillSnapshot,

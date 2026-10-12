@@ -33,7 +33,6 @@ export default function AuthPage(
   const [step, setStep] = useState<AuthStep>("credentials");
   const [verificationCode, setVerificationCode] = useState("");
   const [pendingEmail, setPendingEmail] = useState("");
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorAction, setErrorAction] = useState<{ href: string; label: string } | null>(null);
@@ -55,7 +54,7 @@ export default function AuthPage(
 
     try {
       if (step === "credentials") {
-        if (type === "up" && !acceptedTerms) {
+        if (type === "up") {
           setError("You must accept the terms and privacy policy to create an account.");
           return;
         }

@@ -11,7 +11,6 @@ export const AGENT_RUN_STATUSES = [
 export type AgentRunStatus = (typeof AGENT_RUN_STATUSES)[number];
 
 export const AGENT_PERMISSION_MODES = [
-  "ASK",
   "PLAN",
   "USER_APPROVE",
   "AUTO_APPROVE",

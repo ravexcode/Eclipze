@@ -4,10 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import DashLayout from "@/components/layouts/dash";
-import SkillLibrary from "@/components/agents/skill-library";
-import PermissionModeSelector from "@/components/agents/permission-mode-selector";
-import SelectorInput from "@/components/ui/selector";
-import Snackbar from "@/components/ui/snackbar";
 import Button from "@/components/ui/button";
 import MarkdownMessage from "@/components/agents/markdown-message";
 import {
@@ -18,24 +14,20 @@ import {
 
 import {
   IconAdjustments,
-  IconArrowUp,
-  IconSparkles
+  IconArrowUp
 } from "@tabler/icons-react";
 
 import type { AiProviderConnection } from "@/types/ai";
-import type { AgentPermissionMode, AgentRun, LibrarySkill, WorkspaceRepository } from "@/types/agent-runner";
+import type { AgentRun, LibrarySkill, WorkspaceRepository } from "@/types/agent-runner";
+import { DEFAULT_AGENT_MODEL, DEFAULT_AGENT_PERMISSION_MODE } from "@/constants/agents";
 
 import { apiFetch } from "@/utils/api-fetch";
 import { getSessionUser } from "@/utils/session";
-import { getAvailableModels, type AvailableModel } from "@/utils/agents";
 import { readJson } from "@/utils/json-payload";
 
 export default function AgentsPage() {
   const router = useRouter();
   const [prompt, setPrompt] = useState("");
-  const [models, setModels] = useState<AvailableModel[]>([]);
-  const [model, setModel] = useState("");
-  const [permissionMode, setPermissionMode] = useState<AgentPermissionMode>("ASK");
   const [skills, setSkills] = useState<LibrarySkill[]>([]);
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
   const [repositoryId, setRepositoryId] = useState("");
@@ -49,15 +41,6 @@ export default function AgentsPage() {
   const [showNoProvidersSnackbar, setShowNoProvidersSnackbar] = useState(false);
   const [showTaskSettings, setShowTaskSettings] = useState(false);
   const [activeRun, setActiveRun] = useState<AgentRun | null>(null);
-
-  const loadSkills = useCallback(async (newSkillId?: string) => {
-    const response = await apiFetch("/api/skills", { cache: "no-store" });
-    const payload = await readJson(response) as { skills?: LibrarySkill[]; message?: string };
-    if (!response.ok) throw new Error(payload.message ?? "Unable to load your skills.");
-    const nextSkills = payload.skills ?? [];
-    setSkills(nextSkills);
-    if (newSkillId) setSelectedSkillIds(current => current.includes(newSkillId) ? current : [...current, newSkillId]);
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,20 +77,6 @@ export default function AgentsPage() {
         const connections = providerPayload.connections ?? [];
         const hasOpenRouterConnection = connections.some(connection => connection.provider === "OPENROUTER" && connection.connected);
         const hasOpenRouter = hasOpenRouterConnection || Boolean(providerPayload.serviceOpenRouterAvailable);
-        let discoveredModels: AvailableModel[] = [];
-        if (hasOpenRouter) {
-          const modelsResponse = await apiFetch("/api/ai-providers/models", { cache: "no-store" });
-          const modelsPayload = await readJson(modelsResponse) as { models?: AvailableModel[]; message?: string };
-          if (cancelled) return;
-          if (!modelsResponse.ok) throw new Error(modelsPayload.message ?? "Unable to load OpenRouter models.");
-          discoveredModels = modelsPayload.models ?? [];
-        }
-
-        if (cancelled) return;
-        const availableModels = getAvailableModels(connections, discoveredModels)
-          .filter(availableModel => availableModel.provider === "OPENROUTER");
-        setModels(availableModels);
-        setModel(current => current || availableModels[0]?.id || "");
         setShowNoProvidersSnackbar(!hasOpenRouter);
         const nextRepositories = repositoryPayload.repositories ?? [];
         const savedRepositoryId = window.localStorage.getItem("agent-repository-id");
@@ -138,13 +107,9 @@ export default function AgentsPage() {
   useEffect(() => {
     if (!activeRun || !["QUEUED", "RUNNING", "WAITING_FOR_APPROVAL"].includes(activeRun.status)) return;
     const timer = window.setTimeout(async () => {
-      try {
-        const response = await apiFetch(`/api/agent-runs/${activeRun.id}`, { cache: "no-store" });
-        const payload = await readJson(response) as { run?: AgentRun };
-        if (response.ok && payload.run) setActiveRun(payload.run);
-      } catch {
-        // The sidebar still links to this persisted run if polling is interrupted.
-      }
+      const response = await apiFetch(`/api/agent-runs/${activeRun.id}`, { cache: "no-store" });
+      const payload = await readJson(response) as { run?: AgentRun };
+      if (response.ok && payload.run) setActiveRun(payload.run);
     }, 1_500);
     return () => window.clearTimeout(timer);
   }, [activeRun]);
@@ -196,14 +161,20 @@ export default function AgentsPage() {
   };
 
   const submitTask = async () => {
-    if (!repositoryId || !model || showNoProvidersSnackbar) return;
+    if (!repositoryId || showNoProvidersSnackbar) return;
     setError(null);
     setIsSubmitting(true);
     try {
       const response = await apiFetch("/api/agent-runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ repositoryId, prompt, model, skillIds: selectedSkillIds, permissionMode }),
+        body: JSON.stringify({
+          repositoryId,
+          prompt,
+          model: DEFAULT_AGENT_MODEL,
+          skillIds: selectedSkillIds,
+          permissionMode: DEFAULT_AGENT_PERMISSION_MODE,
+        }),
       });
       const payload = await readJson(response) as { run?: AgentRun; message?: string; availableCredits?: number };
       if (!response.ok || !payload.run) throw new Error(payload.message ?? "Unable to start this task.");
@@ -237,10 +208,6 @@ export default function AgentsPage() {
     } finally {
       setIsDecidingApproval(false);
     }
-  };
-
-  const toggleSkill = (id: string) => {
-    setSelectedSkillIds(current => current.includes(id) ? current.filter(skillId => skillId !== id) : [...current, id]);
   };
 
   const startNewChat = useCallback(() => {
@@ -304,17 +271,6 @@ export default function AgentsPage() {
 
           <div className={`mx-auto w-full max-w-250 ${activeRun ? "shrink-0" : "my-auto"}`}>
 
-            {!activeRun ? (
-              <div className="mb-6 max-w-150 px-1">
-                <h1 className="font-heading text-3xl">
-                  Describe the outcome your project needs
-                </h1>
-                <p className="mt-2 text-sm leading-6 text-foreground-off">
-                  Your agent can inspect the selected repository, turn the request into a focused plan, and make approved changes.
-                </p>
-              </div>
-            ) : null}
-
             <div
               className="rounded-sm bg-background-card p-2.5 sm:p-3">
 
@@ -333,29 +289,7 @@ export default function AgentsPage() {
               />
 
               <div
-                className="flex flex-wrap items-center justify-between gap-2 pt-2">
-                <div
-                  className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-                  {isLoading ?
-                    <span
-                      role="status"
-                      className="text-[10px] text-foreground-off">
-                      Loading models…
-                    </span> : (
-                      <div className="max-w-55">
-                        <SelectorInput
-                          current={model}
-                          setCurrent={setModel}
-                          values={models}
-                          disabled={!models.length || showNoProvidersSnackbar} />
-                      </div>
-                    )}
-                  <PermissionModeSelector
-                    value={permissionMode}
-                    onChange={setPermissionMode}
-                  />
-                </div>
-
+                className="flex items-center justify-end pt-2">
                 <button
                   type="button"
                   onClick={() => void submitTask()}
@@ -391,40 +325,54 @@ export default function AgentsPage() {
             }
 
             {showRepositoryForm ? (
-              <fieldset className="mt-3 flex flex-col gap-3 rounded-sm border border-background-focus bg-background-card p-4">
-                <legend className="px-1 text-xs font-medium">Connect a public repository</legend>
-                <form onSubmit={addRepository} className="flex flex-col gap-3">
-                  <input required type="url" value={repositoryUrl} onChange={event => setRepositoryUrl(event.target.value)} placeholder="https://github.com/owner/repository" className="rounded-sm bg-background-focus px-3 py-2 text-xs" />
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <input value={defaultBranch} onChange={event => setDefaultBranch(event.target.value)} placeholder="Default branch (main)" className="rounded-sm bg-background-focus px-3 py-2 text-xs" />
-                    <p className="self-center text-xs text-foreground-off">Project assignment follows your Agent workspace selection.</p>
+              <fieldset
+                className="mt-3 flex flex-col gap-3 rounded-sm border border-background-focus bg-background-card p-4">
+                <legend
+                  className="px-1 text-xs font-medium">
+                  Connect a public repository
+                </legend>
+                <form
+                  onSubmit={addRepository}
+                  className="flex flex-col gap-3">
+                  <input
+                    required
+                    type="url"
+                    value={repositoryUrl}
+                    onChange={event => setRepositoryUrl(event.target.value)}
+                    placeholder="https://github.com/owner/repository"
+                    className="rounded-sm bg-background-focus px-3 py-2 text-xs" />
+                  <div
+                    className="grid gap-3 sm:grid-cols-2">
+                    <input
+                      value={defaultBranch}
+                      onChange={event => setDefaultBranch(event.target.value)}
+                      placeholder="Default branch (main)"
+                      className="rounded-sm bg-background-focus px-3 py-2 text-xs" />
+                    <p
+                      className="self-center text-xs text-foreground-off">
+                      Project assignment follows your Agent workspace selection.
+                    </p>
                   </div>
-                  <div className="flex justify-end gap-2">
-                    <Button type="button" variant="ghost" onClick={() => setShowRepositoryForm(false)}>Cancel</Button>
-                    <Button type="submit">Add repository</Button>
+                  <div
+                    className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setShowRepositoryForm(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit">
+                      Add repository
+                    </Button>
                   </div>
                 </form>
               </fieldset>
-            ) : null}
-
-            {showTaskSettings ? (
-              <div className="mt-3 flex flex-col gap-4 rounded-sm border border-background-focus bg-background-card p-4">
-                <label className="flex flex-col gap-2 text-xs font-medium">
-                  Skills
-                </label>
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-1.5 text-xs font-medium"><IconSparkles size={14} />Available skills</div>
-                  <SkillLibrary skills={skills} selectedSkillIds={selectedSkillIds} onToggle={toggleSkill} onSkillsChanged={loadSkills} />
-                </div>
-              </div>
             ) : null}
           </div>
         </section>
 
       </main>
-      {showNoProvidersSnackbar ? (
-        <Snackbar mode="warn" message="Connect OpenRouter in Settings or contact the administrator to enable the Eclipse AI credit service." onClose={() => setShowNoProvidersSnackbar(false)} />
-      ) : null}
     </DashLayout>
   );
 }

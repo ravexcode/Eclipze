@@ -9,13 +9,14 @@ import { resolveAllowedCommand, createInstructionsDigest } from "@/lib/agent-run
 import { getOpenRouterCredential, getOpenRouterModels } from "@/lib/openrouter";
 import prisma from "@/lib/prisma";
 import { badRequest, notFound, parseBody, requiredString } from "@/lib/workspace-api";
-import type { AgentPermissionMode } from "@/types/agent-runner";
+import { DEFAULT_AGENT_PERMISSION_MODE } from "@/constants/agents";
+import { AGENT_PERMISSION_MODES, type AgentPermissionMode } from "@/types/agent-runner";
 
 const PRIVATE_NO_STORE_HEADERS = {
   "Cache-Control": "private, no-store, max-age=0",
 };
 
-const PERMISSION_MODES = new Set(["ASK", "PLAN", "USER_APPROVE", "AUTO_APPROVE"]);
+const PERMISSION_MODES = new Set<string>(AGENT_PERMISSION_MODES);
 
 export async function GET(request: Request) {
   const user = await getCurrentUser();
@@ -60,9 +61,12 @@ export async function POST(request: Request) {
   if (repositoryId.error) return repositoryId.error;
   if (prompt.error) return prompt.error;
   if (model.error) return model.error;
-  const permissionMode: AgentPermissionMode = typeof body.permissionMode === "string" && PERMISSION_MODES.has(body.permissionMode)
-    ? body.permissionMode as AgentPermissionMode
-    : "ASK";
+  if (body.permissionMode !== undefined && (
+    typeof body.permissionMode !== "string" || !PERMISSION_MODES.has(body.permissionMode)
+  )) {
+    return badRequest("Choose an available permission mode.");
+  }
+  const permissionMode = (body.permissionMode ?? DEFAULT_AGENT_PERMISSION_MODE) as AgentPermissionMode;
   if (prompt.value.length > 8_000) return badRequest("prompt is too long.");
   if (model.value.length > 200) return badRequest("model is too long.");
 
