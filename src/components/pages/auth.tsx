@@ -170,7 +170,7 @@ export default function AuthPage(
         onError={onError}>
 
         <div className="mb-3 w-full text-center">
-          <h1 className="font-base text-3xl font-semibold tracking-[-0.04em]">{greeting}</h1>
+          <h1 className="font-base text-lg font-medium tracking-[-0.04em]">{greeting}</h1>
         </div>
 
         {

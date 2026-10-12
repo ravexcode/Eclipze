@@ -21,7 +21,7 @@ export default function IssueForm({
       onSubmit={onSubmit}
       className="flex flex-col gap-4 rounded-sm bg-background-card p-5">
       <div className="grid gap-4 md:grid-cols-[1fr_180px_180px]">
-        <label className="flex flex-col gap-2 text-sm">
+        <label className="flex flex-col gap-2 text-base">
           Title
           <input
             required
@@ -32,7 +32,7 @@ export default function IssueForm({
           />
         </label>
 
-        <label className="flex flex-col gap-2 text-sm">
+        <label className="flex flex-col gap-2 text-base">
           Type
           <select
             value={form.type}
@@ -46,7 +46,7 @@ export default function IssueForm({
           </select>
         </label>
 
-        <label className="flex flex-col gap-2 text-sm">
+        <label className="flex flex-col gap-2 text-base">
           Priority
           <select
             value={form.priority}
@@ -61,7 +61,7 @@ export default function IssueForm({
         </label>
       </div>
 
-      <label className="flex flex-col gap-2 text-sm">
+      <label className="flex flex-col gap-2 text-base">
         Description
         <textarea
           required
@@ -77,12 +77,12 @@ export default function IssueForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-sm px-3 py-2 text-sm text-foreground-off hover:bg-background-focus">
+          className="rounded-sm px-3 py-2 text-base text-foreground-off hover:bg-background-focus">
           Cancel
         </button>
         <button
           type="submit"
-          className="rounded-sm bg-accent px-3 py-2 text-sm hover:brightness-125">
+          className="rounded-sm bg-accent px-3 py-2 text-base hover:brightness-125">
           Submit issue
         </button>
       </div>

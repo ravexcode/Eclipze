@@ -1,5 +1,6 @@
 import type { SessionUser } from "@/types/user";
 import { apiFetch } from "@/utils/api-fetch";
+import { clearPrivateCaches } from "@/utils/cache";
 
 type SessionResponse = {
   user: SessionUser;
@@ -58,19 +59,41 @@ export function getSessionUser() {
 }
 
 export function setSessionUser(user: SessionUser) {
+  const previousUser = cachedUser;
   sessionVersion += 1;
   sessionRequest = null;
   cachedUser = user;
+
+  if (previousUser && (previousUser.id !== user.id || previousUser.role !== user.role)) {
+    clearPrivateCaches();
+  }
 }
 
 export function invalidateSessionUser() {
   sessionVersion += 1;
   sessionRequest = null;
   cachedUser = undefined;
+  clearPrivateCaches();
 }
 
 export function clearSessionUser() {
   sessionVersion += 1;
   sessionRequest = null;
   cachedUser = null;
+  clearPrivateCaches();
+}
+
+/** Forces a fresh authenticated session read, useful when revalidating role. */
+export function refreshSessionUser() {
+  const previousUser = cachedUser;
+  sessionVersion += 1;
+  sessionRequest = null;
+  cachedUser = undefined;
+  return getSessionUser().then(user => {
+    if (previousUser && (!user || user.id !== previousUser.id || user.role !== previousUser.role)) {
+      clearPrivateCaches();
+    }
+
+    return user;
+  });
 }

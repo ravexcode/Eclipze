@@ -12,7 +12,7 @@ export function Option(props: OptionsProps) {
     <button
       type="button"
       onClick={props.action}
-      className={"flex w-auto shrink-0 items-center justify-start gap-2.5 rounded-xs px-3.5 py-2.5 text-[15px] transition-colors md:w-full md:justify-start md:text-left " + classes}>
+      className={"flex w-auto shrink-0 items-center justify-start gap-2.5 rounded-sm px-3.5 py-2.5 text-base transition-colors md:w-full md:justify-start md:text-left " + classes}>
       {props.icon}
       <p
         className="w-full text-start">

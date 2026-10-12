@@ -2,7 +2,11 @@ import CacheDB from "@/utils/cache";
 
 const apiKey = process.env.NEXT_PUBLIC_API_KEY;
 
-export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+export async function apiFetch(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+  options: { invalidatePrivateCache?: boolean } = {},
+) {
   if (!apiKey) {
     return Promise.reject(new Error("NEXT_PUBLIC_API_KEY is not configured."));
   }
@@ -17,7 +21,7 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
   });
 
   const method = (init.method ?? "GET").toUpperCase();
-  if (response.ok && method !== "GET" && method !== "HEAD") {
+  if (response.ok && method !== "GET" && method !== "HEAD" && options.invalidatePrivateCache !== false) {
     CacheDB.delete();
   }
   return response;

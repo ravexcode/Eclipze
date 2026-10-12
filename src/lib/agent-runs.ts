@@ -6,6 +6,7 @@ import { Prisma } from "@prisma/client";
 import type { AgentPermissionMode, AgentRunEventType } from "@/types/agent-runner";
 import { DEFAULT_AGENT_PERMISSION_MODE } from "@/constants/agents";
 import prisma from "@/lib/prisma";
+import { appendRunEventTransaction } from "@/lib/agent-run-events";
 import {
   cancelCommandForRun,
   cleanupRunWorkspace,
@@ -100,20 +101,12 @@ export function serializeAgentRun(run: RunWithRelations) {
 }
 
 export async function appendRunEvent(runId: string, event: RunnerEvent) {
-  const previous = await prisma.agentRunEvent.findFirst({
-    where: { runId },
-    orderBy: { sequence: "desc" },
-    select: { sequence: true },
-  });
-
-  return prisma.agentRunEvent.create({
-    data: {
-      runId,
-      sequence: (previous?.sequence ?? 0) + 1,
-      type: event.type as AgentRunEventType,
-      message: event.message.slice(0, 8_000),
-      metadata: event.metadata ? JSON.parse(JSON.stringify(event.metadata)) as Prisma.InputJsonValue : undefined,
-    },
+  return appendRunEventTransaction(prisma, runId, {
+    type: event.type as AgentRunEventType,
+    message: event.message,
+    metadata: event.metadata
+      ? JSON.parse(JSON.stringify(event.metadata)) as Prisma.InputJsonValue
+      : undefined,
   });
 }
 
