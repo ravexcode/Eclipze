@@ -83,7 +83,7 @@ export default function DashLayout(props: Props) {
         {props.children}
       </div>
       {isAgentRoute && showWorkspaceSidebar ? (
-        <WorkspaceSidebar onCollapse={() => setShowWorkspaceSidebar(false)} />
+        <WorkspaceSidebar action={() => setShowWorkspaceSidebar(false)} />
       ) : null}
     </div>
   );
