@@ -36,3 +36,5 @@ Thumbs.db
 scripts/
 # Local AI runtime state
 .atl/
+.codegraph/
+odd/
