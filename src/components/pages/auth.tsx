@@ -52,70 +52,66 @@ export default function AuthPage(
     setErrorAction(null);
     setIsSubmitting(true);
 
-    try {
-      if (step === "credentials") {
-        if (type === "up") {
-          setError("You must accept the terms and privacy policy to create an account.");
-          return;
-        }
-
-        const endpoint = type === "in" ? "/api/auth/signin" : "/api/auth/signup";
-        const response = await apiFetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(user),
-        });
-
-        const data = await response.json() as AuthApiResponse;
-
-        if (!response.ok) {
-          setError(data.message);
-          if (data.actionHref && data.actionLabel) setErrorAction({ href: data.actionHref, label: data.actionLabel });
-          return;
-        }
-
-        if (type === "in") {
-          announce({ message: "Login successful!", variant: "success" });
-          invalidateSessionUser();
-          router.push(data.redirectTo ?? "/dashboard");
-          router.refresh();
-          return;
-        }
-
-        setPendingEmail(data.email ?? user.email);
-        setStep(data.nextStep ?? "credentials");
-        setVerificationCode("");
-        announce({ message: data.message, variant: "info" });
+    if (step === "credentials") {
+      if (type === "up") {
+        setError("You must accept the terms and privacy policy to create an account.");
         return;
       }
 
-      const response = await apiFetch("/api/auth/verify-email", {
+      const endpoint = type === "in" ? "/api/auth/signin" : "/api/auth/signup";
+      const response = await apiFetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email: pendingEmail || user.email,
-          code: verificationCode,
-        }),
+        body: JSON.stringify(user),
       });
 
       const data = await response.json() as AuthApiResponse;
 
       if (!response.ok) {
         setError(data.message);
+        if (data.actionHref && data.actionLabel) setErrorAction({ href: data.actionHref, label: data.actionLabel });
         return;
       }
 
-      invalidateSessionUser();
-      announce({ message: "Email verified. You are now signed in.", variant: "success" });
-      router.push(data.redirectTo ?? "/dashboard");
-      router.refresh();
-    } finally {
-      setIsSubmitting(false);
+      if (type === "in") {
+        announce({ message: "Login successful!", variant: "success" });
+        invalidateSessionUser();
+        router.push(data.redirectTo ?? "/dashboard");
+        router.refresh();
+        return;
+      }
+
+      setPendingEmail(data.email ?? user.email);
+      setStep(data.nextStep ?? "credentials");
+      setVerificationCode("");
+      announce({ message: data.message, variant: "info" });
+      return;
     }
+
+    const response = await apiFetch("/api/auth/verify-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: pendingEmail || user.email,
+        code: verificationCode,
+      }),
+    });
+
+    const data = await response.json() as AuthApiResponse;
+
+    if (!response.ok) {
+      setError(data.message);
+      return;
+    }
+
+    invalidateSessionUser();
+    announce({ message: "Email verified. You are now signed in.", variant: "success" });
+    router.push(data.redirectTo ?? "/dashboard");
+    router.refresh();
   };
 
   const onError = (e: React.SubmitEvent<HTMLFormElement>) => {
@@ -154,12 +150,12 @@ export default function AuthPage(
 
   return (
     <div
-      className="relative flex min-h-dvh w-full items-center justify-center px-5 py-16 sm:px-8">
+      className="relative flex min-h-dvh w-full items-center justify-center px-5 py-16">
       <Link
-        className="absolute left-5 top-5 flex items-center justify-center gap-1 rounded-xs px-2.5 py-1.5 text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent sm:left-8 sm:top-8"
+        className="absolute left-5 top-5 flex items-center justify-center gap-1 rounded-xs px-2.5 py-1.5 text-foreground-off hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent sm:left-8 sm:top-8 text-sm duration-200"
         href="/">
         <IconArrowLeft
-          size={19} />
+          size={17} />
         <p>
           Go back
         </p>
@@ -169,9 +165,7 @@ export default function AuthPage(
         onSubmit={onSubmit}
         onError={onError}>
 
-        <div className="mb-3 w-full text-center">
-          <h1 className="font-base text-lg font-medium tracking-[-0.04em]">{greeting}</h1>
-        </div>
+        <h1 className="font-base text-2xl font-medium mb-3">{greeting}</h1>
 
         {
           step === "credentials" ? (
@@ -323,7 +317,7 @@ export default function AuthPage(
           type="submit"
           variant="main"
           disabled={isSubmitting}
-          className="mt-1 h-10 min-h-0 w-full cursor-pointer rounded-lg">
+          className="my-3 h-10 min-h-0 w-full cursor-pointer rounded-lg text-sm">
           {isSubmitting ? "Please wait..." : step === "credentials" ? "Continue" : "Verify code"}
         </Button>
 
@@ -359,7 +353,7 @@ export default function AuthPage(
         {
           step === "credentials" &&
           <p
-            className="mb-2 w-full text-center text-foreground-off text-sm">
+            className="w-full text-center text-foreground-off text-sm">
             By signin {type} you accept our <Link
               href="/legal/tos"
               className="hover:text-accent duration-300 underline">
