@@ -88,7 +88,7 @@ export default function UserProfile({ profile }: Props) {
         }
 
         <p
-          className="w-full text-base text-start">
+          className="w-full text-sm text-start">
           {profile.name}
         </p>
       </button>
@@ -96,7 +96,7 @@ export default function UserProfile({ profile }: Props) {
       {
         visible &&
         <div
-          className="w-full absolute bottom-1/1 -translate-y-3 rounded-sm flex flex-col items-center justify-center text-base">
+          className="w-full absolute bottom-1/1 -translate-y-3 rounded-sm flex flex-col items-center justify-center text-sm">
           <Link
             href="/profile/settings"
             className="flex gap-2 items-center justify-start w-full p-2 hover:backdrop-brightness-200">

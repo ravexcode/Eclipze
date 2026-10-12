@@ -77,7 +77,8 @@ export default function Sidebar(props: Props) {
           alt="Eclipze logo"
           width={50}
           height={50}
-          className="aspect-square block w-5" />
+          className="aspect-square block w-5"
+          loading="eager" />
 
         <button
           type="button"
@@ -89,7 +90,7 @@ export default function Sidebar(props: Props) {
       </div>
 
       <section
-        className="w-full rounded-sm bg-background-focus flex justify-center items-center text-base px-5 gap-2">
+        className="w-full rounded-sm bg-background-card flex justify-center items-center text-sm px-5 gap-2 border border-background-focus">
         <input
           ref={search_field}
           type="text"
@@ -108,7 +109,7 @@ export default function Sidebar(props: Props) {
       </section>
 
       <section
-        className="w-full flex flex-col gap-1 text-base">
+        className="w-full flex flex-col gap-1 text-sm">
         {
           filtered_labels.map((label) =>
             <Link
