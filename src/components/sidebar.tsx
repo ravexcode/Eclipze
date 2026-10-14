@@ -36,7 +36,7 @@ import type { User } from "@/types/user";
 // Main content
 export default function Sidebar(props: Props) {
   // Sidebar definitions
-  const [width, setWidth] = useState<number>(320);
+  const [width, setWidth] = useState<number>(300);
   const [bgColor, setBgColor] = useState<string>("#060606");
   const [expanded, setExpanded] = useState(true);
 
@@ -75,13 +75,13 @@ export default function Sidebar(props: Props) {
 
   const toggle = () => {
     setExpanded(prev => !prev);
-    setWidth(prev => prev === 320 ? 40 : 320);
+    setWidth(prev => prev === 300 ? 40 : 300);
     setBgColor(prev => prev === "#060606" ? "#00000000" : "#060606");
   }
 
   return (
     <aside
-      className="h-full flex flex-col items-center justify-start pb-2 pt-7 gap-7 relative px-3 duration-400"
+      className="h-full flex flex-col items-center justify-start pb-2 pt-7 gap-7 relative px-3 duration-200"
       style={{
         width: `${width}px`,
         backgroundColor: bgColor,
