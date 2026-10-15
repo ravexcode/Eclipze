@@ -8,6 +8,8 @@ import type { SessionUser } from "@/types/user";
 import { apiFetch } from "@/utils/api-fetch";
 import { setSessionUser } from "@/utils/session";
 import SettingsFeedback from "./settings-feedback";
+import SettingsRow from "./settings-row";
+import SettingsSection from "./settings-section";
 
 export default function DeveloperAccountSection(props: {
   user: SessionUser;
@@ -43,27 +45,26 @@ export default function DeveloperAccountSection(props: {
   };
 
   return (
-    <section className="flex w-full flex-col gap-3 border-t border-background-focus pt-5">
-      <div className="flex items-start gap-3">
-        <IconCode className="mt-0.5 shrink-0 text-foreground-off" size={18} />
-        <div>
-          <h2 className="text-lg font-medium">Developer access</h2>
-          <p className="mt-1 text-xs text-foreground-off">
-            Developer accounts have access to developer tools.
-          </p>
-        </div>
-      </div>
+    <SettingsSection
+      title="Developer access"
+      description="Developer accounts have access to developer tools.">
+      <SettingsRow
+        title={props.user.role === "DEVELOPER" ? "Developer account" : "Standard account"}
+        detail={props.user.role === "DEVELOPER"
+          ? "This account can manage every issue."
+          : "Switch to manage every issue in the workspace."}
+        leading={<IconCode size={16} strokeWidth={1.7} />}
+        action={(
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => void changeAccount()}
+            disabled={isChanging || props.user.role === "DEVELOPER"}
+          >
+            {props.user.role === "DEVELOPER" ? "Enabled" : isChanging ? "Changing..." : "Switch"}
+          </Button>
+        )} />
       <SettingsFeedback error={error} message={null} />
-      <div className="flex justify-end">
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => void changeAccount()}
-          disabled={isChanging || props.user.role === "DEVELOPER"}
-        >
-          {props.user.role === "DEVELOPER" ? "Developer account" : isChanging ? "Changing..." : "Switch to developer account"}
-        </Button>
-      </div>
-    </section>
+    </SettingsSection>
   );
 }

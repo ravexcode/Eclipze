@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import {
-  IconCircleCheck,
-  IconExternalLink,
+  IconCircleCheckFilled,
   IconTrash,
 } from "@tabler/icons-react";
 
 import Button from "@/components/ui/button";
+import ProviderIcon from "@/components/ui/provider-icon";
 import type {
   AiProvider,
   AiProviderConfig,
@@ -32,28 +32,28 @@ export default function ProviderCard(props: {
   const isApiKeyProvider = props.provider.kind === "api-key";
   const canConnect = !isApiKeyProvider || Boolean(props.apiKey.trim());
   const panelId = `${props.provider.id.toLowerCase()}-provider-settings`;
-  const mark = props.provider.id === "OPENROUTER"
-    ? "R"
-    : props.provider.id === "CLAUDE"
-      ? "C"
-      : props.provider.id === "GPT"
-        ? "O"
-        : props.provider.label.slice(0, 1);
+  const connectionDetail = isConnected && props.connection?.keyHint
+    ? `Key ending in ${props.connection.keyHint}`
+    : props.provider.description;
 
   return (
     <article className="flex flex-col gap-1">
       <SettingsRow
         title={props.provider.label}
-        leading={<span className="text-xs font-medium">{mark}</span>}
+        detail={connectionDetail}
+        leading={(
+          <ProviderIcon
+            provider={props.provider.id}
+            size={16} />
+        )}
         action={isConnected ? (
-          <span className="inline-flex items-center gap-1 text-status-green">
-            <IconCircleCheck size={13} />
+          <span className="inline-flex items-center gap-1 rounded-full bg-status-green/10 px-2 py-0.5 text-status-green">
+            <IconCircleCheckFilled size={12} />
             Connected
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 text-foreground-off">
-            Connect
-            <IconExternalLink size={13} strokeWidth={1.6} />
+          <span className="text-foreground-off">
+            Not connected
           </span>
         )}
         expanded={isOpen}
@@ -62,14 +62,21 @@ export default function ProviderCard(props: {
       {isOpen ? (
         <form
           id={panelId}
-          className="flex flex-col gap-3 rounded-md bg-background-card px-3 py-3"
+          className="flex flex-col gap-4 rounded-lg border border-background-focus bg-background-card p-4"
           onSubmit={(event) => {
             event.preventDefault();
             props.onConnect(props.provider);
           }}>
-          <div>
-            <p className="text-lg font-medium">{props.provider.label}</p>
-            <p className="mt-1 text-xs text-foreground-off">{props.provider.description}</p>
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-background-focus bg-background text-foreground">
+              <ProviderIcon
+                provider={props.provider.id}
+                size={20} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-medium">{props.provider.label}</p>
+              <p className="mt-0.5 text-xs text-foreground-off">{props.provider.description}</p>
+            </div>
           </div>
           {isApiKeyProvider ? (
             <label
@@ -106,7 +113,7 @@ export default function ProviderCard(props: {
             </label>
           ) : null}
           <label className="flex flex-col gap-1.5 text-xs" htmlFor={`${props.provider.id}-model`}>
-            Model override <span className="text-xs text-foreground-off">Optional</span>
+            Model override <span className="text-foreground-off">(optional)</span>
             <SettingsInput
               id={`${props.provider.id}-model`}
               type="text"
@@ -116,7 +123,7 @@ export default function ProviderCard(props: {
               autoComplete="off"
               disabled={props.isBusy} />
           </label>
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-background-focus pt-3">
             {isConnected ? (
               <Button
                 type="button"

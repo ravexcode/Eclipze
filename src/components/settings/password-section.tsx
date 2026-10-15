@@ -68,6 +68,7 @@ export default function PasswordSection(props: {
     <section className="flex flex-col gap-1">
       <SettingsRow
         title="Change my password"
+        detail="You will need your current password."
         tone="danger"
         expanded={isOpen}
         controls="password-settings-panel"
@@ -79,7 +80,7 @@ export default function PasswordSection(props: {
       {isOpen ? (
         <form
           id="password-settings-panel"
-          className="grid gap-4 rounded-md border border-alert-red/40 bg-background-card p-4 md:grid-cols-3"
+          className="grid gap-4 rounded-lg border border-alert-red/30 bg-background-card p-4 md:grid-cols-3"
           onSubmit={onSubmit}>
           <label
             className="flex flex-col gap-1.5 text-xs"
@@ -128,7 +129,7 @@ export default function PasswordSection(props: {
               disabled={isSaving}
             />
           </label>
-          <div className="flex flex-col gap-3 md:col-span-3">
+          <div className="flex flex-col gap-3 border-t border-background-focus pt-3 md:col-span-3">
             <SettingsFeedback error={error} message={message} />
             <div className="flex justify-end">
               <Button type="submit" disabled={isSaving}>

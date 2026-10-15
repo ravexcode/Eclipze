@@ -79,6 +79,7 @@ export default function DangerZone(props: {
     <section className="flex flex-col gap-1">
       <SettingsRow
         title="Delete my account"
+        detail="Permanently remove your account and workspace data."
         tone="danger"
         expanded={isOpen}
         controls="account-deletion-panel"
@@ -86,7 +87,7 @@ export default function DangerZone(props: {
       {isOpen ? (
         <form
           id="account-deletion-panel"
-          className="flex flex-col gap-3 rounded-md border border-alert-red/40 bg-background-card p-4"
+          className="flex flex-col gap-3 rounded-lg border border-alert-red/30 bg-background-card p-4"
           onSubmit={onSubmit}>
           <div className="flex items-start gap-2 text-xs text-foreground-off">
             <IconAlertTriangle className="mt-0.5 shrink-0 text-alert-red" size={15} />

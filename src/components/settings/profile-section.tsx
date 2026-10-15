@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { IconPencil } from "@tabler/icons-react";
+import { IconChevronDown } from "@tabler/icons-react";
 
 import Button from "@/components/ui/button";
 import type { SessionUser } from "@/types/user";
@@ -11,6 +11,7 @@ import { apiFetch } from "@/utils/api-fetch";
 import { setSessionUser } from "@/utils/session";
 import SettingsFeedback from "./settings-feedback";
 import SettingsInput from "./settings-input";
+import SettingsSection from "./settings-section";
 
 export default function ProfileSection(props: {
   user: SessionUser;
@@ -75,10 +76,12 @@ export default function ProfileSection(props: {
   const displayName = props.user.username || props.user.email.split("@")[0] || "Your account";
 
   return (
-    <section className="flex flex-col gap-2">
+    <SettingsSection
+      title="Profile"
+      description="How you appear across Eclipse.">
       <button
         type="button"
-        className={`flex min-h-14 w-full items-center gap-3 rounded-md bg-background-card px-3 py-1.5 text-left hover:bg-background-focus focus:outline-hidden focus-visible:ring-1 focus-visible:ring-accent ${isOpen ? "bg-background-focus" : ""}`}
+        className={`flex min-h-16 w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors duration-200 hover:border-foreground-off/30 hover:bg-background-focus/60 focus:outline-hidden focus-visible:ring-1 focus-visible:ring-accent ${isOpen ? "border-foreground-off/30 bg-background-focus/60" : "border-background-focus bg-background-card"}`}
         onClick={() => {
           setIsOpen((value) => !value);
           setError(null);
@@ -89,22 +92,25 @@ export default function ProfileSection(props: {
         <Image
           src={props.avatarUrl}
           alt=""
-          width={36}
-          height={36}
+          width={40}
+          height={40}
           unoptimized
-          className="h-9 w-9 shrink-0 rounded-full bg-background-focus object-cover" />
+          className="h-10 w-10 shrink-0 rounded-full border border-background-focus bg-background-focus object-cover" />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium">
-            <span className="truncate">{displayName}</span>
-            <IconPencil size={14} strokeWidth={1.7} className="shrink-0 text-foreground-off" />
-          </span>
+          <span className="truncate text-sm font-medium">{displayName}</span>
           <span className="truncate text-xs text-foreground-off">{props.user.email}</span>
         </span>
+        <span className="ml-auto shrink-0 text-xs text-foreground-off">Edit</span>
+        <IconChevronDown
+          size={15}
+          strokeWidth={1.7}
+          aria-hidden="true"
+          className={`shrink-0 text-foreground-off transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
       </button>
       {isOpen ? (
         <form
           id="profile-settings-panel"
-          className="grid gap-4 rounded-md bg-background-card p-4 md:grid-cols-2"
+          className="grid gap-4 rounded-lg border border-background-focus bg-background-card p-4 md:grid-cols-2"
           onSubmit={onSubmit}>
           <label className="flex flex-col gap-1.5 text-xs" htmlFor="username">
             Username
@@ -140,7 +146,7 @@ export default function ProfileSection(props: {
               Leave empty to use default avatar.
             </span>
           </label>
-          <div className="flex flex-col gap-3 md:col-span-2">
+          <div className="flex flex-col gap-3 border-t border-background-focus pt-3 md:col-span-2">
             <SettingsFeedback error={error} message={message} />
             <div className="flex justify-end">
               <Button type="submit" disabled={isSaving}>
@@ -150,6 +156,6 @@ export default function ProfileSection(props: {
           </div>
         </form>
       ) : null}
-    </section>
+    </SettingsSection>
   );
 }

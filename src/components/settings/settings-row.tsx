@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { IconChevronDown } from "@tabler/icons-react";
 
 type SettingsRowProps = {
   title: ReactNode;
@@ -13,36 +14,62 @@ type SettingsRowProps = {
 
 export default function SettingsRow(props: SettingsRowProps) {
   const isDanger = props.tone === "danger";
-  const className = `flex min-h-10 w-full items-center gap-2 rounded-md px-2.5 py-2 text-left ${
-    isDanger
-      ? "border border-alert-red/70 bg-background text-alert-red hover:bg-alert-red/5"
-      : "bg-background-card text-foreground hover:bg-background-focus"
-  } ${props.onClick ? "cursor-pointer focus:outline-hidden focus-visible:ring-1 focus-visible:ring-accent" : ""}`;
+  const isInteractive = Boolean(props.onClick);
+
+  const toneClassName = isDanger
+    ? "border-alert-red/30 bg-alert-red/[0.03] text-alert-red hover:border-alert-red/60 hover:bg-alert-red/[0.06]"
+    : "border-background-focus bg-background-card text-foreground hover:border-foreground-off/30 hover:bg-background-focus/60";
+
+  const expandedClassName = props.expanded
+    ? isDanger
+      ? "border-alert-red/60"
+      : "border-foreground-off/30 bg-background-focus/60"
+    : "";
+
+  const interactiveClassName = isInteractive
+    ? "cursor-pointer focus:outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+    : "";
+
+  const className = [
+    "flex min-h-13 w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors duration-200",
+    toneClassName,
+    expandedClassName,
+    interactiveClassName,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const content = (
     <>
       {props.leading ? (
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-background-focus text-foreground">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-background-focus bg-background text-foreground">
           {props.leading}
         </span>
       ) : null}
-      <span className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className={`truncate text-xs font-medium ${isDanger ? "text-alert-red" : "text-foreground"}`}>
           {props.title}
         </span>
         {props.detail ? (
-          <span className="min-w-0 break-words text-xs text-foreground-off">{props.detail}</span>
+          <span className="min-w-0 truncate text-xs text-foreground-off">{props.detail}</span>
         ) : null}
       </span>
       {props.action ? (
-        <span className="ml-auto flex shrink-0 items-center gap-1 text-xs">
+        <span className="ml-auto flex shrink-0 items-center gap-1.5 text-xs">
           {props.action}
         </span>
+      ) : null}
+      {isInteractive ? (
+        <IconChevronDown
+          size={15}
+          strokeWidth={1.7}
+          aria-hidden="true"
+          className={`shrink-0 text-foreground-off transition-transform duration-200 ${props.expanded ? "rotate-180" : ""} ${props.action ? "" : "ml-auto"}`} />
       ) : null}
     </>
   );
 
-  if (!props.onClick) {
+  if (!isInteractive) {
     return <div className={className}>{content}</div>;
   }
 

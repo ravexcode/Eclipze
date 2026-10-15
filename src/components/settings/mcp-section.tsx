@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IconCircleCheck, IconTrash } from "@tabler/icons-react";
+import { IconCircleCheckFilled, IconPlug, IconPlus, IconTrash } from "@tabler/icons-react";
 
 import Button from "@/components/ui/button";
 import { DEFAULT_MCP_TOOL_NAME } from "@/constants/mcp";
@@ -10,6 +10,7 @@ import { apiFetch } from "@/utils/api-fetch";
 import SettingsFeedback from "./settings-feedback";
 import SettingsInput from "./settings-input";
 import SettingsRow from "./settings-row";
+import SettingsSection from "./settings-section";
 
 type McpResponse = {
   message?: string;
@@ -101,8 +102,9 @@ export default function McpSection() {
   };
 
   return (
-    <section className="flex flex-col gap-2.5">
-      <h2 className="text-lg font-medium">MCP Agents</h2>
+    <SettingsSection
+      title="MCP agents"
+      description="Connect your own MCP servers and mention them with @tags.">
       <SettingsFeedback error={error} message={message} />
 
       {connections.map(connection => (
@@ -110,10 +112,11 @@ export default function McpSection() {
           key={connection.id}
           title={`@${connection.name.replace(/\s+/g, "")}`}
           detail={connection.url}
+          leading={<IconPlug size={16} strokeWidth={1.7} />}
           action={(
             <>
-              <span className="inline-flex items-center gap-1 text-status-green">
-                <IconCircleCheck size={13} />
+              <span className="inline-flex items-center gap-1 rounded-full bg-status-green/10 px-2 py-0.5 text-status-green">
+                <IconCircleCheckFilled size={12} />
                 Connected
               </span>
               <button
@@ -131,6 +134,7 @@ export default function McpSection() {
       <SettingsRow
         title="Add an MCP agent"
         detail="Use Codex with your own login."
+        leading={<IconPlus size={16} strokeWidth={1.7} />}
         expanded={isFormOpen}
         controls="mcp-connection-form"
         onClick={() => setIsFormOpen(open => !open)} />
@@ -138,7 +142,7 @@ export default function McpSection() {
       {isFormOpen ? (
         <form
           id="mcp-connection-form"
-          className="flex flex-col gap-3 rounded-md bg-background-card px-3 py-3"
+          className="flex flex-col gap-4 rounded-lg border border-background-focus bg-background-card p-4"
           onSubmit={event => {
             event.preventDefault();
             void connect();
@@ -191,13 +195,13 @@ export default function McpSection() {
               disabled={isBusy}
               required />
           </label>
-          <div className="flex justify-end">
+          <div className="flex justify-end border-t border-background-focus pt-3">
             <Button type="submit" variant="secondary" disabled={isBusy || !name.trim() || !url.trim()}>
               {isBusy ? "Connecting..." : "Connect"}
             </Button>
           </div>
         </form>
       ) : null}
-    </section>
+    </SettingsSection>
   );
 }

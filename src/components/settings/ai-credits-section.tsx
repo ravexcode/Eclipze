@@ -6,6 +6,7 @@ import { IconExternalLink } from "@tabler/icons-react";
 import { apiFetch } from "@/utils/api-fetch";
 import { readJson } from "@/utils/json-payload";
 import SettingsRow from "./settings-row";
+import SettingsSection from "./settings-section";
 
 type CreditBalance = {
   availableCredits: number;
@@ -47,9 +48,9 @@ export default function AiCreditsSection() {
   );
 
   return (
-    <section className="flex flex-col gap-2.5">
-      <h2 className="text-lg font-medium">Billing</h2>
-      <div className="flex flex-col gap-2">
+    <SettingsSection
+      title="Billing"
+      description="Your plan and Eclipse-funded AI credits.">
         <SettingsRow
           title="Free plan"
           detail="$0 USD / month"
@@ -64,11 +65,10 @@ export default function AiCreditsSection() {
         ) : (
           <SettingsRow title="Credits available" action={<span role="status" className="text-foreground-off">Loading...</span>} />
         )}
-      </div>
       {error ? <p role="alert" className="text-xs text-alert-red">{error}</p> : null}
       {balance && !balance.serviceOpenRouterAvailable ? (
         <p className="text-xs text-foreground-off">Eclipse-funded OpenRouter is not enabled on this server.</p>
       ) : null}
-    </section>
+    </SettingsSection>
   );
 }

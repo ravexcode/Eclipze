@@ -12,6 +12,7 @@ import { apiFetch } from "@/utils/api-fetch";
 import McpSection from "./mcp-section";
 import ProviderCard from "./provider-card";
 import SettingsFeedback from "./settings-feedback";
+import SettingsSection from "./settings-section";
 
 type ConnectionResponse = {
   message: string;
@@ -163,8 +164,15 @@ export default function ProvidersSection() {
     isLoading ? (
       <div className="flex flex-col gap-2" role="status" aria-label="Loading provider connections">
         {providers.map((provider) => (
-          <div key={provider.id} className="flex h-10 items-center justify-between rounded-md bg-background-card px-2.5" aria-hidden="true">
-            <span className="h-3.5 w-28 animate-pulse rounded-md bg-background-focus" />
+          <div
+            key={provider.id}
+            className="flex min-h-13 items-center gap-3 rounded-lg border border-background-focus bg-background-card px-3 py-2.5"
+            aria-hidden="true">
+            <span className="h-8 w-8 animate-pulse rounded-md bg-background-focus" />
+            <span className="flex flex-1 flex-col gap-1.5">
+              <span className="h-3 w-24 animate-pulse rounded-md bg-background-focus" />
+              <span className="h-2.5 w-44 animate-pulse rounded-md bg-background-focus" />
+            </span>
             <span className="h-3 w-16 animate-pulse rounded-md bg-background-focus" />
           </div>
         ))}
@@ -193,16 +201,18 @@ export default function ProvidersSection() {
   );
 
   return (
-    <div className="flex flex-col gap-7">
+    <div className="flex flex-col gap-10">
       <SettingsFeedback error={error} message={message} />
-      <section className="flex flex-col gap-2.5">
-        <h2 className="text-lg font-medium">AI Connections</h2>
+      <SettingsSection
+        title="AI connections"
+        description="Connect model providers and agents with your own credentials.">
         {renderProviderRows(connectionProviders)}
-      </section>
-      <section className="flex flex-col gap-2.5">
-        <h2 className="text-lg font-medium">API Keys</h2>
+      </SettingsSection>
+      <SettingsSection
+        title="API keys"
+        description="Route requests through third-party model gateways.">
         {renderProviderRows(apiKeyProviders)}
-      </section>
+      </SettingsSection>
       <McpSection />
     </div>
   );

@@ -10,6 +10,7 @@ import AiCreditsSection from "@/components/settings/ai-credits-section";
 import PasswordSection from "@/components/settings/password-section";
 import ProfileSection from "@/components/settings/profile-section";
 import ProvidersSection from "@/components/settings/providers-section";
+import SettingsSection from "@/components/settings/settings-section";
 import SettingsSkeleton from "@/components/settings/settings-skeleton";
 
 import type { SessionUser } from "@/types/user";
@@ -44,34 +45,41 @@ export default function SettingsPage() {
       <main
         className="w-full pb-16">
         <div
-          className="mx-auto flex w-full max-w-250 flex-col px-4 pt-5 md:px-0">
+          className="mx-auto flex w-full max-w-200 flex-col gap-8 px-4 pt-8 md:px-0">
+          <header className="flex flex-col gap-1 border-b border-background-focus pb-6">
+            <h1 className="font-heading text-2xl font-medium">Settings</h1>
+            <p className="text-xs text-foreground-off">
+              Manage your profile, billing, AI providers, and account security.
+            </p>
+          </header>
           {user ? (
-            <div className="flex flex-col gap-7 w-full">
+            <div className="flex w-full flex-col gap-10">
               <ProfileSection
                 user={user}
                 avatarUrl={previewAvatar}
                 onSaved={setUser} />
               <AiCreditsSection />
               <ProvidersSection />
-              <section className="flex flex-col gap-2.5">
-                <h2 className="text-lg font-medium text-alert-red">Danger zone</h2>
-                <div className="flex flex-col gap-2">
-                  <DangerZone
-                    user={user}
-                    onDeleted={() => {
-                      router.replace("/auth/signin");
-                      router.refresh();
-                    }} />
-                  <PasswordSection onSaved={setUser} />
-                </div>
-              </section>
-              <DeveloperAccountSection user={user} onChanged={setUser} />
+              <DeveloperAccountSection
+                user={user}
+                onChanged={setUser} />
+              <SettingsSection
+                title="Danger zone"
+                description="Sensitive actions that affect access to your account."
+                tone="danger">
+                <PasswordSection onSaved={setUser} />
+                <DangerZone
+                  user={user}
+                  onDeleted={() => {
+                    router.replace("/auth/signin");
+                    router.refresh();
+                  }} />
+              </SettingsSection>
             </div>
           ) : (
             <SettingsSkeleton />
           )}
         </div>
-
       </main>
 
     </DashLayout>
