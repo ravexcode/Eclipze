@@ -65,7 +65,7 @@ function AnnouncementToast({
 
   return (
     <div
-      className={`pointer-events-auto flex w-full items-start gap-3 rounded-sm border bg-background-card px-4 py-3 text-base animate-fade-in-down ${variantStyles[announcement.variant]}`}
+      className={`pointer-events-auto flex w-full items-start gap-3 rounded-md border bg-background-card px-4 py-3 text-xs animate-fade-in-down ${variantStyles[announcement.variant]}`}
       role={isError ? "alert" : "status"}
       aria-live={isError ? "assertive" : "polite"}
       aria-atomic="true"
@@ -74,7 +74,7 @@ function AnnouncementToast({
       <p className="min-w-0 flex-1 leading-6">{announcement.message}</p>
       <button
         type="button"
-        className="-mr-1 -mt-1 shrink-0 rounded-sm p-1 text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground focus-visible:outline-1 focus-visible:outline-accent"
+        className="-mr-1 -mt-1 shrink-0 rounded-md p-1 text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground focus-visible:outline-1 focus-visible:outline-accent"
         onClick={() => onDismiss(announcement.id)}
         aria-label="Dismiss announcement"
       >

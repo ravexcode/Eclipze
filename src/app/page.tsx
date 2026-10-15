@@ -37,7 +37,7 @@ export default async function HomePage() {
 
         <Image
           src="/images/dashboard.webp"
-          className="w-full rounded-lg animate-fade-in-up animate-duration-700"
+          className="w-full rounded-md animate-fade-in-up animate-duration-700"
           alt="Marketing dashboard"
           width={1920}
           height={926}

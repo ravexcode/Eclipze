@@ -65,9 +65,9 @@ export default function AiCreditsSection() {
           <SettingsRow title="Credits available" action={<span role="status" className="text-foreground-off">Loading...</span>} />
         )}
       </div>
-      {error ? <p role="alert" className="text-base text-alert-red">{error}</p> : null}
+      {error ? <p role="alert" className="text-xs text-alert-red">{error}</p> : null}
       {balance && !balance.serviceOpenRouterAvailable ? (
-        <p className="text-base text-foreground-off">Eclipse-funded OpenRouter is not enabled on this server.</p>
+        <p className="text-xs text-foreground-off">Eclipse-funded OpenRouter is not enabled on this server.</p>
       ) : null}
     </section>
   );

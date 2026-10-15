@@ -71,7 +71,7 @@ export default function MenuSelector<TValue extends string>({
   };
 
   return (
-    <div ref={containerRef} className={`relative min-w-0 text-base ${className}`}>
+    <div ref={containerRef} className={`relative min-w-0 text-xs ${className}`}>
       <button
         ref={triggerRef}
         type="button"
@@ -92,7 +92,7 @@ export default function MenuSelector<TValue extends string>({
           focusOnOpen.current = event.key === "ArrowUp" ? "last" : "first";
           setExpanded(true);
         }}
-        className="flex min-h-9 w-full items-center justify-between gap-3 rounded-sm bg-background-card hover:bg-background-focus px-2.5 py-2 text-left text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50">
+        className="flex min-h-9 w-full items-center justify-between gap-3 rounded-md bg-background-card hover:bg-background-focus px-2.5 py-2 text-left text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50">
         <span className="min-w-0 flex-1 truncate">
           {selectedOption?.label ?? placeholder}
         </span>
@@ -108,7 +108,7 @@ export default function MenuSelector<TValue extends string>({
           ref={listRef}
           role="listbox"
           aria-label={ariaLabel}
-          className="absolute left-0 top-full z-30 mt-1 max-h-64 w-full min-w-48 overflow-y-auto rounded-sm border border-background-focus bg-background-card p-1">
+          className="absolute left-0 top-full z-30 mt-1 max-h-64 w-full min-w-48 overflow-y-auto rounded-md border border-background-focus bg-background-card p-1">
           {options.map((option) => {
             const selected = option.value === value;
 
@@ -144,13 +144,13 @@ export default function MenuSelector<TValue extends string>({
                     triggerRef.current?.focus();
                   }
                 }}
-                className={`flex w-full flex-col gap-1 rounded-sm px-3 py-2 text-left transition-colors hover:bg-background-focus focus-visible:outline-2 focus-visible:outline-accent ${selected ? "bg-background-focus" : ""
+                className={`flex w-full flex-col gap-1 rounded-md px-3 py-1.5 text-left transition-colors hover:bg-background-focus focus-visible:outline-2 focus-visible:outline-accent ${selected ? "bg-background-focus" : ""
                   }`}>
                 <span className="truncate font-medium text-foreground">
                   {option.label}
                 </span>
                 {option.description ? (
-                  <span className="text-base leading-6 text-foreground/80">
+                  <span className="text-xs leading-6 text-foreground/80">
                     {option.description}
                   </span>
                 ) : null}

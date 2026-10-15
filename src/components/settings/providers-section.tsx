@@ -162,9 +162,9 @@ export default function ProvidersSection() {
     isLoading ? (
       <div className="flex flex-col gap-2" role="status" aria-label="Loading provider connections">
         {providers.map((provider) => (
-          <div key={provider.id} className="flex h-10 items-center justify-between rounded-sm bg-background-card px-2.5" aria-hidden="true">
-            <span className="h-3.5 w-28 animate-pulse rounded-sm bg-background-focus" />
-            <span className="h-3 w-16 animate-pulse rounded-sm bg-background-focus" />
+          <div key={provider.id} className="flex h-10 items-center justify-between rounded-md bg-background-card px-2.5" aria-hidden="true">
+            <span className="h-3.5 w-28 animate-pulse rounded-md bg-background-focus" />
+            <span className="h-3 w-16 animate-pulse rounded-md bg-background-focus" />
           </div>
         ))}
       </div>

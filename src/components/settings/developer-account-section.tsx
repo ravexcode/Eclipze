@@ -48,7 +48,7 @@ export default function DeveloperAccountSection(props: {
         <IconCode className="mt-0.5 shrink-0 text-foreground-off" size={18} />
         <div>
           <h2 className="text-lg font-medium">Developer access</h2>
-          <p className="mt-1 text-base text-foreground-off">
+          <p className="mt-1 text-xs text-foreground-off">
             Developer accounts have access to developer tools.
           </p>
         </div>

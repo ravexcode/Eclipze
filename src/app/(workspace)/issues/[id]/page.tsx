@@ -160,11 +160,11 @@ export default function IssueDetailPage() {
         <Heading label="Issues" />
         <div className="mx-auto flex w-full max-w-250 flex-col gap-5 p-4 md:p-8">
           {loading ? (
-            <p role="status" className="py-8 text-base text-foreground-off">
+            <p role="status" className="py-8 text-xs text-foreground-off">
               Loading issue…
             </p>
           ) : !request ? (
-            <p role="alert" className="text-base text-priority-high">
+            <p role="alert" className="text-xs text-priority-high">
               {error ?? "Issue not found."}
             </p>
           ) : (
@@ -172,47 +172,47 @@ export default function IssueDetailPage() {
               <button
                 type="button"
                 onClick={() => router.push("/issues")}
-                className="w-max rounded-sm text-base text-foreground-off hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+                className="w-max rounded-md text-xs text-foreground-off hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
                 ← Back to issues
               </button>
 
-              <section className="flex flex-col gap-5 rounded-sm border border-background-focus bg-background-card p-5 md:p-6">
+              <section className="flex flex-col gap-5 rounded-md border border-background-focus bg-background-card p-5 md:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-base text-foreground-off">
+                    <p className="text-xs text-foreground-off">
                       {request.type}
                     </p>
                     <h1 className="mt-1 break-words text-lg font-medium tracking-[-0.02em]">
                       {request.title}
                     </h1>
-                    <p className="mt-2 text-base text-foreground-off">
+                    <p className="mt-2 text-xs text-foreground-off">
                       Requested by {request.requester.username ?? request.requester.email}
                       <span aria-hidden="true"> · </span>
                       {dateLabel(request.createdAt)}
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-base text-foreground-off">
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-foreground-off">
                     <span>{request.priority}</span>
                     <span>{request.status.replaceAll("_", " ")}</span>
                   </div>
                 </div>
 
                 {request.description ? (
-                  <p className="whitespace-pre-wrap border-t border-background-focus pt-4 text-base leading-6 text-foreground-off">
+                  <p className="whitespace-pre-wrap border-t border-background-focus pt-4 text-xs leading-6 text-foreground-off">
                     {request.description}
                   </p>
                 ) : null}
 
                 {role === "DEVELOPER" ? (
                   <div className="flex flex-wrap gap-4 border-t border-background-focus pt-4">
-                    <label className="flex items-center gap-2 text-base text-foreground-off">
+                    <label className="flex items-center gap-2 text-xs text-foreground-off">
                       Priority
                       <select
                         value={request.priority}
                         onChange={(event) =>
                           void update("priority", event.target.value)
                         }
-                        className="rounded-sm bg-background-focus px-2 py-1.5 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+                        className="rounded-md bg-background-focus px-2 py-1.5 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
                         {priorities.map(([value, label]) => (
                           <option key={value} value={value}>
                             {label}
@@ -220,14 +220,14 @@ export default function IssueDetailPage() {
                         ))}
                       </select>
                     </label>
-                    <label className="flex items-center gap-2 text-base text-foreground-off">
+                    <label className="flex items-center gap-2 text-xs text-foreground-off">
                       Status
                       <select
                         value={request.status}
                         onChange={(event) =>
                           void update("status", event.target.value)
                         }
-                        className="rounded-sm bg-background-focus px-2 py-1.5 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+                        className="rounded-md bg-background-focus px-2 py-1.5 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
                         {statuses.map(([value, label]) => (
                           <option key={value} value={value}>
                             {label}
@@ -242,7 +242,7 @@ export default function IssueDetailPage() {
               {error ? (
                 <p
                   role="alert"
-                  className="rounded-sm border border-priority-high/50 bg-background-card p-3 text-base text-priority-high">
+                  className="rounded-md border border-priority-high/50 bg-background-card p-3 text-xs text-priority-high">
                   {error}
                 </p>
               ) : null}
@@ -250,15 +250,15 @@ export default function IssueDetailPage() {
               <section className="flex flex-col gap-3">
                 <h2 className="text-lg font-medium">Conversation</h2>
                 {request.messages.length === 0 ? (
-                  <p className="rounded-sm border border-background-focus bg-background-card p-5 text-base text-foreground-off">
+                  <p className="rounded-md border border-background-focus bg-background-card p-5 text-xs text-foreground-off">
                     No replies yet.
                   </p>
                 ) : (
                   request.messages.map((message) => (
                     <article
                       key={message.id}
-                      className="rounded-sm border border-background-focus bg-background-card p-4">
-                      <div className="flex flex-wrap justify-between gap-2 text-base text-foreground-off">
+                      className="rounded-md border border-background-focus bg-background-card p-4">
+                      <div className="flex flex-wrap justify-between gap-2 text-xs text-foreground-off">
                         <span>
                           {message.author.username ?? message.author.email}
                           <span aria-hidden="true"> · </span>
@@ -268,7 +268,7 @@ export default function IssueDetailPage() {
                         </span>
                         <time>{dateLabel(message.createdAt)}</time>
                       </div>
-                      <p className="mt-3 whitespace-pre-wrap text-base leading-6">
+                      <p className="mt-3 whitespace-pre-wrap text-xs leading-6">
                         {message.body}
                       </p>
                     </article>
@@ -278,9 +278,9 @@ export default function IssueDetailPage() {
 
               <form
                 onSubmit={sendMessage}
-                className="flex flex-col gap-3 rounded-sm border border-background-focus bg-background-card p-4">
+                className="flex flex-col gap-3 rounded-md border border-background-focus bg-background-card p-4">
                 <label
-                  className="text-base font-medium"
+                  className="text-xs font-medium"
                   htmlFor="request-message">
                   Add a reply
                 </label>
@@ -289,12 +289,12 @@ export default function IssueDetailPage() {
                   required
                   value={body}
                   onChange={(event) => setBody(event.target.value)}
-                  className="min-h-28 resize-y rounded-sm bg-background-focus px-3 py-2 text-base outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+                  className="min-h-28 resize-y rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
                   placeholder="Write a response…"
                 />
                 <button
                   type="submit"
-                  className="self-end rounded-sm bg-accent px-4 py-2 text-base transition-colors hover:bg-accent-strong focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+                  className="self-end rounded-md bg-accent px-3 py-1.5 text-xs transition-colors hover:bg-accent-strong focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
                   Send reply
                 </button>
               </form>

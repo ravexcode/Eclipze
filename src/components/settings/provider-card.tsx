@@ -44,7 +44,7 @@ export default function ProviderCard(props: {
     <article className="flex flex-col gap-1">
       <SettingsRow
         title={props.provider.label}
-        leading={<span className="text-base font-medium">{mark}</span>}
+        leading={<span className="text-xs font-medium">{mark}</span>}
         action={isConnected ? (
           <span className="inline-flex items-center gap-1 text-status-green">
             <IconCircleCheck size={13} />
@@ -62,18 +62,18 @@ export default function ProviderCard(props: {
       {isOpen ? (
         <form
           id={panelId}
-          className="flex flex-col gap-3 rounded-sm bg-background-card px-3 py-3"
+          className="flex flex-col gap-3 rounded-md bg-background-card px-3 py-3"
           onSubmit={(event) => {
             event.preventDefault();
             props.onConnect(props.provider);
           }}>
           <div>
             <p className="text-lg font-medium">{props.provider.label}</p>
-            <p className="mt-1 text-base text-foreground-off">{props.provider.description}</p>
+            <p className="mt-1 text-xs text-foreground-off">{props.provider.description}</p>
           </div>
           {isApiKeyProvider ? (
             <label
-              className="flex flex-col gap-1.5 text-base"
+              className="flex flex-col gap-1.5 text-xs"
               htmlFor={`${props.provider.id}-api-key`}>
               API key
               <SettingsInput
@@ -85,7 +85,7 @@ export default function ProviderCard(props: {
                 autoComplete="off"
                 disabled={props.isBusy}
                 spellCheck={false} />
-              <span className="text-base text-foreground-off">
+              <span className="text-xs text-foreground-off">
                 {isConnected && props.connection?.keyHint ? (
                   `Saved key ends in ${props.connection.keyHint}. Enter a new key to replace it.`
                 ) : props.provider.id === "GPT" ? (
@@ -105,8 +105,8 @@ export default function ProviderCard(props: {
               </span>
             </label>
           ) : null}
-          <label className="flex flex-col gap-1.5 text-base" htmlFor={`${props.provider.id}-model`}>
-            Model override <span className="text-base text-foreground-off">Optional</span>
+          <label className="flex flex-col gap-1.5 text-xs" htmlFor={`${props.provider.id}-model`}>
+            Model override <span className="text-xs text-foreground-off">Optional</span>
             <SettingsInput
               id={`${props.provider.id}-model`}
               type="text"

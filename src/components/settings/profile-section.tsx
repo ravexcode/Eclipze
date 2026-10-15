@@ -78,7 +78,7 @@ export default function ProfileSection(props: {
     <section className="flex flex-col gap-2">
       <button
         type="button"
-        className={`flex min-h-14 w-full items-center gap-3 rounded-sm bg-background-card px-3 py-2 text-left hover:bg-background-focus focus:outline-none focus-visible:ring-1 focus-visible:ring-accent ${isOpen ? "bg-background-focus" : ""}`}
+        className={`flex min-h-14 w-full items-center gap-3 rounded-md bg-background-card px-3 py-1.5 text-left hover:bg-background-focus focus:outline-hidden focus-visible:ring-1 focus-visible:ring-accent ${isOpen ? "bg-background-focus" : ""}`}
         onClick={() => {
           setIsOpen((value) => !value);
           setError(null);
@@ -94,19 +94,19 @@ export default function ProfileSection(props: {
           unoptimized
           className="h-9 w-9 shrink-0 rounded-full bg-background-focus object-cover" />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="flex min-w-0 items-center gap-1.5 text-base font-medium">
+          <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium">
             <span className="truncate">{displayName}</span>
             <IconPencil size={14} strokeWidth={1.7} className="shrink-0 text-foreground-off" />
           </span>
-          <span className="truncate text-base text-foreground-off">{props.user.email}</span>
+          <span className="truncate text-xs text-foreground-off">{props.user.email}</span>
         </span>
       </button>
       {isOpen ? (
         <form
           id="profile-settings-panel"
-          className="grid gap-4 rounded-sm bg-background-card p-4 md:grid-cols-2"
+          className="grid gap-4 rounded-md bg-background-card p-4 md:grid-cols-2"
           onSubmit={onSubmit}>
-          <label className="flex flex-col gap-1.5 text-base" htmlFor="username">
+          <label className="flex flex-col gap-1.5 text-xs" htmlFor="username">
             Username
             <SettingsInput
               id="username"
@@ -121,11 +121,11 @@ export default function ProfileSection(props: {
               required
               disabled={isSaving}
             />
-            <span className="text-base text-foreground-off">
+            <span className="text-xs text-foreground-off">
               3-24 letters, numbers, underscores, or hyphens.
             </span>
           </label>
-          <label className="flex flex-col gap-1.5 text-base" htmlFor="avatarUrl">
+          <label className="flex flex-col gap-1.5 text-xs" htmlFor="avatarUrl">
             Image URL
             <SettingsInput
               id="avatarUrl"
@@ -136,7 +136,7 @@ export default function ProfileSection(props: {
               autoComplete="url"
               disabled={isSaving}
             />
-            <span className="text-base text-foreground-off">
+            <span className="text-xs text-foreground-off">
               Leave empty to use default avatar.
             </span>
           </label>

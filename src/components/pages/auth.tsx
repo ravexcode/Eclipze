@@ -152,7 +152,7 @@ export default function AuthPage(
     <div
       className="relative flex min-h-dvh w-full items-center justify-center px-5 py-16">
       <Link
-        className="absolute left-5 top-5 flex items-center justify-center gap-1 rounded-xs px-2.5 py-1.5 text-foreground-off hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent sm:left-8 sm:top-8 text-sm duration-200"
+        className="absolute left-5 top-5 flex items-center justify-center gap-1 rounded-md px-3 py-1.5 text-foreground-off hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent sm:left-8 sm:top-8 text-xs duration-200"
         href="/">
         <IconArrowLeft
           size={17} />
@@ -307,7 +307,7 @@ export default function AuthPage(
 
         {
           error &&
-          <p className="w-full rounded-xs border border-alert-red/40 bg-alert-red/10 px-3 py-2.5 leading-6 text-red-200">
+          <p className="w-full rounded-md border border-alert-red/40 bg-alert-red/10 px-3 py-2.5 leading-6 text-red-200">
             {error}
             {errorAction && <Link className="ml-2 underline" href={errorAction.href}>{errorAction.label}</Link>}
           </p>
@@ -317,7 +317,7 @@ export default function AuthPage(
           type="submit"
           variant="main"
           disabled={isSubmitting}
-          className="my-3 h-10 min-h-0 w-full cursor-pointer rounded-lg text-sm">
+          className="my-3 h-10 min-h-0 w-full cursor-pointer rounded-md text-xs">
           {isSubmitting ? "Please wait..." : step === "credentials" ? "Continue" : "Verify code"}
         </Button>
 
@@ -347,13 +347,13 @@ export default function AuthPage(
 
         {
           step === "credentials" && type === "in" &&
-          <Link href="/auth/forgot-password" className="text-sm text-foreground-off underline hover:text-accent duration-300">Forgot your password?</Link>
+          <Link href="/auth/forgot-password" className="text-xs text-foreground-off underline hover:text-accent duration-300">Forgot your password?</Link>
         }
 
         {
           step === "credentials" &&
           <p
-            className="w-full text-center text-foreground-off text-sm">
+            className="w-full text-center text-foreground-off text-xs">
             By signin {type} you accept our <Link
               href="/legal/tos"
               className="hover:text-accent duration-300 underline">
@@ -369,7 +369,7 @@ export default function AuthPage(
         {
           step === "credentials" &&
           <p
-            className="w-full text-center text-foreground-off text-sm">
+            className="w-full text-center text-foreground-off text-xs">
             {type === "in" ? "Don't have an account?" : "Already have an account?"} <Link
               href={type === "in" ? "/auth/signup" : "/auth/signin"}
               className="hover:text-accent duration-300 underline">

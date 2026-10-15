@@ -70,7 +70,7 @@ export default function UserProfile({ profile }: Props) {
     <section
       className="w-full relative mt-auto">
       <button
-        className="w-full rounded-sm hover:bg-background-focus cursor-pointer p-2 flex gap-2 items-center justify-start"
+        className="w-full rounded-md hover:bg-background-focus cursor-pointer p-2 flex gap-2 items-center justify-start"
         onClick={() => setVisible(prev => !prev)} >
         {
           profile.avatar ?
@@ -88,7 +88,7 @@ export default function UserProfile({ profile }: Props) {
         }
 
         <p
-          className="w-full text-sm text-start">
+          className="w-full text-xs text-start">
           {profile.name}
         </p>
       </button>
@@ -96,7 +96,7 @@ export default function UserProfile({ profile }: Props) {
       {
         visible &&
         <div
-          className="w-full absolute bottom-1/1 -translate-y-3 rounded-sm flex flex-col items-center justify-center text-sm">
+          className="w-full absolute bottom-1/1 -translate-y-3 rounded-md flex flex-col items-center justify-center text-xs">
           <Link
             href="/profile/settings"
             className="flex gap-2 items-center justify-start w-full p-2 hover:backdrop-brightness-200">

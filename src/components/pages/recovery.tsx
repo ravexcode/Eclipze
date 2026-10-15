@@ -15,8 +15,8 @@ function AuthShell({ title, children }: { title: string; children: React.ReactNo
       <div className="w-full max-w-[329px]">
         <h1 className="mb-1 text-center font-base text-lg font-medium tracking-[-0.04em]">{title}</h1>
         {children}
-        <p className="mt-6 text-center text-sm text-foreground-off">
-          <Link className="rounded-sm px-2 py-1 underline transition-colors hover:bg-background-focus hover:text-foreground" href="/auth/signin">Back to sign in</Link>
+        <p className="mt-6 text-center text-xs text-foreground-off">
+          <Link className="rounded-md px-2 py-1 underline transition-colors hover:bg-background-focus hover:text-foreground" href="/auth/signin">Back to sign in</Link>
         </p>
       </div>
     </div>
@@ -24,7 +24,7 @@ function AuthShell({ title, children }: { title: string; children: React.ReactNo
 }
 
 function FormError({ message }: { message: string }) {
-  return message ? <p className="w-full rounded-sm border border-alert-red/40 bg-alert-red/10 px-3 py-2.5 text-base leading-6 text-red-200">{message}</p> : null;
+  return message ? <p className="w-full rounded-md border border-alert-red/40 bg-alert-red/10 px-3 py-2.5 text-xs leading-6 text-red-200">{message}</p> : null;
 }
 
 export function ForgotPasswordPage() {
@@ -48,7 +48,7 @@ export function ForgotPasswordPage() {
   return (
     <AuthShell title="Forgot your password?">
       {sent ? (
-        <p className="text-center text-base leading-6 text-foreground-off">
+        <p className="text-center text-xs leading-6 text-foreground-off">
           If an eligible account exists, a reset code was sent. {" "}
           <Link className="underline text-foreground" href={`/auth/reset-password?email=${encodeURIComponent(email)}`}>Continue with code</Link>.
         </p>
@@ -56,7 +56,7 @@ export function ForgotPasswordPage() {
         <Form onSubmit={submit} onError={(event) => { event.preventDefault(); setError("Please review the form fields and try again."); }}>
           <Input value={email} onChange={(event) => setEmail(event.target.value)} label="Email" type="email" autoComplete="email" required />
           <FormError message={error} />
-        <Button type="submit" disabled={busy} className="mt-1 h-[38px] min-h-0 w-full text-base">{busy ? "Please wait..." : "Send reset code"}</Button>
+        <Button type="submit" disabled={busy} className="mt-1 h-[38px] min-h-0 w-full text-xs">{busy ? "Please wait..." : "Send reset code"}</Button>
         </Form>
       )}
     </AuthShell>
@@ -90,7 +90,7 @@ export function ResetPasswordPage({ initialEmail = "" }: { initialEmail?: string
         <Input value={password} onChange={(event) => setPassword(event.target.value)} label="New password" type="password" minLength={8} required />
         <Input value={confirm} onChange={(event) => setConfirm(event.target.value)} label="Confirm password" type="password" minLength={8} required />
         <FormError message={error} />
-        <Button type="submit" disabled={busy} className="mt-1 h-[38px] min-h-0 w-full text-base">{busy ? "Please wait..." : "Reset password"}</Button>
+        <Button type="submit" disabled={busy} className="mt-1 h-[38px] min-h-0 w-full text-xs">{busy ? "Please wait..." : "Reset password"}</Button>
       </Form>
     </AuthShell>
   );
@@ -129,9 +129,9 @@ export function VerifyEmailPage() {
         <Input value={email} onChange={(event) => setEmail(event.target.value)} label="Email" type="email" required />
         <Input value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} label="6-digit code" type="text" maxLength={6} required />
         <FormError message={error} />
-        {message && !error && <p className="w-full text-base leading-6 text-foreground-off">{message}</p>}
-        <Button type="submit" disabled={busy} className="mt-1 h-[38px] min-h-0 w-full text-base">{busy ? "Please wait..." : "Verify email"}</Button>
-        <button type="button" onClick={resend} disabled={busy} className="mt-2 text-sm text-foreground-off underline transition-colors hover:text-foreground">Resend code</button>
+        {message && !error && <p className="w-full text-xs leading-6 text-foreground-off">{message}</p>}
+        <Button type="submit" disabled={busy} className="mt-1 h-[38px] min-h-0 w-full text-xs">{busy ? "Please wait..." : "Verify email"}</Button>
+        <button type="button" onClick={resend} disabled={busy} className="mt-2 text-xs text-foreground-off underline transition-colors hover:text-foreground">Resend code</button>
       </Form>
     </AuthShell>
   );

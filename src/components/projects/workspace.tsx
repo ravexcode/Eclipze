@@ -185,7 +185,7 @@ export default function ProjectsWorkspace() {
           <p className="text-lg font-medium tracking-[-0.02em]">
             Your projects
           </p>
-          <p className="mt-1 text-base text-foreground-off">
+          <p className="mt-1 text-xs text-foreground-off">
             Track status, link repositories, and keep related issues together.
           </p>
         </div>
@@ -198,7 +198,7 @@ export default function ProjectsWorkspace() {
       {error ? (
         <p
           role="alert"
-          className="rounded-sm border border-alert-red bg-surface p-4 text-base text-alert-red">
+          className="rounded-md border border-alert-red bg-surface p-4 text-xs text-alert-red">
           {error}
         </p>
       ) : null}
@@ -206,9 +206,9 @@ export default function ProjectsWorkspace() {
       {showForm ? (
         <form
           onSubmit={save}
-          className="flex flex-col gap-4 rounded-sm border border-background-focus bg-surface p-5">
+          className="flex flex-col gap-4 rounded-md border border-background-focus bg-surface p-5">
           <div className="grid gap-4 md:grid-cols-[1fr_180px]">
-            <label className="flex flex-col gap-2 text-base">
+            <label className="flex flex-col gap-2 text-xs">
               Name
               <input
                 required
@@ -219,11 +219,11 @@ export default function ProjectsWorkspace() {
                     name: event.target.value,
                   }))
                 }
-                className="rounded-sm bg-surface-raised px-3 py-2 text-base outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+                className="rounded-md bg-surface-raised px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
                 placeholder="Eclipse"
               />
             </label>
-            <label className="flex flex-col gap-2 text-base">
+            <label className="flex flex-col gap-2 text-xs">
               Status
               <select
                 value={form.status}
@@ -233,14 +233,14 @@ export default function ProjectsWorkspace() {
                     status: event.target.value as ProjectStatus,
                   }))
                 }
-                className="rounded-sm bg-surface-raised px-3 py-2 text-base outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+                className="rounded-md bg-surface-raised px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
                 <option value="ACTIVE">Active</option>
                 <option value="AT_RISK">At risk</option>
                 <option value="COMPLETED">Completed</option>
               </select>
             </label>
           </div>
-          <label className="flex flex-col gap-2 text-base">
+          <label className="flex flex-col gap-2 text-xs">
             Description
             <textarea
               value={form.description}
@@ -250,11 +250,11 @@ export default function ProjectsWorkspace() {
                   description: event.target.value,
                 }))
               }
-              className="min-h-24 resize-y rounded-sm bg-surface-raised px-3 py-2 text-base outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+              className="min-h-24 resize-y rounded-md bg-surface-raised px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
               placeholder="What is this project for?"
             />
           </label>
-          <label className="flex flex-col gap-2 text-base">
+          <label className="flex flex-col gap-2 text-xs">
             External URL
             <input
               type="url"
@@ -265,7 +265,7 @@ export default function ProjectsWorkspace() {
                   externalUrl: event.target.value,
                 }))
               }
-              className="rounded-sm bg-surface-raised px-3 py-2 text-base outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+              className="rounded-md bg-surface-raised px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
               placeholder="https://github.com/org/repo"
             />
           </label>
@@ -288,13 +288,13 @@ export default function ProjectsWorkspace() {
       ) : null}
 
       {loading ? (
-        <p className="text-base text-foreground-off" role="status">
+        <p className="text-xs text-foreground-off" role="status">
           Loading projects…
         </p>
       ) : projects.length === 0 ? (
-        <article className="rounded-sm border border-background-focus bg-surface p-6">
+        <article className="rounded-md border border-background-focus bg-surface p-6">
           <p className="text-lg font-medium">No projects yet</p>
-          <p className="mt-2 text-base leading-6 text-foreground-off">
+          <p className="mt-2 text-xs leading-6 text-foreground-off">
             Create a project to attach repositories and group issues.
           </p>
         </article>
@@ -303,7 +303,7 @@ export default function ProjectsWorkspace() {
           {projects.map((project) => (
             <article
               key={project.id}
-              className="flex flex-col gap-4 rounded-sm border border-background-focus bg-surface p-5">
+              className="flex flex-col gap-4 rounded-md border border-background-focus bg-surface p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex min-w-0 items-start gap-3">
                   <span
@@ -311,10 +311,10 @@ export default function ProjectsWorkspace() {
                   />
                   <div className="min-w-0">
                     <p className="text-lg font-medium">{project.name}</p>
-                    <p className="mt-1 text-base text-foreground-off">
+                    <p className="mt-1 text-xs text-foreground-off">
                       {PROJECT_STATUS_LABELS[project.status]}
                     </p>
-                    <p className="mt-2 max-w-xl text-base leading-6 text-foreground-off">
+                    <p className="mt-2 max-w-xl text-xs leading-6 text-foreground-off">
                       {project.description ?? "No description yet."}
                     </p>
                   </div>
@@ -332,7 +332,7 @@ export default function ProjectsWorkspace() {
                       href={project.externalUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 rounded-sm px-2 py-1 text-base text-foreground-off hover:bg-surface-raised hover:text-foreground">
+                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-foreground-off hover:bg-surface-raised hover:text-foreground">
                       Open
                       <IconArrowUpRight size={14} />
                     </a>
@@ -346,7 +346,7 @@ export default function ProjectsWorkspace() {
                   <button
                     type="button"
                     onClick={() => void remove(project.id)}
-                    className="rounded-sm p-2 text-foreground-off hover:bg-surface-raised hover:text-alert-red"
+                    className="rounded-md p-2 text-foreground-off hover:bg-surface-raised hover:text-alert-red"
                     aria-label={`Delete ${project.name}`}>
                     <IconTrash size={16} />
                   </button>
@@ -354,17 +354,17 @@ export default function ProjectsWorkspace() {
               </div>
               {expandedProjectId === project.id ? (
                 <section className="border-t border-background-focus pt-3" aria-label={`${project.name} agent sessions`}>
-                  {loadingProjectRunsId === project.id ? <p role="status" className="text-base text-foreground-off">Loading sessions…</p> : null}
+                  {loadingProjectRunsId === project.id ? <p role="status" className="text-xs text-foreground-off">Loading sessions…</p> : null}
                   {projectRuns[project.id]?.length ? (
                     <div className="flex flex-col gap-1">
                       {projectRuns[project.id].map(run => (
-                        <Link key={run.id} href={`/agents/${run.id}`} className="flex min-w-0 items-center justify-between gap-3 rounded-sm px-2.5 py-2 text-base hover:bg-surface-raised">
+                        <Link key={run.id} href={`/agents/${run.id}`} className="flex min-w-0 items-center justify-between gap-3 rounded-md px-2.5 py-2 text-xs hover:bg-surface-raised">
                           <span className="truncate">{run.prompt?.split("\n")[0] || "Agent session"}</span>
-                          <span className="shrink-0 text-base text-foreground-off">{run.status}</span>
+                          <span className="shrink-0 text-xs text-foreground-off">{run.status}</span>
                         </Link>
                       ))}
                     </div>
-                  ) : loadingProjectRunsId !== project.id ? <p className="text-base text-foreground-off">No sessions for this project yet.</p> : null}
+                  ) : loadingProjectRunsId !== project.id ? <p className="text-xs text-foreground-off">No sessions for this project yet.</p> : null}
                 </section>
               ) : null}
             </article>

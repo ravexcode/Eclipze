@@ -11,7 +11,7 @@ export default function NotAuthorizedPage() {
           Not authorized
         </p>
         <p
-          className="text-base text-foreground-off w-full text-center">
+          className="text-xs text-foreground-off w-full text-center">
           You are not authorized to access to this page <br />
           return to the <Link
             href="/"

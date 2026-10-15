@@ -28,7 +28,7 @@ export default function SelectorInput(props: Props) {
   const selectedModel = props.values.find(model => model.id === props.current);
 
   return (
-    <div className="relative w-full text-base">
+    <div className="relative w-full text-xs">
       <button
         type="button"
         aria-haspopup="listbox"
@@ -38,7 +38,7 @@ export default function SelectorInput(props: Props) {
           setExpanded(previous => !previous);
           setQuery("");
         }}
-        className={`flex w-50 items-center justify-between gap-3 rounded-sm bg-background-card px-3 py-2 text-left transition-colors hover:bg-background-focus disabled:brightness-[0.8] disabled:cursor-not-allowed ${props.disabled || props.values.length === 0 ? "brightness-[0.8] cursor-not-allowed" : "cursor-pointer"}`}>
+        className={`flex w-50 items-center justify-between gap-3 rounded-md bg-background-card px-3 py-1.5 text-left transition-colors hover:bg-background-focus disabled:brightness-[0.8] disabled:cursor-not-allowed ${props.disabled || props.values.length === 0 ? "brightness-[0.8] cursor-not-allowed" : "cursor-pointer"}`}>
         <span className="flex min-w-0 flex-1 items-center justify-between gap-3">
           {selectedModel ? (
             <span className="flex min-w-0 flex-col">
@@ -51,7 +51,7 @@ export default function SelectorInput(props: Props) {
       </button>
 
       {expanded && !props.disabled ? (
-        <div className="absolute left-0 top-full z-20 mt-1 overflow-hidden rounded-sm border border-background-focus bg-background-card">
+        <div className="absolute left-0 top-full z-20 mt-1 overflow-hidden rounded-md border border-background-focus bg-background-card">
           <label className="flex items-center gap-2 border-b border-background-focus px-3 py-2 text-foreground-off">
             <IconSearch size={16} />
             <input
@@ -75,17 +75,17 @@ export default function SelectorInput(props: Props) {
                   props.setCurrent(model.id);
                   setExpanded(false);
                 }}
-                className={`flex w-full items-center justify-between gap-3 rounded-sm px-3 py-2 text-left hover:bg-background-focus ${model.id === props.current ? "bg-background-focus" : ""}`}>
+                className={`flex w-full items-center justify-between gap-3 rounded-md px-3 py-1.5 text-left hover:bg-background-focus ${model.id === props.current ? "bg-background-focus" : ""}`}>
                 <span className="flex min-w-0 flex-col">
                   <span className="truncate font-medium">{model.name}</span>
                   {model.id !== model.name ? (
-                    <span className="truncate text-base text-foreground-off">{model.id}</span>
+                    <span className="truncate text-xs text-foreground-off">{model.id}</span>
                   ) : null}
                 </span>
                 {model.provider === "OPENROUTER" ? <OpenRouterLogo /> : null}
               </button>
             )) : (
-              <p className="px-3 py-2 text-base text-foreground-off">No matching models.</p>
+              <p className="px-3 py-2 text-xs text-foreground-off">No matching models.</p>
             )}
           </div>
         </div>
@@ -102,6 +102,6 @@ function OpenRouterLogo() {
       title="OpenRouter"
       width={50}
       height={50}
-      className="h-5 w-5 shrink-0 rounded-sm" />
+      className="h-5 w-5 shrink-0 rounded-md" />
   );
 }

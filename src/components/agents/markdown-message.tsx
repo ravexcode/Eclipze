@@ -7,7 +7,7 @@ interface Props {
 
 export default function MarkdownMessage({ children }: Props) {
   return (
-    <div className="markdown-message min-w-0 break-words text-base leading-6 text-foreground-off">
+    <div className="markdown-message min-w-0 break-words text-xs leading-6 text-foreground-off">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -15,11 +15,11 @@ export default function MarkdownMessage({ children }: Props) {
             <a {...props} target="_blank" rel="noreferrer" className="text-foreground underline underline-offset-2" />
           ),
           pre: ({ children: code }) => (
-            <pre className="my-3 overflow-x-auto rounded-sm bg-background-focus p-3 text-base leading-6">{code}</pre>
+            <pre className="my-3 overflow-x-auto rounded-md bg-background-focus p-3 text-xs leading-6">{code}</pre>
           ),
           code: ({ children: code, className }) => className
             ? <code className={className}>{code}</code>
-            : <code className="rounded-sm bg-background-focus px-1 py-0.5 text-base text-foreground">{code}</code>,
+            : <code className="rounded-md bg-background-focus px-1 py-0.5 text-xs text-foreground">{code}</code>,
           blockquote: ({ children: quote }) => (
             <blockquote className="my-3 border-l border-background-focus pl-3 text-foreground-off">{quote}</blockquote>
           ),

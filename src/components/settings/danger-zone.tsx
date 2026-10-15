@@ -83,14 +83,14 @@ export default function DangerZone(props: {
       {isOpen ? (
         <form
           id="account-deletion-panel"
-          className="flex flex-col gap-3 rounded-sm border border-alert-red/40 bg-background-card p-4"
+          className="flex flex-col gap-3 rounded-md border border-alert-red/40 bg-background-card p-4"
           onSubmit={onSubmit}>
-          <div className="flex items-start gap-2 text-base text-foreground-off">
+          <div className="flex items-start gap-2 text-xs text-foreground-off">
             <IconAlertTriangle className="mt-0.5 shrink-0 text-alert-red" size={15} />
             <p>Account deletion permanently removes your account and workspace data.</p>
           </div>
           <label
-            className="flex flex-col gap-1.5 text-base"
+            className="flex flex-col gap-1.5 text-xs"
             htmlFor="accountDeletionPassword">
             Current password
             <SettingsInput
@@ -102,7 +102,7 @@ export default function DangerZone(props: {
               required
               disabled={!canDelete || isDeleting} />
           </label>
-          <p className="text-base text-foreground-off">
+          <p className="text-xs text-foreground-off">
             {canDelete
               ? "This action cannot be undone."
               : `Deletion becomes available on ${dateLabel}.`}

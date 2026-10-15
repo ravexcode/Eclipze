@@ -156,7 +156,7 @@ export default function InboxPage() {
         <aside
           className="flex min-h-0 w-full flex-col border-b border-background-focus bg-background-card lg:w-80 lg:shrink-0 lg:border-b-0 lg:border-x">
           <div
-            className="flex items-center justify-end gap-3 p-4 text-sm">
+            className="flex items-center justify-end gap-3 p-4 text-xs">
             <button
               type="button"
               onClick={() => startCompose()}
@@ -176,7 +176,7 @@ export default function InboxPage() {
                 type="button"
                 onClick={() => selectFolder(item)}
                 aria-pressed={folder === item}
-                className={`px-3 py-1.5 text-sm capitalize transition-colors cursor-pointer duration-200 ${folder === item ? "bg-background-focus/30 text-foreground" : "text-foreground-off hover:text-foreground/70"}`}
+                className={`px-3 py-1.5 text-xs capitalize transition-colors cursor-pointer duration-200 ${folder === item ? "bg-background-focus/30 text-foreground" : "text-foreground-off hover:text-foreground/70"}`}
               >
                 {item}
               </button>
@@ -191,22 +191,22 @@ export default function InboxPage() {
               value={query}
               onChange={event => setQuery(event.target.value)}
               placeholder="Search mail"
-              className="w-full rounded-sm bg-background-focus px-3 py-2 text-xs text-foreground outline-hidden placeholder:text-foreground-off focus-visible:ring-1 focus-visible:ring-accent duration-300"
+              className="w-full rounded-md bg-background-focus px-3 py-1.5 text-xs text-foreground outline-hidden placeholder:text-foreground-off focus-visible:ring-1 focus-visible:ring-accent duration-300"
             />
           </div>
 
           {loading ? (
-            <p role="status" className="p-5 text-base text-foreground-off">Loading {folder}…</p>
+            <p role="status" className="p-5 text-xs text-foreground-off">Loading {folder}…</p>
           ) : filteredMails.length ? (
             <MailList folder={folder} mails={filteredMails} selectedId={selectedId} onSelect={mail => void selectMail(mail)} />
           ) : (
-            <p className="p-5 text-base text-foreground-off">{query ? "No matching messages." : "No messages in this folder."}</p>
+            <p className="p-5 text-xs text-foreground-off">{query ? "No matching messages." : "No messages in this folder."}</p>
           )}
         </aside>
 
         <section className="flex min-h-0 min-w-0 flex-1 flex-col">
           <header className="flex h-[50px] shrink-0 items-center justify-between px-5 sm:px-7">
-            <div className="flex items-center gap-2 text-base text-foreground-off">
+            <div className="flex items-center gap-2 text-xs text-foreground-off">
               <IconInbox size={18} />
               <span className="capitalize">{folder}</span>
             </div>
@@ -214,13 +214,13 @@ export default function InboxPage() {
               type="button"
               onClick={() => void loadMails()}
               aria-label="Refresh mail"
-              className="rounded-sm p-2 text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground"
+              className="rounded-md p-2 text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground"
             >
               <IconRefresh size={18} />
             </button>
           </header>
 
-          {error && !composeOpen ? <p role="alert" className="border-b border-alert-red/30 px-6 py-2.5 text-base text-alert-red">{error}</p> : null}
+          {error && !composeOpen ? <p role="alert" className="border-b border-alert-red/30 px-6 py-2.5 text-xs text-alert-red">{error}</p> : null}
 
           {composeOpen ? (
             <MailComposeForm
@@ -232,15 +232,15 @@ export default function InboxPage() {
               onCancel={() => { setComposeOpen(false); setError(null); }}
             />
           ) : loading ? (
-            <p role="status" className="p-7 text-base text-foreground-off">Loading message…</p>
+            <p role="status" className="p-7 text-xs text-foreground-off">Loading message…</p>
           ) : selectedMail ? (
             <MailDetail mail={selectedMail} folder={folder} onReply={() => startCompose(selectedMail)} />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center text-foreground-off">
               <IconInbox size={22} strokeWidth={1.6} />
-              <p className="text-base">Select a message to read it.</p>
-              <p className="text-base">{folder === "inbox" ? "Messages sent to you will appear here." : "Messages you send will appear here."}</p>
-              {error ? <p role="alert" className="mt-2 text-base text-alert-red">{error}</p> : null}
+              <p className="text-xs">Select a message to read it.</p>
+              <p className="text-xs">{folder === "inbox" ? "Messages sent to you will appear here." : "Messages you send will appear here."}</p>
+              {error ? <p role="alert" className="mt-2 text-xs text-alert-red">{error}</p> : null}
             </div>
           )}
         </section>

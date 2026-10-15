@@ -128,15 +128,15 @@ export default function WorkspaceSidebar({ action }: Props) {
         <div className="flex items-start justify-between px-2">
           <div>
             <h2 className="text-lg font-medium text-foreground">Agent workspace</h2>
-            <p className="mt-1 text-base text-foreground-off">Choose a project and repository before you delegate work.</p>
+            <p className="mt-1 text-xs text-foreground-off">Choose a project and repository before you delegate work.</p>
           </div>
-          <button type="button" onClick={action} aria-label="Hide right sidebar" className="rounded-xs p-1.5 text-foreground-off hover:bg-surface-raised hover:text-foreground">
+          <button type="button" onClick={action} aria-label="Hide right sidebar" className="rounded-md p-1.5 text-foreground-off hover:bg-surface-raised hover:text-foreground">
             <IconLayoutSidebarRightCollapse size={17} strokeWidth={1.8} />
           </button>
         </div>
 
         <div className="flex flex-col gap-1.5 px-2">
-          <p className="text-base text-foreground/80">Project</p>
+          <p className="text-xs text-foreground/80">Project</p>
           <MenuSelector
             ariaLabel="Project"
             onChange={selectProject}
@@ -150,7 +150,7 @@ export default function WorkspaceSidebar({ action }: Props) {
         </div>
 
         <div className="flex flex-col gap-1.5 px-2">
-          <p className="text-base text-foreground/80">Repository</p>
+          <p className="text-xs text-foreground/80">Repository</p>
           <MenuSelector
             ariaLabel="Repository"
             disabled={!filteredRepositories.length}
@@ -173,19 +173,19 @@ export default function WorkspaceSidebar({ action }: Props) {
         </div>
 
         <nav aria-label="Agent workspace actions" className="flex flex-col gap-1.5">
-          <Link href="/projects?action=create" className="group flex items-start gap-3 rounded-sm px-2.5 py-3 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+          <Link href="/projects?action=create" className="group flex items-start gap-3 rounded-md px-2.5 py-3 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
             <IconFolders size={19} strokeWidth={1.8} className="mt-0.5 shrink-0" />
             <span className="min-w-0 flex-1">
-              <span className="block text-base text-foreground">Create a project</span>
-              <span className="mt-1 block text-base leading-6">Organize related work</span>
+              <span className="block text-xs text-foreground">Create a project</span>
+              <span className="mt-1 block text-xs leading-6">Organize related work</span>
             </span>
             <IconArrowUpRight size={15} strokeWidth={1.8} className="mt-0.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
           </Link>
-          <Link href="/agents?action=connect-repository" onClick={() => window.dispatchEvent(new Event("agent-connect-repository"))} className="group flex items-start gap-3 rounded-sm px-2.5 py-3 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+          <Link href="/agents?action=connect-repository" onClick={() => window.dispatchEvent(new Event("agent-connect-repository"))} className="group flex items-start gap-3 rounded-md px-2.5 py-3 text-foreground-off transition-colors hover:bg-surface-raised hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
             <IconCode size={19} strokeWidth={1.8} className="mt-0.5 shrink-0" />
             <span className="min-w-0 flex-1">
-              <span className="block text-base text-foreground">Connect repository</span>
-              <span className="mt-1 block text-base leading-6">Add a public HTTPS repository</span>
+              <span className="block text-xs text-foreground">Connect repository</span>
+              <span className="mt-1 block text-xs leading-6">Add a public HTTPS repository</span>
             </span>
             <IconArrowUpRight size={15} strokeWidth={1.8} className="mt-0.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
           </Link>

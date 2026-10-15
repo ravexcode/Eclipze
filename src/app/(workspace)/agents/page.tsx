@@ -243,18 +243,18 @@ export default function AgentsPage() {
 
           {activeRun ? (
             <div className="mx-auto flex w-full max-w-250 flex-1 flex-col gap-4 overflow-y-auto pb-6">
-              {activeRun.prompt ? <p className="ml-auto max-w-[min(100%,600px)] whitespace-pre-wrap rounded-sm bg-accent px-3 py-2.5 text-base leading-6 text-white">{activeRun.prompt}</p> : null}
+              {activeRun.prompt ? <p className="ml-auto max-w-[min(100%,600px)] whitespace-pre-wrap rounded-md bg-accent px-3 py-2.5 text-xs leading-6 text-white">{activeRun.prompt}</p> : null}
               {activeRunOutput ? <MarkdownMessage>{activeRunOutput}</MarkdownMessage> : null}
               {activeRun.changePatch ? (
-                <details className="rounded-sm border border-background-focus bg-background-card p-3">
-                  <summary className="cursor-pointer text-base font-medium">Review isolated changes</summary>
-                  <pre className="mt-3 max-h-100 overflow-auto whitespace-pre-wrap text-base leading-6 text-foreground-off">{activeRun.changePatch}</pre>
+                <details className="rounded-md border border-background-focus bg-background-card p-3">
+                  <summary className="cursor-pointer text-xs font-medium">Review isolated changes</summary>
+                  <pre className="mt-3 max-h-100 overflow-auto whitespace-pre-wrap text-xs leading-6 text-foreground-off">{activeRun.changePatch}</pre>
                 </details>
               ) : null}
               {pendingApproval ? (
-                <div className="max-w-150 rounded-sm border border-background-focus bg-background-card p-3">
-                  <p className="text-base font-medium">Approve {String(pendingApproval.metadata?.toolName ?? "agent action")}?</p>
-                  <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap text-base leading-6 text-foreground-off">{JSON.stringify(pendingApproval.metadata?.input ?? {}, null, 2)}</pre>
+                <div className="max-w-150 rounded-md border border-background-focus bg-background-card p-3">
+                  <p className="text-xs font-medium">Approve {String(pendingApproval.metadata?.toolName ?? "agent action")}?</p>
+                  <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap text-xs leading-6 text-foreground-off">{JSON.stringify(pendingApproval.metadata?.input ?? {}, null, 2)}</pre>
                   <div className="mt-3 flex justify-end gap-2">
                     <Button variant="ghost" disabled={isDecidingApproval} onClick={() => void decideApproval(pendingApproval.metadata?.approvalId as string, false)}>Deny</Button>
                     <Button variant="secondary" disabled={isDecidingApproval} onClick={() => void decideApproval(pendingApproval.metadata?.approvalId as string, true)}>{isDecidingApproval ? "Saving…" : "Approve"}</Button>
@@ -262,17 +262,17 @@ export default function AgentsPage() {
                 </div>
               ) : null}
               {activeRun.events?.filter(event => event.type === "ERROR").map(event => (
-                <p key={event.id} className="text-base text-priority-high">{event.message}</p>
+                <p key={event.id} className="text-xs text-priority-high">{event.message}</p>
               ))}
-              {["QUEUED", "RUNNING", "WAITING_FOR_APPROVAL"].includes(activeRun.status) ? <p role="status" className="text-base text-foreground-off">{activeRun.status === "QUEUED" ? "Waiting for an agent…" : activeRun.status === "WAITING_FOR_APPROVAL" ? "Waiting for your approval…" : "Agent is working…"}</p> : null}
-              {["FAILED", "BLOCKED", "CANCELLED"].includes(activeRun.status) ? <p className="text-base text-priority-high">Task {activeRun.status.toLowerCase()}.</p> : null}
+              {["QUEUED", "RUNNING", "WAITING_FOR_APPROVAL"].includes(activeRun.status) ? <p role="status" className="text-xs text-foreground-off">{activeRun.status === "QUEUED" ? "Waiting for an agent…" : activeRun.status === "WAITING_FOR_APPROVAL" ? "Waiting for your approval…" : "Agent is working…"}</p> : null}
+              {["FAILED", "BLOCKED", "CANCELLED"].includes(activeRun.status) ? <p className="text-xs text-priority-high">Task {activeRun.status.toLowerCase()}.</p> : null}
             </div>
           ) : null}
 
           <div className={`mx-auto w-full max-w-250 ${activeRun ? "shrink-0" : "my-auto"}`}>
 
             <div
-              className="rounded-sm bg-background-card p-2.5 sm:p-3">
+              className="rounded-md bg-background-card p-2.5 sm:p-3">
 
               <input
                 id="agent-prompt"
@@ -285,7 +285,7 @@ export default function AgentsPage() {
                   }
                 }}
                 placeholder="What should your agent help you deliver?"
-                className="min-h-12 w-full bg-transparent px-1.5 py-1 text-base outline-hidden placeholder:text-foreground-off"
+                className="min-h-12 w-full bg-transparent px-1.5 py-1 text-xs outline-hidden placeholder:text-foreground-off"
               />
 
               <div
@@ -295,7 +295,7 @@ export default function AgentsPage() {
                   onClick={() => void submitTask()}
                   disabled={isLoading || isSubmitting || showNoProvidersSnackbar || !repositoryId || !prompt.trim()}
                   aria-label="Start task"
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-accent text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40">
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40">
                   <IconArrowUp size={15} strokeWidth={2.2} />
                 </button>
 
@@ -303,30 +303,30 @@ export default function AgentsPage() {
             </div>
 
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1">
-              <button type="button" onClick={() => setShowTaskSettings(value => !value)} aria-expanded={showTaskSettings} className="inline-flex items-center gap-1.5 rounded-sm px-2 py-1.5 text-base text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground">
+              <button type="button" onClick={() => setShowTaskSettings(value => !value)} aria-expanded={showTaskSettings} className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground">
                 <IconAdjustments size={13} />{showTaskSettings ? "Hide skills" : "Skills"}
               </button>
-              {showRepositoryForm ? <button type="button" onClick={() => setShowRepositoryForm(false)} className="rounded-sm px-2 py-1.5 text-base text-foreground-off hover:bg-background-focus">Cancel repository</button> : null}
+              {showRepositoryForm ? <button type="button" onClick={() => setShowRepositoryForm(false)} className="rounded-md px-2 py-1.5 text-xs text-foreground-off hover:bg-background-focus">Cancel repository</button> : null}
             </div>
 
             {error &&
               <p
                 role="alert"
-                className="mt-3 text-base text-priority-high">
+                className="mt-3 text-xs text-priority-high">
                 {error}
               </p>
             }
             {isLoading &&
               <p
                 role="status"
-                className="mt-2 text-center text-base text-foreground-off">
+                className="mt-2 text-center text-xs text-foreground-off">
                 Loading your workspace…
               </p>
             }
 
             {showRepositoryForm ? (
               <fieldset
-                className="mt-3 flex flex-col gap-3 rounded-sm border border-background-focus bg-background-card p-4">
+                className="mt-3 flex flex-col gap-3 rounded-md border border-background-focus bg-background-card p-4">
                 <legend
                   className="px-1 text-xs font-medium">
                   Connect a public repository
@@ -340,14 +340,14 @@ export default function AgentsPage() {
                     value={repositoryUrl}
                     onChange={event => setRepositoryUrl(event.target.value)}
                     placeholder="https://github.com/owner/repository"
-                    className="rounded-sm bg-background-focus px-3 py-2 text-xs" />
+                    className="rounded-md bg-background-focus px-3 py-1.5 text-xs" />
                   <div
                     className="grid gap-3 sm:grid-cols-2">
                     <input
                       value={defaultBranch}
                       onChange={event => setDefaultBranch(event.target.value)}
                       placeholder="Default branch (main)"
-                      className="rounded-sm bg-background-focus px-3 py-2 text-xs" />
+                      className="rounded-md bg-background-focus px-3 py-1.5 text-xs" />
                     <p
                       className="self-center text-xs text-foreground-off">
                       Project assignment follows your Agent workspace selection.

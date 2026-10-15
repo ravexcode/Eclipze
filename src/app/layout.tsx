@@ -37,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-base bg-background text-base text-foreground antialiased">
+      <body className="font-base bg-background text-xs text-foreground antialiased">
         <Analytics />
         <Suspense fallback={<div></div>}>
           <AnnouncementProvider>

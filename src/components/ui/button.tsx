@@ -21,7 +21,7 @@ function isButtonLinkProps(props: ButtonProps): props is ButtonLinkProps {
 }
 
 const baseStyles =
-  "inline-flex min-h-9 items-center justify-center rounded-sm px-4 py-2 text-base font-medium duration-400 disabled:pointer-events-none disabled:grayscale";
+  "inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium duration-400 disabled:pointer-events-none disabled:grayscale";
 
 const variantStyles: Record<ButtonVariant, string> = {
   main: "bg-accent text-foreground hover:brightness-150",

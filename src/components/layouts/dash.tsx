@@ -76,7 +76,7 @@ export default function DashLayout(props: Props) {
         router={props.router} />
       <div className="relative min-w-0">
         {isAgentRoute && !showWorkspaceSidebar ? (
-          <button type="button" onClick={() => setShowWorkspaceSidebar(true)} aria-label="Show right sidebar" className="absolute right-3 top-2 z-20 rounded-sm bg-surface p-2 text-foreground-off hover:bg-surface-raised hover:text-foreground">
+          <button type="button" onClick={() => setShowWorkspaceSidebar(true)} aria-label="Show right sidebar" className="absolute right-3 top-2 z-20 rounded-md bg-surface p-2 text-foreground-off hover:bg-surface-raised hover:text-foreground">
             <IconLayoutSidebarRightExpand size={17} strokeWidth={1.8} />
           </button>
         ) : null}
