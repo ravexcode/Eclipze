@@ -17,11 +17,11 @@ import { apiFetch } from "@/utils/api-fetch";
 import { invalidateSessionUser } from "@/utils/session";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { IconArrowLeft } from "@tabler/icons-react";
+import { IconArrowLeft, IconBrandGoogleFilled } from "@tabler/icons-react";
 
 export default function AuthPage(
-  { type }:
-    { type: "in" | "up" }
+  { type, initialError = null }:
+    { type: "in" | "up"; initialError?: string | null }
 ) {
   const router = useRouter();
   const { announce } = useAnnouncements();
@@ -33,7 +33,7 @@ export default function AuthPage(
   const [step, setStep] = useState<AuthStep>("credentials");
   const [verificationCode, setVerificationCode] = useState("");
   const [pendingEmail, setPendingEmail] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorAction, setErrorAction] = useState<{ href: string; label: string } | null>(null);
 
@@ -347,7 +347,7 @@ export default function AuthPage(
 
         {
           step === "credentials" && type === "in" &&
-        <Link href="/auth/forgot-password" className="text-xs text-foreground-off underline hover:text-accent transition-colors duration-300">Forgot your password?</Link>
+          <Link href="/auth/forgot-password" className="text-xs text-foreground-off underline hover:text-accent transition-colors duration-300">Forgot your password?</Link>
         }
 
         {
@@ -376,6 +376,19 @@ export default function AuthPage(
               {type === "in" ? "Sign up" : "Sign in"}
             </Link>
           </p>
+        }
+
+        {
+          step === "credentials" &&
+          <a
+            href="/api/auth/google"
+            className="flex gap-1 items-center justify-center w-full p-3 mt-3 bg-background-card rounded-md cursor-pointer hover:bg-background-focus/50 duration-200">
+            <IconBrandGoogleFilled
+              size={14}
+              stroke={1.5} />
+
+            Continue with Google
+          </a>
         }
       </Form>
     </div>

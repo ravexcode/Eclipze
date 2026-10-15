@@ -105,6 +105,8 @@ Available routes:
 - `/api/auth/reset-password`
 - `/api/auth/me`
 - `/api/auth/logout`
+- `/api/auth/google` (starts Google OAuth with state + PKCE)
+- `/api/auth/google/callback` (links or creates the user, then opens a session)
 
 Notes:
 
