@@ -24,6 +24,14 @@ export default function AgentRunPage() {
   const mentionableAgents = useMentionableAgents();
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
+  const [pendingChatId, setPendingChatId] = useState(params.chatId);
+
+  // Drop the optimistic follow-up once the new task page takes over.
+  if (pendingChatId !== params.chatId) {
+    setPendingChatId(params.chatId);
+    setPendingPrompt(null);
+  }
   const [error, setError] = useState<string | null>(null);
 
   const loadRun = useCallback(async () => {
@@ -76,10 +84,13 @@ export default function AgentRunPage() {
   const submitFollowUp = async () => {
     if (!run || !prompt.trim()) return;
 
-    const mentionedAgent = findMentionedAgent(prompt, mentionableAgents);
+    const submittedPrompt = prompt;
+    const mentionedAgent = findMentionedAgent(submittedPrompt, mentionableAgents);
 
     setSending(true);
     setError(null);
+    setPendingPrompt(submittedPrompt);
+    setPrompt("");
 
     try {
       const response = await apiFetch("/api/agent-runs", {
@@ -90,7 +101,7 @@ export default function AgentRunPage() {
           model: DEFAULT_AGENT_MODEL,
           permissionMode: DEFAULT_AGENT_PERMISSION_MODE,
           agentId: mentionedAgent?.id,
-          prompt: mentionedAgent ? stripAgentMention(prompt, mentionedAgent) : prompt,
+          prompt: mentionedAgent ? stripAgentMention(submittedPrompt, mentionedAgent) : submittedPrompt,
         }),
       });
       const payload = await readJson(response) as { run?: AgentRun; message?: string };
@@ -99,10 +110,11 @@ export default function AgentRunPage() {
         throw new Error(payload.message ?? "Unable to start this task.");
       }
 
-      setPrompt("");
       window.dispatchEvent(new Event("agent-runs-updated"));
       router.push(`/agents/${payload.run.id}`);
     } catch (submitError) {
+      setPendingPrompt(null);
+      setPrompt(submittedPrompt);
       setError(submitError instanceof Error ? submitError.message : "Unable to start this task.");
     } finally {
       setSending(false);
@@ -133,6 +145,8 @@ export default function AgentRunPage() {
                   run={run}
                   onCancel={["QUEUED", "RUNNING"].includes(run.status) ? () => void cancelRun() : undefined} />
               ) : null}
+
+              {pendingPrompt ? <ChatThread pendingPrompt={pendingPrompt} /> : null}
 
               {error ? (
                 <p role="alert" className="text-xs text-priority-high">

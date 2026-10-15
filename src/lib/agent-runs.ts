@@ -339,6 +339,7 @@ async function executeAgentRun(runId: string, userId: string) {
       await persistEvent({
         type: "OUTPUT",
         message: sanitizeRunnerOutput(completion.answer.slice(offset, offset + 7_500)),
+        metadata: { isFinalAnswer: true },
       });
     }
 

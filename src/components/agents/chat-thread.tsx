@@ -1,102 +1,95 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   IconAlertTriangle,
   IconChevronRight,
-  IconCircleCheck,
   IconGitCompare,
   IconShieldCheck,
-  IconSparkles,
 } from "@tabler/icons-react";
 
 import Button from "@/components/ui/button";
 import MarkdownMessage from "@/components/agents/markdown-message";
 import type { AgentRun, AgentRunEvent } from "@/types/agent-runner";
-import { AGENT_RUN_STATUS_DOT_CLASSES } from "@/constants/agents";
 import {
   AGENT_RUN_ACTIVITY_LABELS,
-  AGENT_RUN_STATUS_LABELS,
   CHAT_CARD_CLASSES,
+  STARTING_TASK_LABEL,
 } from "@/constants/chat-thread";
 import {
   countPatchLines,
-  getAgentRunErrors,
-  getAgentRunOutput,
+  getAgentRunAnswer,
   getPendingApproval,
+  getThinkingSeconds,
+  getThinkingSteps,
   isAgentRunActive,
   isAgentRunFailed,
+  type ThinkingStep,
 } from "@/utils/agents/chat-thread";
 
 interface Props {
-  run: AgentRun;
+  run?: AgentRun | null;
+  pendingPrompt?: string;
   isDecidingApproval?: boolean;
   onCancel?(): void;
   onDecideApproval?(approvalId: string, approved: boolean): void;
 }
 
 export default function ChatThread(props: Props) {
-  const { run } = props;
   const endRef = useRef<HTMLDivElement>(null);
+  const { run } = props;
 
-  const output = getAgentRunOutput(run);
-  const errors = getAgentRunErrors(run);
-  const pendingApproval = getPendingApproval(run);
-  const isActive = isAgentRunActive(run);
-  const isFailed = isAgentRunFailed(run);
+  const answer = run ? getAgentRunAnswer(run) : "";
+  const thinkingSteps = run ? getThinkingSteps(run) : [];
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
-  }, [output.length, run.status]);
+  }, [answer.length, thinkingSteps.length, run?.status, props.pendingPrompt]);
+
+  if (!run) {
+    return (
+      <div className="flex flex-col gap-6">
+        {props.pendingPrompt ? <UserMessage prompt={props.pendingPrompt} /> : null}
+        <ActivityLabel label={STARTING_TASK_LABEL} />
+        <div ref={endRef} />
+      </div>
+    );
+  }
+
+  const pendingApproval = getPendingApproval(run);
+  const isActive = isAgentRunActive(run);
+  const isFailed = isAgentRunFailed(run);
 
   return (
     <div className="flex flex-col gap-6">
       {run.prompt ? <UserMessage prompt={run.prompt} /> : null}
 
-      <article className="flex gap-3">
-        <AgentAvatar isActive={isActive} />
+      <article className="flex min-w-0 flex-col gap-4">
+        {isActive || thinkingSteps.length ? (
+          <ThinkingSection
+            run={run}
+            steps={thinkingSteps}
+            isActive={isActive}
+            onCancel={props.onCancel} />
+        ) : null}
 
-        <div className="flex min-w-0 flex-1 flex-col gap-3 pt-0.5">
-          <header className="flex items-center gap-2 text-xs">
-            <span className="font-medium text-foreground">Agent</span>
-            <StatusChip status={run.status} />
-          </header>
+        {answer ? <MarkdownMessage>{answer}</MarkdownMessage> : null}
 
-          {output ? <MarkdownMessage>{output}</MarkdownMessage> : null}
+        {run.changePatch ? <ChangesCard patch={run.changePatch} /> : null}
 
-          {run.changePatch ? <ChangesCard patch={run.changePatch} /> : null}
+        {pendingApproval && props.onDecideApproval ? (
+          <ApprovalCard
+            approval={pendingApproval}
+            isDeciding={props.isDecidingApproval ?? false}
+            onDecide={props.onDecideApproval} />
+        ) : null}
 
-          {pendingApproval && props.onDecideApproval ? (
-            <ApprovalCard
-              approval={pendingApproval}
-              isDeciding={props.isDecidingApproval ?? false}
-              onDecide={props.onDecideApproval} />
-          ) : null}
-
-          {errors.map(event => (
-            <Notice key={event.id} tone="error">
-              {event.message}
-            </Notice>
-          ))}
-
-          {isFailed && !errors.length ? (
-            <Notice tone="error">
-              Task {run.status.toLowerCase()}.
-            </Notice>
-          ) : null}
-
-          {run.resultSummary ? (
-            <Notice tone="success">
-              {run.resultSummary}
-            </Notice>
-          ) : null}
-
-          {isActive ? (
-            <ActivityIndicator
-              label={AGENT_RUN_ACTIVITY_LABELS[run.status]}
-              onCancel={props.onCancel} />
-          ) : null}
-        </div>
+        {isFailed ? (
+          <FailureNotice
+            message={run.status === "FAILED" && run.resultSummary
+              ? run.resultSummary
+              : `Task ${run.status.toLowerCase()}.`} />
+        ) : null}
       </article>
 
       <div ref={endRef} />
@@ -112,48 +105,104 @@ function UserMessage({ prompt }: { prompt: string }) {
   );
 }
 
-function AgentAvatar({ isActive }: { isActive: boolean }) {
+function ActivityLabel({ label }: { label?: string }) {
   return (
     <span
-      aria-hidden="true"
-      className={`flex size-7 shrink-0 items-center justify-center rounded-full border border-background-focus bg-background-card text-foreground ${isActive ? "animate-pulse" : ""}`}>
-      <IconSparkles size={14} strokeWidth={1.8} />
-    </span>
-  );
-}
-
-function StatusChip({ status }: { status: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-background-focus px-2 py-0.5 text-[11px] text-foreground-off">
-      <span className={`size-1.5 rounded-full ${AGENT_RUN_STATUS_DOT_CLASSES[status] ?? "bg-foreground-off"}`} />
-      {AGENT_RUN_STATUS_LABELS[status] ?? status}
-    </span>
-  );
-}
-
-function ActivityIndicator(props: { label?: string; onCancel?(): void }) {
-  return (
-    <div
       role="status"
-      className="flex items-center justify-between gap-3 text-xs text-foreground-off">
-      <span className="flex items-center gap-2">
-        <span aria-hidden="true" className="flex gap-1">
-          <span className="size-1 animate-bounce rounded-full bg-foreground-off [animation-delay:-0.3s]" />
-          <span className="size-1 animate-bounce rounded-full bg-foreground-off [animation-delay:-0.15s]" />
-          <span className="size-1 animate-bounce rounded-full bg-foreground-off" />
-        </span>
-        {props.label}
+      className="flex items-center gap-2 text-xs text-foreground-off">
+      <span aria-hidden="true" className="flex gap-1">
+        <span className="size-1 animate-bounce rounded-full bg-foreground-off [animation-delay:-0.3s]" />
+        <span className="size-1 animate-bounce rounded-full bg-foreground-off [animation-delay:-0.15s]" />
+        <span className="size-1 animate-bounce rounded-full bg-foreground-off" />
       </span>
+      {label}
+    </span>
+  );
+}
 
-      {props.onCancel ? (
-        <Button
+function ThinkingSection(props: {
+  run: AgentRun;
+  steps: ThinkingStep[];
+  isActive: boolean;
+  onCancel?(): void;
+}) {
+  const [isExpanded, setIsExpanded] = useState(props.isActive);
+  const [wasActive, setWasActive] = useState(props.isActive);
+
+  // Collapse the thinking log as soon as the agent finishes its task.
+  if (wasActive !== props.isActive) {
+    setWasActive(props.isActive);
+    setIsExpanded(props.isActive);
+  }
+
+  const seconds = getThinkingSeconds(props.run);
+  const doneLabel = seconds ? `Thought for ${seconds}s` : "Thought process";
+
+  return (
+    <section className="flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-3">
+        <button
           type="button"
-          variant="ghost"
-          onClick={props.onCancel}>
-          Cancel
-        </Button>
+          onClick={() => setIsExpanded(current => !current)}
+          aria-expanded={isExpanded}
+          disabled={!props.steps.length}
+          className="group inline-flex items-center gap-1.5 text-xs text-foreground-off transition-colors hover:text-foreground disabled:pointer-events-none">
+          {props.isActive ? (
+            <ActivityLabel label={AGENT_RUN_ACTIVITY_LABELS[props.run.status]} />
+          ) : (
+            <span>{doneLabel}</span>
+          )}
+          {props.steps.length ? (
+            <IconChevronRight
+              size={13}
+              className={`shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+          ) : null}
+        </button>
+
+        {props.isActive && props.onCancel ? (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={props.onCancel}>
+            Cancel
+          </Button>
+        ) : null}
+      </div>
+
+      {isExpanded && props.steps.length ? (
+        <ol className="ml-1.5 flex flex-col gap-1.5 border-l border-background-focus pl-3.5">
+          {props.steps.map(step => (
+            <li key={step.id}>
+              <ThinkingStepLine step={step} />
+            </li>
+          ))}
+        </ol>
       ) : null}
-    </div>
+    </section>
+  );
+}
+
+function ThinkingStepLine({ step }: { step: ThinkingStep }) {
+  if (step.type === "COMMAND") {
+    return (
+      <code className="font-mono text-[11px] leading-5 text-foreground">
+        $ {step.text}
+      </code>
+    );
+  }
+
+  if (step.type === "OUTPUT" || step.type === "ERROR") {
+    return (
+      <pre className={`max-h-40 overflow-auto font-mono text-[11px] leading-5 whitespace-pre-wrap ${step.type === "ERROR" ? "text-priority-high/80" : "text-foreground-off"}`}>
+        {step.text.trim()}
+      </pre>
+    );
+  }
+
+  return (
+    <p className="text-xs leading-5 text-foreground-off">
+      {step.text}
+    </p>
   );
 }
 
@@ -213,18 +262,13 @@ function ApprovalCard(props: {
   );
 }
 
-function Notice(props: { tone: "error" | "success"; children: React.ReactNode }) {
-  const isError = props.tone === "error";
-  const Icon = isError ? IconAlertTriangle : IconCircleCheck;
-
+function FailureNotice({ message }: { message: string }) {
   return (
-    <div
-      role={isError ? "alert" : undefined}
-      className={`flex gap-2 rounded-lg border px-3 py-2.5 text-xs leading-6 ${isError ? "border-priority-high/25 bg-priority-high/5 text-priority-high" : "border-status-green/20 bg-status-green/5 text-foreground"}`}>
-      <Icon
-        size={14}
-        className={`mt-1 shrink-0 ${isError ? "text-priority-high" : "text-status-green"}`} />
-      <p className="min-w-0 whitespace-pre-wrap">{props.children}</p>
-    </div>
+    <p
+      role="alert"
+      className="flex gap-2 text-xs leading-6 text-priority-high">
+      <IconAlertTriangle size={14} className="mt-1 shrink-0" />
+      <span className="min-w-0 whitespace-pre-wrap">{message}</span>
+    </p>
   );
 }

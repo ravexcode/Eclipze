@@ -41,6 +41,7 @@ export default function AgentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showNoProvidersSnackbar, setShowNoProvidersSnackbar] = useState(false);
   const [activeRun, setActiveRun] = useState<AgentRun | null>(null);
+  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -162,15 +163,22 @@ export default function AgentsPage() {
 
   const submitTask = async () => {
     if (!repositoryId || (showNoProvidersSnackbar && !mentionedAgent)) return;
+
+    const submittedPrompt = prompt;
+
     setError(null);
     setIsSubmitting(true);
+    setActiveRun(null);
+    setPendingPrompt(submittedPrompt);
+    setPrompt("");
+
     try {
       const response = await apiFetch("/api/agent-runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           repositoryId,
-          prompt: mentionedAgent ? stripAgentMention(prompt, mentionedAgent) : prompt,
+          prompt: mentionedAgent ? stripAgentMention(submittedPrompt, mentionedAgent) : submittedPrompt,
           agentId: mentionedAgent?.id,
           model: DEFAULT_AGENT_MODEL,
           skillIds: selectedSkillIds,
@@ -179,13 +187,14 @@ export default function AgentsPage() {
       });
       const payload = await readJson(response) as { run?: AgentRun; message?: string; availableCredits?: number };
       if (!response.ok || !payload.run) throw new Error(payload.message ?? "Unable to start this task.");
-      setPrompt("");
       setActiveRun(payload.run);
       window.dispatchEvent(new Event("agent-runs-updated"));
       window.dispatchEvent(new Event(AGENT_CREDITS_UPDATED_EVENT));
     } catch (submitError) {
+      setPrompt(submittedPrompt);
       setError(submitError instanceof Error ? submitError.message : "Unable to start this task.");
     } finally {
+      setPendingPrompt(null);
       setIsSubmitting(false);
     }
   };
@@ -219,6 +228,7 @@ export default function AgentsPage() {
 
   const startNewChat = useCallback(() => {
     setActiveRun(null);
+    setPendingPrompt(null);
     setPrompt("");
     setError(null);
   }, []);
@@ -239,18 +249,20 @@ export default function AgentsPage() {
 
         <section className="flex min-h-0 flex-1 flex-col px-5 pb-8 sm:px-8">
 
-          {activeRun ? (
+          {activeRun || pendingPrompt ? (
             <div
               aria-live="polite"
               className="mx-auto w-full max-w-200 flex-1 overflow-y-auto pt-4 pb-8">
               <ChatThread
+                key={activeRun?.id ?? "pending"}
                 run={activeRun}
+                pendingPrompt={pendingPrompt ?? undefined}
                 isDecidingApproval={isDecidingApproval}
                 onDecideApproval={(approvalId, approved) => void decideApproval(approvalId, approved)} />
             </div>
           ) : null}
 
-          <div className={`mx-auto w-full max-w-200 ${activeRun ? "shrink-0" : "my-auto"}`}>
+          <div className={`mx-auto w-full max-w-200 ${activeRun || pendingPrompt ? "shrink-0" : "my-auto"}`}>
 
             <AgentComposer
               id="agent-prompt"
