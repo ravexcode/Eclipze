@@ -1,5 +1,6 @@
 import type { FormEvent } from "react";
 
+import Input from "@/components/ui/input";
 import type { MailFormValues } from "@/types/mail";
 
 type MailComposeFormProps = {
@@ -26,35 +27,34 @@ export default function MailComposeForm({
 
         <label className="flex flex-col gap-2 text-xs text-foreground-off">
           To
-          <input
+          <Input
             value={values.to}
-            onChange={event => onChange({ to: event.target.value })}
+            onChange={to => onChange({ to })}
             maxLength={255}
             autoComplete="off"
             placeholder="Username or email address"
-            className="h-11 rounded-md border border-background-focus bg-background-card px-3 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
             required
           />
         </label>
 
         <label className="flex flex-col gap-2 text-xs text-foreground-off">
           Subject
-          <input
+          <Input
             value={values.subject}
-            onChange={event => onChange({ subject: event.target.value })}
+            onChange={subject => onChange({ subject })}
             maxLength={200}
-            className="h-11 rounded-md border border-background-focus bg-background-card px-3 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
             required
           />
         </label>
 
         <label className="flex flex-col gap-2 text-xs text-foreground-off">
           Message
-          <textarea
+          <Input
+            type="textarea"
             value={values.body}
-            onChange={event => onChange({ body: event.target.value })}
+            onChange={body => onChange({ body })}
             maxLength={20000}
-            className="min-h-48 resize-y rounded-md border border-background-focus bg-background-card p-3 text-xs leading-6 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+            rows={8}
             required
           />
           <span className="text-right text-xs">{values.body.length}/20,000</span>

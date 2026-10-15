@@ -5,6 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 
 import DashLayout from "@/components/layouts/dash";
 import Heading from "@/components/ui/heading";
+import Input from "@/components/ui/input";
+import MenuSelector from "@/components/ui/menu-selector";
+import { ISSUE_PRIORITY_OPTIONS, ISSUE_STATUS_OPTIONS } from "@/constants/issues";
 import { apiFetch } from "@/utils/api-fetch";
 import { refreshSessionUser } from "@/utils/session";
 import { useIssueRefresh } from "@/utils/use-issue-refresh";
@@ -37,20 +40,6 @@ type Detail = {
     };
   }>;
 };
-
-const statuses: Array<[IssueStatus, string]> = [
-  ["OPEN", "Open"],
-  ["IN_PROGRESS", "In progress"],
-  ["WAITING_FOR_USER", "Waiting for user"],
-  ["RESOLVED", "Resolved"],
-  ["CLOSED", "Closed"],
-];
-
-const priorities: Array<[IssuePriority, string]> = [
-  ["LOW", "Low"],
-  ["MEDIUM", "Medium"],
-  ["HIGH", "High"],
-];
 
 const ISSUE_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   dateStyle: "medium",
@@ -208,36 +197,28 @@ export default function IssueDetailPage() {
 
                 {role === "DEVELOPER" ? (
                   <div className="flex flex-wrap gap-4 border-t border-background-focus pt-4">
-                    <label className="flex items-center gap-2 text-xs text-foreground-off">
-                      Priority
-                      <select
+                    <div className="flex items-center gap-2 text-xs text-foreground-off">
+                      <p>Priority</p>
+                      <MenuSelector
+                        ariaLabel="Priority"
                         value={request.priority}
-                        onChange={(event) =>
-                          void update("priority", event.target.value)
-                        }
-                        className="rounded-md bg-background-focus px-2 py-1.5 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
-                        {priorities.map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="flex items-center gap-2 text-xs text-foreground-off">
-                      Status
-                      <select
+                        onChange={(priority) => void update("priority", priority)}
+                        options={ISSUE_PRIORITY_OPTIONS}
+                        placeholder="Select a priority"
+                        className="w-32"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-foreground-off">
+                      <p>Status</p>
+                      <MenuSelector
+                        ariaLabel="Status"
                         value={request.status}
-                        onChange={(event) =>
-                          void update("status", event.target.value)
-                        }
-                        className="rounded-md bg-background-focus px-2 py-1.5 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
-                        {statuses.map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                        onChange={(status) => void update("status", status)}
+                        options={ISSUE_STATUS_OPTIONS}
+                        placeholder="Select a status"
+                        className="w-44"
+                      />
+                    </div>
                   </div>
                 ) : null}
               </section>
@@ -287,12 +268,13 @@ export default function IssueDetailPage() {
                   htmlFor="request-message">
                   Add a reply
                 </label>
-                <textarea
+                <Input
+                  type="textarea"
                   id="request-message"
                   required
+                  rows={5}
                   value={body}
-                  onChange={(event) => setBody(event.target.value)}
-                  className="min-h-28 resize-y rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+                  onChange={setBody}
                   placeholder="Write a response…"
                 />
                 <button

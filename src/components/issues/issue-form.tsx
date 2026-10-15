@@ -1,7 +1,9 @@
 import type { SubmitEvent } from "react";
 
+import Input from "@/components/ui/input";
+import MenuSelector from "@/components/ui/menu-selector";
+import { ISSUE_PRIORITY_OPTIONS, ISSUE_TYPE_OPTIONS } from "@/constants/issues";
 import type { IssueFormValues } from "@/types/issues";
-import type { IssuePriority, IssueType } from "@/types/user";
 
 type IssueFormProps = {
   form: IssueFormValues;
@@ -32,53 +34,47 @@ export default function IssueForm({
 
       <label className="flex flex-col gap-2 text-xs">
         Title
-        <input
+        <Input
           required
           value={form.title}
-          onChange={(event) => onChange({ title: event.target.value })}
-          className="rounded-md bg-background-focus px-3 py-1.5 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+          onChange={(title) => onChange({ title })}
           placeholder="What do you need help with?"
         />
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="flex flex-col gap-2 text-xs">
-          Type
-          <select
+        <div className="flex flex-col gap-2 text-xs">
+          <p>Type</p>
+          <MenuSelector
+            ariaLabel="Type"
             value={form.type}
-            onChange={(event) =>
-              onChange({ type: event.target.value as IssueType })
-            }
-            className="rounded-md bg-background-focus px-3 py-1.5 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
-            <option value="SUPPORT">Support</option>
-            <option value="BUG">Bug</option>
-            <option value="FEATURE">Feature</option>
-          </select>
-        </label>
+            onChange={(type) => onChange({ type })}
+            options={ISSUE_TYPE_OPTIONS}
+            placeholder="Select a type"
+          />
+        </div>
 
-        <label className="flex flex-col gap-2 text-xs">
-          Priority
-          <select
+        <div className="flex flex-col gap-2 text-xs">
+          <p>Priority</p>
+          <MenuSelector
+            ariaLabel="Priority"
             value={form.priority}
-            onChange={(event) =>
-              onChange({ priority: event.target.value as IssuePriority })
-            }
-            className="rounded-md bg-background-focus px-3 py-1.5 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
-            <option value="LOW">Low</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HIGH">High</option>
-          </select>
-        </label>
+            onChange={(priority) => onChange({ priority })}
+            options={ISSUE_PRIORITY_OPTIONS}
+            placeholder="Select a priority"
+          />
+        </div>
       </div>
 
       <label className="flex flex-col gap-2 text-xs">
         Description
-        <textarea
+        <Input
+          type="textarea"
           required
           minLength={5}
           value={form.description}
-          onChange={(event) => onChange({ description: event.target.value })}
-          className="min-h-28 resize-y rounded-md bg-background-focus px-3 py-1.5 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+          onChange={(description) => onChange({ description })}
+          rows={5}
           placeholder="Describe the issue with enough context for the team."
         />
       </label>

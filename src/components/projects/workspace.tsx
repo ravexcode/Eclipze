@@ -6,10 +6,13 @@ import { useCallback, useEffect, useState } from "react";
 
 import Button from "@/components/ui/button";
 import Dialog from "@/components/ui/dialog";
+import Input from "@/components/ui/input";
+import MenuSelector from "@/components/ui/menu-selector";
 import {
   emptyProjectForm,
   PROJECT_STATUS_DOT,
   PROJECT_STATUS_LABELS,
+  PROJECT_STATUS_OPTIONS,
 } from "@/constants/workspace";
 import type { ProjectStatus, WorkspaceProject } from "@/types/user";
 import type { AgentRun } from "@/types/agent-runner";
@@ -307,72 +310,71 @@ export default function ProjectsWorkspace() {
         <form
           onSubmit={save}
           className="flex flex-col gap-3">
-        {error ? (
-          <p
-            role="alert"
-            className="text-xs text-alert-red">
-            {error}
-          </p>
-        ) : null}
+          {error ? (
+            <p
+              role="alert"
+              className="text-xs text-alert-red">
+              {error}
+            </p>
+          ) : null}
+
           <div className="grid gap-3 md:grid-cols-[1fr_180px]">
             <label className="flex flex-col gap-1.5 text-xs">
               Name
-              <input
+              <Input
                 required
                 value={form.name}
-                onChange={(event) =>
+                onChange={(name) =>
                   setForm((previous) => ({
                     ...previous,
-                    name: event.target.value,
+                    name,
                   }))
                 }
-                className="rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
                 placeholder="Eclipse"
               />
             </label>
-            <label className="flex flex-col gap-1.5 text-xs">
-              Status
-              <select
+            <div className="flex flex-col gap-1.5 text-xs">
+              <p>Status</p>
+              <MenuSelector
+                ariaLabel="Status"
                 value={form.status}
-                onChange={(event) =>
+                onChange={(status) =>
                   setForm((previous) => ({
                     ...previous,
-                    status: event.target.value as ProjectStatus,
+                    status,
                   }))
                 }
-                className="rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
-                <option value="ACTIVE">Active</option>
-                <option value="AT_RISK">At risk</option>
-                <option value="COMPLETED">Completed</option>
-              </select>
-            </label>
+                options={PROJECT_STATUS_OPTIONS}
+                placeholder="Select a status"
+              />
+            </div>
           </div>
           <label className="flex flex-col gap-1.5 text-xs">
             Description
-            <textarea
+            <Input
+              type="textarea"
+              rows={3}
               value={form.description}
-              onChange={(event) =>
+              onChange={(description) =>
                 setForm((previous) => ({
                   ...previous,
-                  description: event.target.value,
+                  description,
                 }))
               }
-              className="min-h-20 resize-y rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
               placeholder="What is this project for?"
             />
           </label>
           <label className="flex flex-col gap-1.5 text-xs">
             External URL
-            <input
+            <Input
               type="url"
               value={form.externalUrl}
-              onChange={(event) =>
+              onChange={(externalUrl) =>
                 setForm((previous) => ({
                   ...previous,
-                  externalUrl: event.target.value,
+                  externalUrl,
                 }))
               }
-              className="rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
               placeholder="https://github.com/org/repo"
             />
           </label>

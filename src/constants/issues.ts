@@ -1,3 +1,4 @@
+import type { MenuSelectorOption } from "@/components/ui/menu-selector";
 import type { IssueFormValues } from "@/types/issues";
 import type { IssuePriority, IssueStatus, IssueType } from "@/types/user";
 
@@ -33,3 +34,33 @@ export const priorityClasses: Record<IssuePriority, string> = {
   MEDIUM: "text-priority-medium",
   LOW: "text-priority-low",
 };
+
+export const ISSUE_TYPE_OPTIONS: MenuSelectorOption<IssueType>[] = [
+  { value: "SUPPORT", label: "Support" },
+  { value: "BUG", label: "Bug" },
+  { value: "FEATURE", label: "Feature" },
+];
+
+export const ISSUE_PRIORITY_OPTIONS: MenuSelectorOption<IssuePriority>[] = [
+  { value: "LOW", label: "Low" },
+  { value: "MEDIUM", label: "Medium" },
+  { value: "HIGH", label: "High" },
+];
+
+export const ISSUE_STATUS_OPTIONS: MenuSelectorOption<IssueStatus>[] = [
+  { value: "OPEN", label: "Open" },
+  { value: "IN_PROGRESS", label: "In progress" },
+  { value: "WAITING_FOR_USER", label: "Waiting for user" },
+  { value: "RESOLVED", label: "Resolved" },
+  { value: "CLOSED", label: "Closed" },
+];
+
+export const ISSUE_STATUS_FILTER_OPTIONS: MenuSelectorOption<"ALL" | IssueStatus>[] = [
+  { value: "ALL", label: "All statuses" },
+  ...ISSUE_STATUS_OPTIONS,
+];
+
+export const ISSUE_TYPE_FILTER_OPTIONS: MenuSelectorOption<"ALL" | IssueType>[] = [
+  { value: "ALL", label: "All types" },
+  ...ISSUE_TYPE_OPTIONS,
+];

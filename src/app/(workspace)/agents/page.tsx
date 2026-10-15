@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import DashLayout from "@/components/layouts/dash";
 import Button from "@/components/ui/button";
+import Input from "@/components/ui/input";
 import AgentComposer from "@/components/agents/composer";
 import ChatThread from "@/components/agents/chat-thread";
 import WorkspaceDialog from "@/components/agents/workspace-dialog";
@@ -305,23 +306,21 @@ export default function AgentsPage() {
                   className="flex flex-col gap-3">
                   <label className="flex flex-col gap-1.5 text-xs">
                     Repository URL
-                    <input
+                    <Input
                       required
                       type="url"
                       value={repositoryUrl}
-                      onChange={event => setRepositoryUrl(event.target.value)}
-                      placeholder="https://github.com/owner/repository"
-                      className="rounded-md bg-background-focus px-3 py-1.5 text-xs" />
+                      onChange={setRepositoryUrl}
+                      placeholder="https://github.com/owner/repository" />
                   </label>
                   <div
                     className="grid gap-3 sm:grid-cols-2">
                     <label className="flex flex-col gap-1.5 text-xs">
                       Default branch
-                      <input
+                      <Input
                         value={defaultBranch}
-                        onChange={event => setDefaultBranch(event.target.value)}
-                        placeholder="main"
-                        className="rounded-md bg-background-focus px-3 py-1.5 text-xs" />
+                        onChange={setDefaultBranch}
+                        placeholder="main" />
                     </label>
                     <p
                       className="self-center text-xs text-foreground-off">

@@ -18,6 +18,7 @@ import MailDetail from "@/components/inbox/mail-detail";
 import MailList from "@/components/inbox/mail-list";
 import DashLayout from "@/components/layouts/dash";
 import Dialog from "@/components/ui/dialog";
+import Input from "@/components/ui/input";
 import type {
   MailFolder,
   MailFormValues,
@@ -189,13 +190,12 @@ export default function InboxPage() {
 
           <div className="px-3">
             <label className="sr-only" htmlFor="mail-search">Search mail</label>
-            <input
+            <Input
               id="mail-search"
               type="search"
               value={query}
-              onChange={event => setQuery(event.target.value)}
+              onChange={setQuery}
               placeholder="Search mail"
-                className="w-full rounded-md bg-background-focus px-3 py-1.5 text-xs text-foreground outline-hidden placeholder:text-foreground-off focus-visible:ring-1 focus-visible:ring-accent transition-colors duration-300"
             />
           </div>
 
