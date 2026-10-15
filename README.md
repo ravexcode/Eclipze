@@ -1,4 +1,4 @@
-![logo](./public/logo.svg)
+![logo](./public/panel.png)
 
 Eclipze is a focused workspace for independent developers who use AI agents across multiple client projects. It brings project context, issues, repository-backed agent work, and client communication together so developers can delegate outcomes without carrying the entire coordination process themselves.
 
