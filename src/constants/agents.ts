@@ -128,3 +128,13 @@ export const AGENT_PERMISSION_MODE_OPTIONS: Array<{
       description: "Run actions allowed for this task.",
     },
   ];
+
+export const AGENT_RUN_STATUS_DOT_CLASSES: Record<string, string> = {
+  QUEUED: "bg-foreground-off",
+  RUNNING: "bg-status-cyan",
+  WAITING_FOR_APPROVAL: "bg-priority-medium",
+  SUCCEEDED: "bg-status-green",
+  FAILED: "bg-priority-high",
+  BLOCKED: "bg-priority-high",
+  CANCELLED: "bg-foreground-off",
+};

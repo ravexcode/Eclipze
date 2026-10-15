@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { IconArrowLeft, IconArrowUp } from "@tabler/icons-react";
+import { IconArrowLeft } from "@tabler/icons-react";
 
 import DashLayout from "@/components/layouts/dash";
 import Button from "@/components/ui/button";
+import AgentComposer from "@/components/agents/composer";
 import MarkdownMessage from "@/components/agents/markdown-message";
-import { AGENT_CREDITS_UPDATED_EVENT } from "@/components/layouts/workspace-sidebar";
+import WorkspaceDialog from "@/components/agents/workspace-dialog";
+import { AGENT_CREDITS_UPDATED_EVENT } from "@/constants/agent-events";
 import type { AgentRun } from "@/types/agent-runner";
 import { DEFAULT_AGENT_MODEL, DEFAULT_AGENT_PERMISSION_MODE } from "@/constants/agents";
 import { apiFetch } from "@/utils/api-fetch";
@@ -74,8 +76,7 @@ export default function AgentRunPage() {
     if (payload.run) setRun(payload.run);
   };
 
-  const submitFollowUp = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const submitFollowUp = async () => {
     if (!run || !prompt.trim()) return;
 
     setSending(true);
@@ -111,10 +112,11 @@ export default function AgentRunPage() {
   return (
     <DashLayout current="agents" router={router}>
       <main className="flex min-h-dvh min-w-0 flex-col">
-        <header className="flex h-10 shrink-0 items-center border-b border-background-focus px-4">
+        <header className="flex h-10 shrink-0 items-center justify-between border-b border-background-focus px-4">
           <button type="button" onClick={() => router.push("/agents")} className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground">
             <IconArrowLeft size={14} /> Agents
           </button>
+          <WorkspaceDialog />
         </header>
 
         <div className="flex min-h-0 flex-1 flex-col">
@@ -143,20 +145,17 @@ export default function AgentRunPage() {
             </div>
           </section>
 
-          <form onSubmit={submitFollowUp} className="mx-auto mb-5 w-[calc(100%-2.5rem)] max-w-250 rounded-md bg-background-card p-2.5 sm:mb-6 sm:p-3">
-            <label htmlFor="agent-follow-up" className="sr-only">Ask a follow-up question</label>
-            <input
+          <div className="mx-auto mb-5 w-[calc(100%-2.5rem)] max-w-250 sm:mb-6">
+            <AgentComposer
               id="agent-follow-up"
-              onChange={event => setPrompt(event.target.value)}
-                placeholder="What should your agent do next?"
-              className="min-h-11 w-full bg-transparent px-1.5 py-1 text-xs outline-hidden placeholder:text-foreground-off"
-            />
-            <div className="flex items-center justify-end px-1 pt-1.5">
-              <button type="submit" disabled={sending || !run || !prompt.trim()} aria-label="Send follow-up" className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40">
-                <IconArrowUp size={15} strokeWidth={2.2} />
-              </button>
-            </div>
-          </form>
+              value={prompt}
+              placeholder="What should your agent do next?"
+              isSendDisabled={sending || !run || !prompt.trim()}
+              currentRunId={run?.id}
+              onChange={setPrompt}
+              onSend={() => void submitFollowUp()}
+              onSelectSession={runId => router.push(`/agents/${runId}`)} />
+          </div>
         </div>
       </main>
     </DashLayout>

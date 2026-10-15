@@ -5,20 +5,17 @@ import { useRouter } from "next/navigation";
 
 import DashLayout from "@/components/layouts/dash";
 import Button from "@/components/ui/button";
+import AgentComposer from "@/components/agents/composer";
 import MarkdownMessage from "@/components/agents/markdown-message";
+import WorkspaceDialog from "@/components/agents/workspace-dialog";
+
+import type { AiProviderConnection } from "@/types/ai";
+import type { AgentRun, LibrarySkill, WorkspaceRepository } from "@/types/agent-runner";
 import {
   AGENT_CREDITS_UPDATED_EVENT,
   AGENT_NEW_CHAT_EVENT,
   AGENT_REPOSITORY_EVENT
-} from "@/components/layouts/workspace-sidebar";
-
-import {
-  IconAdjustments,
-  IconArrowUp
-} from "@tabler/icons-react";
-
-import type { AiProviderConnection } from "@/types/ai";
-import type { AgentRun, LibrarySkill, WorkspaceRepository } from "@/types/agent-runner";
+} from "@/constants/agent-events";
 import { DEFAULT_AGENT_MODEL, DEFAULT_AGENT_PERMISSION_MODE } from "@/constants/agents";
 
 import { apiFetch } from "@/utils/api-fetch";
@@ -39,7 +36,6 @@ export default function AgentsPage() {
   const [isDecidingApproval, setIsDecidingApproval] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showNoProvidersSnackbar, setShowNoProvidersSnackbar] = useState(false);
-  const [showTaskSettings, setShowTaskSettings] = useState(false);
   const [activeRun, setActiveRun] = useState<AgentRun | null>(null);
 
   useEffect(() => {
@@ -210,6 +206,12 @@ export default function AgentsPage() {
     }
   };
 
+  const toggleSkill = (skillId: string) => {
+    setSelectedSkillIds(current => current.includes(skillId)
+      ? current.filter(id => id !== skillId)
+      : [...current, skillId]);
+  };
+
   const startNewChat = useCallback(() => {
     setActiveRun(null);
     setPrompt("");
@@ -239,7 +241,11 @@ export default function AgentsPage() {
       <main
         className="flex min-h-dvh min-w-0 flex-col">
 
-        <section className="flex min-h-0 flex-1 flex-col px-5 py-8 sm:px-8">
+        <header className="flex h-10 shrink-0 items-center justify-end px-4">
+          <WorkspaceDialog />
+        </header>
+
+        <section className="flex min-h-0 flex-1 flex-col px-5 pb-8 sm:px-8">
 
           {activeRun ? (
             <div className="mx-auto flex w-full max-w-250 flex-1 flex-col gap-4 overflow-y-auto pb-6">
@@ -271,43 +277,18 @@ export default function AgentsPage() {
 
           <div className={`mx-auto w-full max-w-250 ${activeRun ? "shrink-0" : "my-auto"}`}>
 
-            <div
-              className="rounded-md bg-background-card p-2.5 sm:p-3">
-
-              <input
-                id="agent-prompt"
-                required
-                onChange={event => setPrompt(event.target.value)}
-                onKeyDown={event => {
-                  if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault();
-                    void submitTask();
-                  }
-                }}
-                placeholder="What should your agent help you deliver?"
-                className="min-h-12 w-full bg-transparent px-1.5 py-1 text-xs outline-hidden placeholder:text-foreground-off"
-              />
-
-              <div
-                className="flex items-center justify-end pt-2">
-                <button
-                  type="button"
-                  onClick={() => void submitTask()}
-                  disabled={isLoading || isSubmitting || showNoProvidersSnackbar || !repositoryId || !prompt.trim()}
-                  aria-label="Start task"
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40">
-                  <IconArrowUp size={15} strokeWidth={2.2} />
-                </button>
-
-              </div>
-            </div>
-
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1">
-              <button type="button" onClick={() => setShowTaskSettings(value => !value)} aria-expanded={showTaskSettings} className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground">
-                <IconAdjustments size={13} />{showTaskSettings ? "Hide skills" : "Skills"}
-              </button>
-              {showRepositoryForm ? <button type="button" onClick={() => setShowRepositoryForm(false)} className="rounded-md px-2 py-1.5 text-xs text-foreground-off hover:bg-background-focus">Cancel repository</button> : null}
-            </div>
+            <AgentComposer
+              id="agent-prompt"
+              value={prompt}
+              placeholder="What should your agent help you deliver?"
+              isSendDisabled={isLoading || isSubmitting || showNoProvidersSnackbar || !repositoryId || !prompt.trim()}
+              currentRunId={activeRun?.id}
+              skills={skills}
+              selectedSkillIds={selectedSkillIds}
+              onChange={setPrompt}
+              onSend={() => void submitTask()}
+              onSelectSession={runId => router.push(`/agents/${runId}`)}
+              onToggleSkill={toggleSkill} />
 
             {error &&
               <p
