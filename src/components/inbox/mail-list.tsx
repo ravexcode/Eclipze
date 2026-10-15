@@ -7,8 +7,14 @@ type MailListProps = {
   onSelect: (mail: MailItem) => void;
 };
 
+const MAIL_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "UTC",
+});
+
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  return MAIL_DATE_FORMATTER.format(new Date(value));
 }
 
 function getPersonLabel(person: MailItem["sender"]) {

@@ -8,6 +8,11 @@ import {
   getYearIssueDays,
 } from "@/utils/overview";
 
+const MONTH_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  timeZone: "UTC",
+});
+
 type OverviewDashboardProps = {
   snapshot: WorkspaceSnapshot | null;
   loading: boolean;
@@ -35,7 +40,7 @@ export default function OverviewDashboard({
   const monthLabels = yearDays
     .filter(day => day.date.getDate() === 1)
     .map(day => ({
-      label: new Intl.DateTimeFormat("en", { month: "short" }).format(day.date),
+      label: MONTH_FORMATTER.format(day.date),
       week: day.week,
     }));
 

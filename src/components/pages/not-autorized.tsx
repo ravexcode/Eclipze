@@ -15,7 +15,7 @@ export default function NotAuthorizedPage() {
           You are not authorized to access to this page <br />
           return to the <Link
             href="/"
-            className="underline duration-300 hover:text-accent">
+            className="underline transition-colors duration-300 hover:text-accent">
             Home page
           </Link>
         </p>

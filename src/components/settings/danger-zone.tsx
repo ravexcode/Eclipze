@@ -12,6 +12,13 @@ import SettingsFeedback from "./settings-feedback";
 import SettingsInput from "./settings-input";
 import SettingsRow from "./settings-row";
 
+const DELETION_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  timeZone: "UTC",
+});
+
 export default function DangerZone(props: {
   user: SessionUser;
   onDeleted(): void;
@@ -30,11 +37,7 @@ export default function DangerZone(props: {
   );
   const [currentTime] = useState(() => Date.now());
   const canDelete = currentTime >= deletionDate.getTime();
-  const dateLabel = deletionDate.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const dateLabel = DELETION_DATE_FORMATTER.format(deletionDate);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

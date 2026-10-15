@@ -33,6 +33,7 @@ export default function IssueFilters({
       </label>
 
       <select
+        aria-label="Filter issues by status"
         value={status}
         onChange={(event) =>
           onStatusChange(event.target.value as "ALL" | IssueStatus)
@@ -47,6 +48,7 @@ export default function IssueFilters({
       </select>
 
       <select
+        aria-label="Filter issues by type"
         value={type}
         onChange={(event) =>
           onTypeChange(event.target.value as "ALL" | IssueType)

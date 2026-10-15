@@ -80,11 +80,9 @@ export default function MenuSelector<TValue extends string>({
         aria-expanded={expanded}
         disabled={disabled}
         onClick={() => {
-          setExpanded((previous) => {
-            const nextExpanded = !previous;
-            if (nextExpanded) focusOnOpen.current = "first";
-            return nextExpanded;
-          });
+          const nextExpanded = !expanded;
+          if (nextExpanded) focusOnOpen.current = "first";
+          setExpanded(nextExpanded);
         }}
         onKeyDown={(event) => {
           if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;

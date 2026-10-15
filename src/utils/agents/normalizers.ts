@@ -180,16 +180,19 @@ export function jsonInit(method: string, body: Record<string, unknown>): Request
   };
 }
 
+const RUN_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  timeZone: "UTC",
+});
+
 export function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Unknown time";
 
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
+  return RUN_DATE_FORMATTER.format(date);
 }
 
 function statusColor(status: string) {

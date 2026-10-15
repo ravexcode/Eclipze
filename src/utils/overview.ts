@@ -1,5 +1,10 @@
 import type { WorkspaceAgentSession, WorkspaceIssue } from "@/types/user";
 
+const OVERVIEW_MONTH_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  timeZone: "UTC",
+});
+
 export type MonthIssueDay = {
   day: number;
   count: number;
@@ -20,7 +25,7 @@ export type AgentUsagePeriod = {
 };
 
 export function formatOverviewMonth(date: Date) {
-  const month = new Intl.DateTimeFormat("en", { month: "long" }).format(date);
+  const month = OVERVIEW_MONTH_FORMATTER.format(date);
 
   return `${month} ${date.getFullYear()} Issues`;
 }

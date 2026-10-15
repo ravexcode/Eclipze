@@ -10,11 +10,12 @@ interface Props {
 
 export default function SkillChips(props: Props) {
   if (props.skills.length === 0) return null;
+  const selectedSkillIds = new Set(props.selectedSkillIds);
 
   return (
     <div role="group" aria-label="Agent skills" className="flex flex-wrap gap-1.5 px-1 pb-2">
       {props.skills.map(skill => {
-        const isSelected = props.selectedSkillIds.includes(skill.id);
+        const isSelected = selectedSkillIds.has(skill.id);
 
         return (
           <button

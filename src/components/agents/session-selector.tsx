@@ -29,9 +29,14 @@ export default function SessionSelector(props: Props) {
       try {
         const response = await apiFetch("/api/agent-runs", { cache: "no-store" });
         const payload = await readJson(response) as { runs?: AgentRun[] };
-        if (!cancelled && response.ok) setRuns(payload.runs ?? []);
+        if (cancelled) return;
+        if (response.ok) setRuns(payload.runs ?? []);
+      } catch {
+        if (cancelled) return;
+        setRuns([]);
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (cancelled) return;
+        setIsLoading(false);
       }
     }
 

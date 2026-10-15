@@ -25,7 +25,7 @@ export default function SettingsPage() {
     let cancelled = false;
     void getSessionUser().then(currentUser => {
       if (cancelled) return;
-      if (!currentUser) router.replace("/auth/signin");
+      if (!currentUser) router.refresh();
       else setUser(currentUser);
     });
     return () => { cancelled = true; };

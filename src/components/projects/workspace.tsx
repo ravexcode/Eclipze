@@ -133,27 +133,31 @@ export default function ProjectsWorkspace() {
       status: form.status,
     };
 
-    const response = await apiFetch(
-      editingId ? `/api/projects/${editingId}` : "/api/projects",
-      {
-        method: editingId ? "PATCH" : "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
-      },
-    );
-    const payload = await readJson(response);
+    try {
+      const response = await apiFetch(
+        editingId ? `/api/projects/${editingId}` : "/api/projects",
+        {
+          method: editingId ? "PATCH" : "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        },
+      );
+      const payload = await readJson(response);
 
-    if (!response.ok) {
-      setError(errorMessage(payload, "Unable to save project."));
+      if (!response.ok) {
+        setError(errorMessage(payload, "Unable to save project."));
+        return;
+      }
+
+      setShowForm(false);
+      setEditingId(null);
+      setForm(emptyProjectForm);
+      await load();
+    } catch {
+      setError("Unable to save project.");
+    } finally {
       setSaving(false);
-      return;
     }
-
-    setShowForm(false);
-    setEditingId(null);
-    setForm(emptyProjectForm);
-    setSaving(false);
-    await load();
   };
 
   const remove = async (projectId: string) => {

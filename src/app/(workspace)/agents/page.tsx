@@ -49,7 +49,7 @@ export default function AgentsPage() {
       try {
         const user = await getSessionUser();
         if (!user) {
-          router.replace("/auth/signin");
+          router.refresh();
           return;
         }
 
@@ -321,20 +321,26 @@ export default function AgentsPage() {
                 <form
                   onSubmit={addRepository}
                   className="flex flex-col gap-3">
-                  <input
-                    required
-                    type="url"
-                    value={repositoryUrl}
-                    onChange={event => setRepositoryUrl(event.target.value)}
-                    placeholder="https://github.com/owner/repository"
-                    className="rounded-md bg-background-focus px-3 py-1.5 text-xs" />
+                  <label className="flex flex-col gap-1.5 text-xs">
+                    Repository URL
+                    <input
+                      required
+                      type="url"
+                      value={repositoryUrl}
+                      onChange={event => setRepositoryUrl(event.target.value)}
+                      placeholder="https://github.com/owner/repository"
+                      className="rounded-md bg-background-focus px-3 py-1.5 text-xs" />
+                  </label>
                   <div
                     className="grid gap-3 sm:grid-cols-2">
-                    <input
-                      value={defaultBranch}
-                      onChange={event => setDefaultBranch(event.target.value)}
-                      placeholder="Default branch (main)"
-                      className="rounded-md bg-background-focus px-3 py-1.5 text-xs" />
+                    <label className="flex flex-col gap-1.5 text-xs">
+                      Default branch
+                      <input
+                        value={defaultBranch}
+                        onChange={event => setDefaultBranch(event.target.value)}
+                        placeholder="main"
+                        className="rounded-md bg-background-focus px-3 py-1.5 text-xs" />
+                    </label>
                     <p
                       className="self-center text-xs text-foreground-off">
                       Project assignment follows your Agent workspace selection.

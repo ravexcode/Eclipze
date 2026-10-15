@@ -133,8 +133,18 @@ export class IssuesCache {
       removeLegacyPrivateCacheRecords(userId);
     } else {
       for (const key of issueEntries.keys()) {
-        const [entryUserId] = JSON.parse(key) as [string, UserRole, string];
-        if (entryUserId === userId) issueEntries.delete(key);
+        try {
+          const parsedKey: unknown = JSON.parse(key);
+          if (
+            Array.isArray(parsedKey) &&
+            typeof parsedKey[0] === "string" &&
+            parsedKey[0] === userId
+          ) {
+            issueEntries.delete(key);
+          }
+        } catch {
+          issueEntries.delete(key);
+        }
       }
       removeLegacyPrivateCacheRecords(userId);
     }

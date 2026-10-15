@@ -52,11 +52,14 @@ const priorities: Array<[IssuePriority, string]> = [
   ["HIGH", "High"],
 ];
 
+const ISSUE_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "UTC",
+});
+
 function dateLabel(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
+  return ISSUE_DATE_FORMATTER.format(new Date(value));
 }
 
 export default function IssueDetailPage() {

@@ -109,7 +109,7 @@ export async function appendRunEvent(runId: string, event: RunnerEvent) {
     type: event.type as AgentRunEventType,
     message: event.message,
     metadata: event.metadata
-      ? JSON.parse(JSON.stringify(event.metadata)) as Prisma.InputJsonValue
+      ? structuredClone(event.metadata) as Prisma.InputJsonValue
       : undefined,
   });
 }
@@ -125,7 +125,7 @@ export async function requestAgentToolApproval(input: {
       runId: input.runId,
       userId: input.userId,
       toolName: input.toolName,
-      input: JSON.parse(JSON.stringify(input.toolInput)) as Prisma.InputJsonValue,
+      input: structuredClone(input.toolInput) as Prisma.InputJsonValue,
     },
   });
 

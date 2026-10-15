@@ -26,6 +26,7 @@ interface Props {
 type LibraryMode = "installed" | "search" | "create";
 
 export default function SkillLibrary(props: Props) {
+  const selectedSkillIds = new Set(props.selectedSkillIds);
   const [mode, setMode] = useState<LibraryMode>("installed");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SkillSearchResult[]>([]);
@@ -200,7 +201,7 @@ export default function SkillLibrary(props: Props) {
               Your library is empty. Search skills.sh or create a skill to get started.
             </p>
           ) : props.skills.map(skill => {
-            const selected = props.selectedSkillIds.includes(skill.id);
+            const selected = selectedSkillIds.has(skill.id);
 
             return (
               <article key={skill.id} className="flex items-center justify-between gap-3 rounded-md bg-background-focus p-3">
@@ -329,7 +330,7 @@ export default function SkillLibrary(props: Props) {
           <p className="mb-2 text-xs text-foreground-off">Already in your library</p>
           <div className="flex flex-wrap gap-2">
             {props.skills.map(skill => {
-              const selected = props.selectedSkillIds.includes(skill.id);
+              const selected = selectedSkillIds.has(skill.id);
               return (
                 <button key={skill.id} type="button" onClick={() => props.onToggle(skill.id)} className={`rounded-md px-3 py-1.5 text-xs ${selected ? "bg-accent text-white" : "bg-background-focus text-foreground-off hover:text-foreground"}`}>
                   {skill.name}

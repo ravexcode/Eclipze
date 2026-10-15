@@ -115,7 +115,7 @@ export default function InboxPage() {
     setComposeOpen(true);
   };
 
-  const sendMail = async (event: React.SubmitEvent<HTMLFormElement>) => {
+  const sendMail = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSending(true);
     setError(null);
@@ -160,7 +160,7 @@ export default function InboxPage() {
             <button
               type="button"
               onClick={() => startCompose()}
-              className="bg-accent flex py-1.5 px-3 gap-1 items-center justify-center rounded-md cursor-pointer hover:brightness-75 duration-200"
+              className="bg-accent flex py-1.5 px-3 gap-1 items-center justify-center rounded-md cursor-pointer transition-colors hover:brightness-75 duration-200"
             >
               <IconEdit
                 size={16}
@@ -191,7 +191,7 @@ export default function InboxPage() {
               value={query}
               onChange={event => setQuery(event.target.value)}
               placeholder="Search mail"
-              className="w-full rounded-md bg-background-focus px-3 py-1.5 text-xs text-foreground outline-hidden placeholder:text-foreground-off focus-visible:ring-1 focus-visible:ring-accent duration-300"
+                className="w-full rounded-md bg-background-focus px-3 py-1.5 text-xs text-foreground outline-hidden placeholder:text-foreground-off focus-visible:ring-1 focus-visible:ring-accent transition-colors duration-300"
             />
           </div>
 

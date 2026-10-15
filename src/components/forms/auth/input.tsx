@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import {
   IconEye,
@@ -23,6 +23,7 @@ interface Props {
 
 export default function Input(props: Props) {
   const [visible, setVisible] = useState(false);
+  const inputId = useId();
 
   const inputClass = "h-10 w-full rounded-md border border-background-focus bg-background-card px-2.5 text-xs text-foreground outline-hidden transition-colors placeholder:text-foreground-off/70 focus:border-accent focus:ring-1 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50";
 
@@ -30,12 +31,14 @@ export default function Input(props: Props) {
     <div
       className="relative flex w-full flex-col items-center justify-center gap-1.5 text-xs">
       <label
+        htmlFor={inputId}
         className="w-full text-start text-xs text-foreground">
         {props.label}
       </label>
       {props.type === "password" ?
         <>
           <input
+            id={inputId}
             type={visible ? "text" : "password"}
             value={props.value}
             onChange={props.onChange}
@@ -51,6 +54,7 @@ export default function Input(props: Props) {
           <button
             type="button"
             onClick={() => setVisible(!visible)}
+            aria-label={visible ? "Hide password" : "Show password"}
             className="absolute bottom-1.5 right-2.5 rounded-md p-0.5 text-foreground-off outline-hidden transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-accent">
             {
               visible ?
@@ -63,6 +67,7 @@ export default function Input(props: Props) {
         </>
         :
         <input
+          id={inputId}
           type={props.type}
           value={props.value}
           onChange={props.onChange}

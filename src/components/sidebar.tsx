@@ -81,7 +81,7 @@ export default function Sidebar(props: Props) {
 
   return (
     <aside
-      className="h-full flex flex-col items-center justify-start pb-2 pt-7 gap-7 relative px-3 duration-200"
+      className="h-full flex flex-col items-center justify-start pb-2 pt-7 gap-7 relative px-3 transition-[width,background-color] duration-200"
       style={{
         width: `${width}px`,
         backgroundColor: bgColor,
@@ -101,7 +101,8 @@ export default function Sidebar(props: Props) {
 
               <button
                 type="button"
-                className="cursor-pointer text-foreground-off hover:text-foreground duration-200"
+                aria-label="Collapse navigation"
+                className="cursor-pointer text-foreground-off hover:text-foreground transition-colors duration-200"
                 onClick={toggle}>
                 <IconLayoutSidebar
                   size={18}
@@ -155,7 +156,8 @@ export default function Sidebar(props: Props) {
           </> :
           <button
             type="button"
-            className="cursor-pointer text-foreground-off hover:text-foreground duration-200"
+            aria-label="Expand navigation"
+            className="cursor-pointer text-foreground-off hover:text-foreground transition-colors duration-200"
             onClick={toggle}>
             <IconLayoutSidebar
               size={18}

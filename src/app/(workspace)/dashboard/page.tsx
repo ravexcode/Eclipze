@@ -15,18 +15,27 @@ export default function OverviewPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     (async () => {
-      const res = await apiFetch("/api/workspace");
+      try {
+        const res = await apiFetch("/api/workspace");
 
-      if (!res.ok) {
-        setError("Workspace not found");
-        return router.push("/auth");
-      };
+        if (!res.ok) {
+          if (!cancelled) setError("Workspace not found");
+          return;
+        }
 
-      const workspace = await res.json() as WorkspaceSnapshot;
-      setSnapshot(workspace);
-      setLoading(false);
+        const workspace = await res.json() as WorkspaceSnapshot;
+        if (!cancelled) setSnapshot(workspace);
+      } catch {
+        if (!cancelled) setError("Unable to load workspace.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
+
+    return () => { cancelled = true; };
   }, [router]);
 
   return (

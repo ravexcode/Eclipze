@@ -152,7 +152,7 @@ export default function AuthPage(
     <div
       className="relative flex min-h-dvh w-full items-center justify-center px-5 py-16">
       <Link
-        className="absolute left-5 top-5 flex items-center justify-center gap-1 rounded-md px-3 py-1.5 text-foreground-off hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent sm:left-8 sm:top-8 text-xs duration-200"
+        className="absolute left-5 top-5 flex items-center justify-center gap-1 rounded-md px-3 py-1.5 text-foreground-off hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent sm:left-8 sm:top-8 text-xs transition-colors duration-200"
         href="/">
         <IconArrowLeft
           size={17} />
@@ -331,7 +331,7 @@ export default function AuthPage(
                 setVerificationCode("");
                 setError(null);
               }}
-              className="underline hover:text-accent duration-300 cursor-pointer">
+              className="underline hover:text-accent transition-colors duration-300 cursor-pointer">
               Go back
             </button>
 
@@ -339,7 +339,7 @@ export default function AuthPage(
               type="button"
               onClick={resendCode}
               disabled={isSubmitting}
-              className="underline hover:text-accent duration-300 cursor-pointer disabled:opacity-50">
+              className="underline hover:text-accent transition-colors duration-300 cursor-pointer disabled:opacity-50">
               Resend code
             </button>
           </div>
@@ -347,7 +347,7 @@ export default function AuthPage(
 
         {
           step === "credentials" && type === "in" &&
-          <Link href="/auth/forgot-password" className="text-xs text-foreground-off underline hover:text-accent duration-300">Forgot your password?</Link>
+        <Link href="/auth/forgot-password" className="text-xs text-foreground-off underline hover:text-accent transition-colors duration-300">Forgot your password?</Link>
         }
 
         {
@@ -356,11 +356,11 @@ export default function AuthPage(
             className="w-full text-center text-foreground-off text-xs">
             By signin {type} you accept our <Link
               href="/legal/tos"
-              className="hover:text-accent duration-300 underline">
+              className="hover:text-accent transition-colors duration-300 underline">
               Terms of service
             </Link> and <Link
               href="/legal/privacy"
-              className="hover:text-accent duration-300 underline">
+              className="hover:text-accent transition-colors duration-300 underline">
               Privacy policy
             </Link>
           </p>
@@ -372,7 +372,7 @@ export default function AuthPage(
             className="w-full text-center text-foreground-off text-xs">
             {type === "in" ? "Don't have an account?" : "Already have an account?"} <Link
               href={type === "in" ? "/auth/signup" : "/auth/signin"}
-              className="hover:text-accent duration-300 underline">
+              className="hover:text-accent transition-colors duration-300 underline">
               {type === "in" ? "Sign up" : "Sign in"}
             </Link>
           </p>

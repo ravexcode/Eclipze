@@ -35,6 +35,9 @@ export default function AgentsGestor() {
   const [repoBranch, setRepoBranch] = useState("main");
   const [repoProjectId, setRepoProjectId] = useState("");
   const [saving, setSaving] = useState(false);
+  const selectedSkillsByAgent = new Map(
+    Object.entries(selectedSkills).map(([agentId, slugs]) => [agentId, new Set(slugs)]),
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -105,26 +108,30 @@ export default function AgentsGestor() {
     setSaving(true);
     setError(null);
 
-    const response = await apiFetch(
-      editingId ? `/api/agents/${editingId}` : "/api/agents",
-      {
-        method: editingId ? "PATCH" : "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(form),
-      },
-    );
-    const payload = await readJson(response);
+    try {
+      const response = await apiFetch(
+        editingId ? `/api/agents/${editingId}` : "/api/agents",
+        {
+          method: editingId ? "PATCH" : "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(form),
+        },
+      );
+      const payload = await readJson(response);
 
-    if (!response.ok) {
-      setError(errorMessage(payload, "Unable to save agent."));
+      if (!response.ok) {
+        setError(errorMessage(payload, "Unable to save agent."));
+        return;
+      }
+
+      setForm(emptyAgentForm);
+      setEditingId(null);
+      await load();
+    } catch {
+      setError("Unable to save agent.");
+    } finally {
       setSaving(false);
-      return;
     }
-
-    setForm(emptyAgentForm);
-    setEditingId(null);
-    setSaving(false);
-    await load();
   };
 
   const toggleSkill = async (agentId: string, slug: string) => {
@@ -339,9 +346,7 @@ export default function AgentsGestor() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {skills.map((skill) => {
-                    const selected = (selectedSkills[agent.id] ?? []).includes(
-                      skill.slug,
-                    );
+                    const selected = selectedSkillsByAgent.get(agent.id)?.has(skill.slug) ?? false;
 
                     return (
                       <button
