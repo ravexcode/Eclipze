@@ -8,6 +8,8 @@ import {
   GOOGLE_AUTHORIZATION_URL,
   GOOGLE_OAUTH_CALLBACK_PATH,
   GOOGLE_OAUTH_SCOPES,
+  GOOGLE_OAUTH_TRANSACTION_MAX_WAIT_MS,
+  GOOGLE_OAUTH_TRANSACTION_TIMEOUT_MS,
   GOOGLE_TOKEN_URL,
   GOOGLE_USERINFO_URL,
   type GoogleOAuthErrorCode,
@@ -107,6 +109,7 @@ export async function fetchGoogleProfile(input: {
   });
 
   if (!tokenResponse.ok) {
+    console.error("[google-oauth] Token exchange failed:", tokenResponse.status, await tokenResponse.text());
     return null;
   }
 
@@ -124,6 +127,7 @@ export async function fetchGoogleProfile(input: {
   });
 
   if (!profileResponse.ok) {
+    console.error("[google-oauth] Profile request failed:", profileResponse.status, await profileResponse.text());
     return null;
   }
 
@@ -240,5 +244,8 @@ export async function findOrCreateGoogleUser(profile: GoogleProfile): Promise<Go
     return {
       user: createdUser,
     };
+  }, {
+    maxWait: GOOGLE_OAUTH_TRANSACTION_MAX_WAIT_MS,
+    timeout: GOOGLE_OAUTH_TRANSACTION_TIMEOUT_MS,
   });
 }

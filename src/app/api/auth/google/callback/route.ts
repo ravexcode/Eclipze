@@ -56,15 +56,22 @@ export async function GET(request: Request) {
     config,
     code,
     codeVerifier,
-  }).catch(() => null);
+  }).catch((error: unknown) => {
+    console.error("[google-oauth] Profile fetch threw:", error);
+    return null;
+  });
 
   if (!profile) {
     return redirectWithError("google_failed");
   }
 
-  const result = await findOrCreateGoogleUser(profile).catch(() => ({
-    error: "google_failed" as GoogleOAuthErrorCode,
-  }));
+  const result = await findOrCreateGoogleUser(profile).catch((error: unknown) => {
+    console.error("[google-oauth] User lookup failed:", error);
+
+    return {
+      error: "google_failed" as GoogleOAuthErrorCode,
+    };
+  });
 
   if ("error" in result) {
     return redirectWithError(result.error);

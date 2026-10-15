@@ -10,6 +10,9 @@ export const GOOGLE_OAUTH_STATE_COOKIE = "google_oauth_state";
 export const GOOGLE_OAUTH_VERIFIER_COOKIE = "google_oauth_verifier";
 export const GOOGLE_OAUTH_COOKIE_MAX_AGE_SECONDS = 60 * 10;
 
+export const GOOGLE_OAUTH_TRANSACTION_MAX_WAIT_MS = 10_000;
+export const GOOGLE_OAUTH_TRANSACTION_TIMEOUT_MS = 20_000;
+
 export const GOOGLE_OAUTH_ERROR_MESSAGES = {
   google_not_configured: "Google sign-in is not available right now.",
   google_cancelled: "Google sign-in was cancelled.",
