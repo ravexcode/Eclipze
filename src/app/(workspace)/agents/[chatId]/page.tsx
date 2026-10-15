@@ -5,9 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { IconArrowLeft } from "@tabler/icons-react";
 
 import DashLayout from "@/components/layouts/dash";
-import Button from "@/components/ui/button";
 import AgentComposer from "@/components/agents/composer";
-import MarkdownMessage from "@/components/agents/markdown-message";
+import ChatThread from "@/components/agents/chat-thread";
 import WorkspaceDialog from "@/components/agents/workspace-dialog";
 import { AGENT_CREDITS_UPDATED_EVENT } from "@/constants/agent-events";
 import type { AgentRun } from "@/types/agent-runner";
@@ -48,11 +47,6 @@ export default function AgentRunPage() {
   useEffect(() => {
     (() => void loadRun())();
   }, [loadRun]);
-
-  const runOutput = run?.events
-    ?.filter(event => event.type === "OUTPUT")
-    .map(event => event.message)
-    .join("") ?? "";
 
   useEffect(() => {
     if (!run || !["QUEUED", "RUNNING"].includes(run.status)) return;
@@ -126,32 +120,29 @@ export default function AgentRunPage() {
         </header>
 
         <div className="flex min-h-0 flex-1 flex-col">
-          <section aria-live="polite" className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-8">
-            <div className="mx-auto flex w-full max-w-250 flex-col gap-4">
-              {loading ? <p role="status" className="text-xs text-foreground-off">Loading task…</p> : null}
-              {run?.prompt ? <p className="ml-auto max-w-[min(100%,450px)] whitespace-pre-wrap rounded-md bg-accent px-3 py-2.5 text-xs leading-6 text-white">{run.prompt}</p> : null}
-
-              {runOutput ? <MarkdownMessage>{runOutput}</MarkdownMessage> : null}
-              {run?.events?.filter(event => event.type === "ERROR").map(event => (
-                <p key={event.id} className="text-xs text-priority-high">{event.message}</p>
-              ))}
-
-              {run && ["QUEUED", "RUNNING"].includes(run.status) ? (
-                <div className="flex items-center justify-between gap-3 rounded-md bg-background-card px-3 py-1.5 text-xs text-foreground-off">
-                  <span>{run.status === "QUEUED" ? "Waiting for an agent…" : "Agent is working…"}</span>
-                  <Button type="button" variant="ghost" onClick={() => void cancelRun()}>Cancel</Button>
-                </div>
+          <section aria-live="polite" className="min-h-0 flex-1 overflow-y-auto px-5 py-8 sm:px-8">
+            <div className="mx-auto flex w-full max-w-200 flex-col gap-4">
+              {loading ? (
+                <p role="status" className="text-xs text-foreground-off">
+                  Loading task…
+                </p>
               ) : null}
 
-              {run && ["FAILED", "BLOCKED", "CANCELLED"].includes(run.status) ? (
-                <p className="text-xs text-priority-high">Task {run.status.toLowerCase()}.</p>
+              {run ? (
+                <ChatThread
+                  run={run}
+                  onCancel={["QUEUED", "RUNNING"].includes(run.status) ? () => void cancelRun() : undefined} />
               ) : null}
-              {run?.resultSummary ? <p className="whitespace-pre-wrap text-xs leading-6 text-foreground">{run.resultSummary}</p> : null}
-              {error ? <p role="alert" className="text-xs text-priority-high">{error}</p> : null}
+
+              {error ? (
+                <p role="alert" className="text-xs text-priority-high">
+                  {error}
+                </p>
+              ) : null}
             </div>
           </section>
 
-          <div className="mx-auto mb-5 w-[calc(100%-2.5rem)] max-w-250 sm:mb-6">
+          <div className="mx-auto mb-5 w-[calc(100%-2.5rem)] max-w-200 sm:mb-6">
             <AgentComposer
               id="agent-follow-up"
               value={prompt}

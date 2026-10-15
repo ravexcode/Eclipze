@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import DashLayout from "@/components/layouts/dash";
 import Button from "@/components/ui/button";
 import AgentComposer from "@/components/agents/composer";
-import MarkdownMessage from "@/components/agents/markdown-message";
+import ChatThread from "@/components/agents/chat-thread";
 import WorkspaceDialog from "@/components/agents/workspace-dialog";
 
 import type { AiProviderConnection } from "@/types/ai";
@@ -228,19 +228,6 @@ export default function AgentsPage() {
     return () => window.removeEventListener(AGENT_NEW_CHAT_EVENT, startNewChat);
   }, [startNewChat]);
 
-  const activeRunOutput = activeRun?.events
-    ?.filter(event => event.type === "OUTPUT")
-    .map(event => event.message)
-    .join("") ?? "";
-
-  const decidedApprovalIds = new Set(activeRun?.events
-    ?.filter(event => event.type === "SYSTEM" && typeof event.metadata?.approvalId === "string")
-    .map(event => event.metadata?.approvalId as string) ?? []);
-
-  const pendingApproval = activeRun?.events
-    ?.filter(event => event.type === "APPROVAL" && typeof event.metadata?.approvalId === "string")
-    .find(event => !decidedApprovalIds.has(event.metadata?.approvalId as string));
-
   return (
     <DashLayout current="agents" router={router}>
       <main
@@ -253,34 +240,17 @@ export default function AgentsPage() {
         <section className="flex min-h-0 flex-1 flex-col px-5 pb-8 sm:px-8">
 
           {activeRun ? (
-            <div className="mx-auto flex w-full max-w-250 flex-1 flex-col gap-4 overflow-y-auto pb-6">
-              {activeRun.prompt ? <p className="ml-auto max-w-[min(100%,600px)] whitespace-pre-wrap rounded-md bg-accent px-3 py-2.5 text-xs leading-6 text-white">{activeRun.prompt}</p> : null}
-              {activeRunOutput ? <MarkdownMessage>{activeRunOutput}</MarkdownMessage> : null}
-              {activeRun.changePatch ? (
-                <details className="rounded-md border border-background-focus bg-background-card p-3">
-                  <summary className="cursor-pointer text-xs font-medium">Review isolated changes</summary>
-                  <pre className="mt-3 max-h-100 overflow-auto whitespace-pre-wrap text-xs leading-6 text-foreground-off">{activeRun.changePatch}</pre>
-                </details>
-              ) : null}
-              {pendingApproval ? (
-                <div className="max-w-150 rounded-md border border-background-focus bg-background-card p-3">
-                  <p className="text-xs font-medium">Approve {String(pendingApproval.metadata?.toolName ?? "agent action")}?</p>
-                  <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap text-xs leading-6 text-foreground-off">{JSON.stringify(pendingApproval.metadata?.input ?? {}, null, 2)}</pre>
-                  <div className="mt-3 flex justify-end gap-2">
-                    <Button variant="ghost" disabled={isDecidingApproval} onClick={() => void decideApproval(pendingApproval.metadata?.approvalId as string, false)}>Deny</Button>
-                    <Button variant="secondary" disabled={isDecidingApproval} onClick={() => void decideApproval(pendingApproval.metadata?.approvalId as string, true)}>{isDecidingApproval ? "Saving…" : "Approve"}</Button>
-                  </div>
-                </div>
-              ) : null}
-              {activeRun.events?.filter(event => event.type === "ERROR").map(event => (
-                <p key={event.id} className="text-xs text-priority-high">{event.message}</p>
-              ))}
-              {["QUEUED", "RUNNING", "WAITING_FOR_APPROVAL"].includes(activeRun.status) ? <p role="status" className="text-xs text-foreground-off">{activeRun.status === "QUEUED" ? "Waiting for an agent…" : activeRun.status === "WAITING_FOR_APPROVAL" ? "Waiting for your approval…" : "Agent is working…"}</p> : null}
-              {["FAILED", "BLOCKED", "CANCELLED"].includes(activeRun.status) ? <p className="text-xs text-priority-high">Task {activeRun.status.toLowerCase()}.</p> : null}
+            <div
+              aria-live="polite"
+              className="mx-auto w-full max-w-200 flex-1 overflow-y-auto pt-4 pb-8">
+              <ChatThread
+                run={activeRun}
+                isDecidingApproval={isDecidingApproval}
+                onDecideApproval={(approvalId, approved) => void decideApproval(approvalId, approved)} />
             </div>
           ) : null}
 
-          <div className={`mx-auto w-full max-w-250 ${activeRun ? "shrink-0" : "my-auto"}`}>
+          <div className={`mx-auto w-full max-w-200 ${activeRun ? "shrink-0" : "my-auto"}`}>
 
             <AgentComposer
               id="agent-prompt"
