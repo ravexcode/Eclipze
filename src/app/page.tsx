@@ -36,11 +36,11 @@ export default async function HomePage() {
         </div>
 
         <Image
-          src="/images/dashboard.webp"
+          src="/images/marketing_dashboard.webp"
           className="w-full rounded-md animate-fade-in-up animate-duration-700"
           alt="Marketing dashboard"
-          width={1920}
-          height={926}
+          width={1336}
+          height={910}
           loading="eager" />
       </section>
     </MarketingLayout>
