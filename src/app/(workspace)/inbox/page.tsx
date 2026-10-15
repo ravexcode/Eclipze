@@ -1,14 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { IconEdit, IconInbox, IconRefresh, IconSend } from "@tabler/icons-react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState
+} from "react";
+import {
+  IconEdit,
+  IconInbox,
+  IconRefresh
+} from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 
 import MailComposeForm from "@/components/inbox/mail-compose-form";
 import MailDetail from "@/components/inbox/mail-detail";
 import MailList from "@/components/inbox/mail-list";
 import DashLayout from "@/components/layouts/dash";
-import type { MailFolder, MailFormValues, MailItem } from "@/types/mail";
+import type {
+  MailFolder,
+  MailFormValues,
+  MailItem
+} from "@/types/mail";
 import { apiFetch } from "@/utils/api-fetch";
 
 const EMPTY_FORM: MailFormValues = { to: "", subject: "", body: "" };
@@ -46,7 +59,7 @@ export default function InboxPage() {
   }, [folder]);
 
   useEffect(() => {
-    void loadMails(folder);
+    loadMails(folder);
   }, [folder, loadMails]);
 
   const selectedMail = mails.find(mail => mail.id === selectedId) ?? null;
@@ -102,7 +115,7 @@ export default function InboxPage() {
     setComposeOpen(true);
   };
 
-  const sendMail = async (event: FormEvent<HTMLFormElement>) => {
+  const sendMail = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSending(true);
     setError(null);
@@ -133,35 +146,44 @@ export default function InboxPage() {
   };
 
   return (
-    <DashLayout current="inbox" router={router}>
-      <main className="flex min-h-dvh min-w-0 flex-col lg:h-dvh lg:flex-row lg:overflow-hidden">
-        <aside className="flex min-h-0 w-full flex-col border-b border-background-focus bg-background-card lg:w-[375px] lg:shrink-0 lg:border-b-0 lg:border-r">
-          <div className="flex items-center justify-between gap-3 border-b border-background-focus p-4">
-            <h1 className="text-lg font-medium">Mail</h1>
+    <DashLayout
+      current="inbox"
+      router={router}>
+
+      <main
+        className="flex min-h-dvh min-w-0 flex-col lg:h-dvh lg:flex-row lg:overflow-hidden">
+
+        <aside
+          className="flex min-h-0 w-full flex-col border-b border-background-focus bg-background-card lg:w-80 lg:shrink-0 lg:border-b-0 lg:border-x">
+          <div
+            className="flex items-center justify-end gap-3 p-4 text-sm">
             <button
               type="button"
               onClick={() => startCompose()}
-              className="inline-flex h-9 items-center gap-2 rounded-sm bg-accent px-3 text-base font-medium text-white transition-colors hover:bg-accent-strong"
+              className="bg-accent flex py-1.5 px-3 gap-1 items-center justify-center rounded-md cursor-pointer hover:brightness-75 duration-200"
             >
-              <IconEdit size={16} /> Compose
+              <IconEdit
+                size={16}
+                stroke={1.5} />
+              Compose
             </button>
           </div>
 
-          <div className="grid grid-cols-2 border-b border-background-focus p-2">
+          <div className="grid grid-cols-2 p-2">
             {(["inbox", "sent"] as const).map(item => (
               <button
                 key={item}
                 type="button"
                 onClick={() => selectFolder(item)}
                 aria-pressed={folder === item}
-                className={`rounded-sm px-3 py-2 text-base capitalize transition-colors ${folder === item ? "bg-background-focus text-foreground" : "text-foreground-off hover:text-foreground"}`}
+                className={`px-3 py-1.5 text-sm capitalize transition-colors cursor-pointer duration-200 ${folder === item ? "bg-background-focus/30 text-foreground" : "text-foreground-off hover:text-foreground/70"}`}
               >
                 {item}
               </button>
             ))}
           </div>
 
-          <div className="border-b border-background-focus p-3">
+          <div className="px-3">
             <label className="sr-only" htmlFor="mail-search">Search mail</label>
             <input
               id="mail-search"
@@ -169,7 +191,7 @@ export default function InboxPage() {
               value={query}
               onChange={event => setQuery(event.target.value)}
               placeholder="Search mail"
-              className="h-10 w-full rounded-sm bg-background-focus px-4 text-base text-foreground outline-hidden placeholder:text-foreground-off focus-visible:ring-1 focus-visible:ring-accent"
+              className="w-full rounded-sm bg-background-focus px-3 py-2 text-xs text-foreground outline-hidden placeholder:text-foreground-off focus-visible:ring-1 focus-visible:ring-accent duration-300"
             />
           </div>
 
@@ -183,7 +205,7 @@ export default function InboxPage() {
         </aside>
 
         <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <header className="flex h-[50px] shrink-0 items-center justify-between border-b border-background-focus px-5 sm:px-7">
+          <header className="flex h-[50px] shrink-0 items-center justify-between px-5 sm:px-7">
             <div className="flex items-center gap-2 text-base text-foreground-off">
               <IconInbox size={18} />
               <span className="capitalize">{folder}</span>
