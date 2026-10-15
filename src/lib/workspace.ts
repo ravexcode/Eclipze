@@ -63,6 +63,7 @@ export function serializeAgent(agent: {
   id: string;
   name: string;
   defaultModel: string;
+  provider: WorkspaceAgent["provider"];
   status: WorkspaceAgent["status"];
   createdAt: Date;
   updatedAt: Date;
@@ -153,7 +154,7 @@ export async function getWorkspaceSnapshot(user: WorkspaceUser): Promise<Workspa
     prisma.agent.findMany({
       where: { userId },
       orderBy: { updatedAt: "desc" },
-      select: { id: true, name: true, defaultModel: true, status: true, createdAt: true, updatedAt: true },
+      select: { id: true, name: true, defaultModel: true, provider: true, status: true, createdAt: true, updatedAt: true },
     }),
     prisma.agentSession.findMany({
       where: { userId },

@@ -14,12 +14,15 @@ import type { AgentRun } from "@/types/agent-runner";
 import { DEFAULT_AGENT_MODEL, DEFAULT_AGENT_PERMISSION_MODE } from "@/constants/agents";
 import { apiFetch } from "@/utils/api-fetch";
 import { readJson } from "@/utils/json-payload";
+import { findMentionedAgent, stripAgentMention } from "@/utils/agents/mentions";
+import { useMentionableAgents } from "@/utils/agents/use-mentionable-agents";
 
 export default function AgentRunPage() {
   const router = useRouter();
   const params = useParams<{ chatId: string }>();
   const [run, setRun] = useState<AgentRun | null>(null);
   const [prompt, setPrompt] = useState("");
+  const mentionableAgents = useMentionableAgents();
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,6 +82,8 @@ export default function AgentRunPage() {
   const submitFollowUp = async () => {
     if (!run || !prompt.trim()) return;
 
+    const mentionedAgent = findMentionedAgent(prompt, mentionableAgents);
+
     setSending(true);
     setError(null);
 
@@ -90,7 +95,8 @@ export default function AgentRunPage() {
           repositoryId: run.repositoryId,
           model: DEFAULT_AGENT_MODEL,
           permissionMode: DEFAULT_AGENT_PERMISSION_MODE,
-          prompt,
+          agentId: mentionedAgent?.id,
+          prompt: mentionedAgent ? stripAgentMention(prompt, mentionedAgent) : prompt,
         }),
       });
       const payload = await readJson(response) as { run?: AgentRun; message?: string };
@@ -152,6 +158,7 @@ export default function AgentRunPage() {
               placeholder="What should your agent do next?"
               isSendDisabled={sending || !run || !prompt.trim()}
               currentRunId={run?.id}
+              agents={mentionableAgents}
               onChange={setPrompt}
               onSend={() => void submitFollowUp()}
               onSelectSession={runId => router.push(`/agents/${runId}`)} />

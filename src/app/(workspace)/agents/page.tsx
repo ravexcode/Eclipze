@@ -20,11 +20,15 @@ import { DEFAULT_AGENT_MODEL, DEFAULT_AGENT_PERMISSION_MODE } from "@/constants/
 
 import { apiFetch } from "@/utils/api-fetch";
 import { getSessionUser } from "@/utils/session";
+import { findMentionedAgent, stripAgentMention } from "@/utils/agents/mentions";
+import { useMentionableAgents } from "@/utils/agents/use-mentionable-agents";
 import { readJson } from "@/utils/json-payload";
 
 export default function AgentsPage() {
   const router = useRouter();
   const [prompt, setPrompt] = useState("");
+  const mentionableAgents = useMentionableAgents();
+  const mentionedAgent = findMentionedAgent(prompt, mentionableAgents);
   const [skills, setSkills] = useState<LibrarySkill[]>([]);
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
   const [repositoryId, setRepositoryId] = useState("");
@@ -157,7 +161,7 @@ export default function AgentsPage() {
   };
 
   const submitTask = async () => {
-    if (!repositoryId || showNoProvidersSnackbar) return;
+    if (!repositoryId || (showNoProvidersSnackbar && !mentionedAgent)) return;
     setError(null);
     setIsSubmitting(true);
     try {
@@ -166,7 +170,8 @@ export default function AgentsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           repositoryId,
-          prompt,
+          prompt: mentionedAgent ? stripAgentMention(prompt, mentionedAgent) : prompt,
+          agentId: mentionedAgent?.id,
           model: DEFAULT_AGENT_MODEL,
           skillIds: selectedSkillIds,
           permissionMode: DEFAULT_AGENT_PERMISSION_MODE,
@@ -281,10 +286,11 @@ export default function AgentsPage() {
               id="agent-prompt"
               value={prompt}
               placeholder="What should your agent help you deliver?"
-              isSendDisabled={isLoading || isSubmitting || showNoProvidersSnackbar || !repositoryId || !prompt.trim()}
+              isSendDisabled={isLoading || isSubmitting || (showNoProvidersSnackbar && !mentionedAgent) || !repositoryId || !prompt.trim()}
               currentRunId={activeRun?.id}
               skills={skills}
               selectedSkillIds={selectedSkillIds}
+              agents={mentionableAgents}
               onChange={setPrompt}
               onSend={() => void submitTask()}
               onSelectSession={runId => router.push(`/agents/${runId}`)}

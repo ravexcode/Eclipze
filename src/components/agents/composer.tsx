@@ -2,9 +2,18 @@
 
 import { IconArrowUp, IconMicrophone, IconPlayerStopFilled } from "@tabler/icons-react";
 
+import { useState } from "react";
+
+import AgentMentionMenu from "@/components/agents/mention-menu";
 import SessionSelector from "@/components/agents/session-selector";
 import SkillChips from "@/components/agents/skill-chips";
 import type { LibrarySkill } from "@/types/agent-runner";
+import {
+  filterMentionableAgents,
+  getMentionQuery,
+  insertAgentMention,
+  type MentionableAgent,
+} from "@/utils/agents/mentions";
 import { useSpeechRecognition } from "@/utils/agents/use-speech-recognition";
 
 interface Props {
@@ -15,6 +24,7 @@ interface Props {
   currentRunId?: string;
   skills?: LibrarySkill[];
   selectedSkillIds?: string[];
+  agents?: MentionableAgent[];
   onChange(value: string): void;
   onSend(): void;
   onSelectSession(runId: string): void;
@@ -27,8 +37,28 @@ export default function AgentComposer(props: Props) {
     props.onChange(`${props.value}${separator}${text}`);
   });
 
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const mentionQuery = getMentionQuery(props.value);
+  const mentionMatches = mentionQuery === null
+    ? []
+    : filterMentionableAgents(props.agents ?? [], mentionQuery);
+  const isMentionMenuOpen = mentionMatches.length > 0;
+  const activeIndex = Math.min(highlightedIndex, Math.max(mentionMatches.length - 1, 0));
+
+  const selectMention = (agent: MentionableAgent) => {
+    props.onChange(insertAgentMention(props.value, agent));
+    setHighlightedIndex(0);
+  };
+
   return (
-    <div className="rounded-md bg-background-card p-2.5 sm:p-3">
+    <div className="relative rounded-md bg-background-card p-2.5 sm:p-3">
+      {isMentionMenuOpen ? (
+        <AgentMentionMenu
+          agents={mentionMatches}
+          highlightedIndex={activeIndex}
+          onSelect={selectMention} />
+      ) : null}
+
       {props.skills && props.onToggleSkill ? (
         <SkillChips
           skills={props.skills}
@@ -43,6 +73,21 @@ export default function AgentComposer(props: Props) {
         value={props.value}
         onChange={event => props.onChange(event.target.value)}
         onKeyDown={event => {
+          if (isMentionMenuOpen) {
+            if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+              event.preventDefault();
+              const step = event.key === "ArrowDown" ? 1 : -1;
+              setHighlightedIndex((activeIndex + step + mentionMatches.length) % mentionMatches.length);
+              return;
+            }
+
+            if (event.key === "Enter" || event.key === "Tab") {
+              event.preventDefault();
+              selectMention(mentionMatches[activeIndex]);
+              return;
+            }
+          }
+
           if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
             if (!props.isSendDisabled) props.onSend();

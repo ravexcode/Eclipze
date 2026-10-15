@@ -2,7 +2,7 @@ import type { AgentPermissionMode } from "@/types/agent-runner";
 
 export const DEFAULT_AGENT_MODEL = "z-ai/glm-5.3-flash";
 export const DEFAULT_AGENT_PERMISSION_MODE: AgentPermissionMode = "PLAN";
-export const AGENT_MODEL_IDENTITY = "eclipze/agent";
+export const DEFAULT_AGENT_REASONING_EFFORT = "medium";
 
 export type AgentStatus = "ACTIVE" | "INACTIVE";
 export type ProjectStatus = "ACTIVE" | "AT_RISK" | "COMPLETED";

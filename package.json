@@ -17,6 +17,7 @@
     "developer:promote": "node --env-file=.env scripts/promote-developer.cjs"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@prisma/client": "^6.19.3",
     "@prisma/config": "^7.10.0",
     "@tabler/icons-react": "^3.46.0",

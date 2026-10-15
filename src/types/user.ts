@@ -72,6 +72,7 @@ export type WorkspaceAgent = {
   id: string;
   name: string;
   defaultModel: string;
+  provider: string;
   status: AgentStatus;
   createdAt: string;
   updatedAt: string;

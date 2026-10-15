@@ -7,6 +7,9 @@ import { appendRunEvent, serializeAgentRun, startAgentRun } from "@/lib/agent-ru
 import { ensureAiCreditWallet, reserveAiCredits, usdToAiCredits } from "@/lib/ai-credits";
 import { resolveAllowedCommand, createInstructionsDigest } from "@/lib/agent-runner";
 import { getOpenRouterCredential, getOpenRouterModels } from "@/lib/openrouter";
+import { getProviderApiKey } from "@/lib/ai-provider-credentials";
+import { PROVIDER_LABELS } from "@/constants/agent-providers";
+import type { AgentProvider } from "@/types/ai";
 import prisma from "@/lib/prisma";
 import { badRequest, notFound, parseBody, requiredString } from "@/lib/workspace-api";
 import { DEFAULT_AGENT_PERMISSION_MODE } from "@/constants/agents";
@@ -56,7 +59,8 @@ export async function POST(request: Request) {
 
   const repositoryId = requiredString(body.repositoryId, "repositoryId");
   const prompt = requiredString(body.prompt, "prompt");
-  const model = requiredString(body.model, "model");
+  const agentId = typeof body.agentId === "string" ? body.agentId.trim() : "";
+  const model = requiredString(agentId ? body.model ?? "agent" : body.model, "model");
 
   if (repositoryId.error) return repositoryId.error;
   if (prompt.error) return prompt.error;
@@ -82,14 +86,41 @@ export async function POST(request: Request) {
     sessionId = session.id;
   }
 
-  let openRouterCredential;
-  try {
-    openRouterCredential = await getOpenRouterCredential(user.id);
-  } catch (error) {
-    return NextResponse.json({ message: error instanceof Error ? error.message : "Unable to read OpenRouter connection." }, { status: 503, headers: PRIVATE_NO_STORE_HEADERS });
+  let provider: AgentProvider = "OPENROUTER";
+  let runModel = model.value.trim();
+  let mcpConnectionId: string | null = null;
+
+  if (agentId) {
+    const agent = await prisma.agent.findFirst({
+      where: { id: agentId, userId: user.id },
+      select: { provider: true, defaultModel: true, mcpConnectionId: true, status: true },
+    });
+
+    if (!agent) return notFound("Agent not found.");
+    if (agent.status !== "ACTIVE") return badRequest("This agent is inactive.");
+
+    provider = agent.provider as AgentProvider;
+    runModel = agent.defaultModel;
+    mcpConnectionId = agent.mcpConnectionId;
   }
 
-  if (!openRouterCredential) {
+  let openRouterCredential = null;
+  try {
+    if (provider === "OPENROUTER") {
+      openRouterCredential = await getOpenRouterCredential(user.id);
+    } else if (provider === "MCP") {
+      const connection = mcpConnectionId
+        ? await prisma.mcpConnection.findFirst({ where: { id: mcpConnectionId, userId: user.id }, select: { id: true } })
+        : null;
+      if (!connection) return badRequest("Reconnect this agent's MCP server in Settings before tagging it.");
+    } else if (!await getProviderApiKey(user.id, provider)) {
+      return badRequest(`Connect a ${PROVIDER_LABELS[provider]} provider in Settings before tagging this agent.`);
+    }
+  } catch (error) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Unable to read provider connection." }, { status: 503, headers: PRIVATE_NO_STORE_HEADERS });
+  }
+
+  if (provider === "OPENROUTER" && !openRouterCredential) {
     return badRequest("Connect an OpenRouter provider in Settings before starting a task.");
   }
 
@@ -128,7 +159,7 @@ export async function POST(request: Request) {
   if (!command) return badRequest("Command is not allowed.");
 
   let creditReservation = 0;
-  if (openRouterCredential.isServiceKey) {
+  if (openRouterCredential?.isServiceKey) {
     let models;
     try {
       models = await getOpenRouterModels(openRouterCredential.apiKey);
@@ -136,7 +167,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: error instanceof Error ? error.message : "Unable to load OpenRouter model pricing." }, { status: 503, headers: PRIVATE_NO_STORE_HEADERS });
     }
 
-    const selectedModel = models.find(item => item.id === model.value.trim());
+    const selectedModel = models.find(item => item.id === runModel);
     if (!selectedModel) return badRequest("Choose an available OpenRouter model.");
 
     const totalSkillCharacters = selectedSkills.reduce((total, skill) => total + skill.content.length, 0);
@@ -162,7 +193,9 @@ export async function POST(request: Request) {
       userId: user.id,
       agentSessionId: sessionId,
       repositoryId: repository.id,
-      model: model.value.trim(),
+      model: runModel,
+      provider,
+      mcpConnectionId,
       permissionMode,
       creditReservation,
       prompt: prompt.value,

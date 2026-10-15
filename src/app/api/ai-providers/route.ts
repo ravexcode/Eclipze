@@ -4,6 +4,8 @@ import { encryptApiKey } from "@/lib/ai-credentials";
 import { getCurrentUser } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { AI_PROVIDERS, isAiProvider, type AiProvider } from "@/types/ai";
+import { activateProviderAgent, deactivateProviderAgent, isExternalAgentProvider } from "@/lib/agent-provider-sync";
+import { validateProviderApiKey } from "@/lib/ai-provider-validation";
 
 const PRIVATE_NO_STORE_HEADERS = {
   "Cache-Control": "private, no-store, max-age=0",
@@ -15,6 +17,7 @@ const PROVIDER_LABELS: Record<AiProvider, string> = {
   OPENROUTER: "OpenRouter",
   ZAI: "Z.Ai",
   XAI: "xAI",
+  CURSOR: "Cursor",
 };
 
 async function validateOpenAiApiKey(apiKey: string) {
@@ -190,6 +193,9 @@ export async function PUT(request: Request) {
         data: { model: model || null },
         select: { provider: true, keyHint: true, model: true, updatedAt: true },
       });
+      if (isExternalAgentProvider(provider)) {
+        await activateProviderAgent({ userId: user.id, provider, model: connection.model });
+      }
       return NextResponse.json({
         message: `${PROVIDER_LABELS[provider]} connection updated.`,
         connection: serializeConnection({ ...connection, provider }),
@@ -205,6 +211,14 @@ export async function PUT(request: Request) {
 
       if (!validation.valid) {
         return NextResponse.json({ message: validation.message }, { status: validation.status });
+      }
+    }
+
+    if (provider === "CLAUDE" || provider === "CURSOR") {
+      const validation = await validateProviderApiKey(provider, apiKey);
+
+      if (!validation.valid) {
+        return NextResponse.json({ message: validation.message }, { status: validation.status, headers: PRIVATE_NO_STORE_HEADERS });
       }
     }
 
@@ -256,6 +270,10 @@ export async function PUT(request: Request) {
     },
   });
 
+  if (isExternalAgentProvider(provider)) {
+    await activateProviderAgent({ userId: user.id, provider, model: connection.model });
+  }
+
   return NextResponse.json({
     message: `${PROVIDER_LABELS[provider]} connected successfully.`,
     connection: serializeConnection({ ...connection, provider }),
@@ -281,6 +299,10 @@ export async function DELETE(request: Request) {
       provider: body.provider,
     },
   });
+
+  if (isExternalAgentProvider(body.provider)) {
+    await deactivateProviderAgent(user.id, body.provider);
+  }
 
   return NextResponse.json({
     message: `${PROVIDER_LABELS[body.provider]} disconnected successfully.`,

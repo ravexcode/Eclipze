@@ -1,0 +1,5 @@
+ALTER TYPE "AiProvider" ADD VALUE 'CURSOR';
+
+ALTER TABLE "agents" ADD COLUMN "provider" "AiProvider" NOT NULL DEFAULT 'OPENROUTER';
+
+ALTER TABLE "agent_runs" ADD COLUMN "provider" "AiProvider" NOT NULL DEFAULT 'OPENROUTER';

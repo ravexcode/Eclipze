@@ -9,6 +9,7 @@ import {
   type AiProviderConnection,
 } from "@/types/ai";
 import { apiFetch } from "@/utils/api-fetch";
+import McpSection from "./mcp-section";
 import ProviderCard from "./provider-card";
 import SettingsFeedback from "./settings-feedback";
 
@@ -152,7 +153,7 @@ export default function ProvidersSection() {
   };
 
   const connectionProviders = AI_PROVIDERS.filter(
-    (provider) => provider.id === "GPT" || provider.id === "CLAUDE" || provider.id === "XAI",
+    (provider) => provider.id === "GPT" || provider.id === "CLAUDE" || provider.id === "CURSOR" || provider.id === "XAI",
   );
   const apiKeyProviders = AI_PROVIDERS.filter(
     (provider) => provider.id === "OPENROUTER" || provider.id === "ZAI",
@@ -202,6 +203,7 @@ export default function ProvidersSection() {
         <h2 className="text-lg font-medium">API Keys</h2>
         {renderProviderRows(apiKeyProviders)}
       </section>
+      <McpSection />
     </div>
   );
 }

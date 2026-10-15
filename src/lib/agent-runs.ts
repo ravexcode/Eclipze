@@ -3,6 +3,7 @@ import "server-only";
 import { generateAgentResponse } from "@/lib/agent-completion";
 import { releaseAiCreditReservation, settleAiCreditReservation } from "@/lib/ai-credits";
 import { Prisma } from "@prisma/client";
+import type { AgentProvider } from "@/types/ai";
 import type { AgentPermissionMode, AgentRunEventType } from "@/types/agent-runner";
 import { DEFAULT_AGENT_PERMISSION_MODE } from "@/constants/agents";
 import prisma from "@/lib/prisma";
@@ -28,6 +29,8 @@ type RunWithRelations = {
   permissionMode: string;
   creditReservation: number;
   model: string;
+  provider: string;
+  mcpConnectionId: string | null;
   prompt: string | null;
   commandKey: string;
   instructionsDigest: string;
@@ -75,6 +78,7 @@ export function serializeAgentRun(run: RunWithRelations) {
     permissionMode: run.permissionMode,
     creditReservation: run.creditReservation,
     model: run.model,
+    provider: run.provider,
     prompt: run.prompt,
     commandKey: run.commandKey,
     instructionsDigest: run.instructionsDigest,
@@ -259,13 +263,24 @@ async function executeAgentRun(runId: string, userId: string) {
     const completion = await generateAgentResponse({
       userId,
       runId: run.id,
+      provider: run.provider as AgentProvider,
+      mcpConnectionId: run.mcpConnectionId,
       model: run.model,
       permissionMode: run.permissionMode === "ASK"
         ? DEFAULT_AGENT_PERMISSION_MODE
         : run.permissionMode as AgentPermissionMode,
       prompt: run.prompt,
       repositoryPath,
+      repositoryUrl: run.repository.repositoryUrl,
+      defaultBranch: run.repository.defaultBranch,
       skillSnapshot: run.skillSnapshot,
+      isCancelled: async () => {
+        const current = await prisma.agentRun.findUnique({
+          where: { id: run.id },
+          select: { status: true, cancelRequestedAt: true },
+        });
+        return !current || current.status === "CANCELLED" || Boolean(current.cancelRequestedAt);
+      },
       onEvent: persistEvent,
       requestApproval: (toolName, toolInput) => requestAgentToolApproval({
         runId: run.id,

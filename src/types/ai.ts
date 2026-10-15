@@ -29,10 +29,17 @@ export const AI_PROVIDERS = [
     description: "Use xAI models with your API key.",
     kind: "api-key",
   },
+  {
+    id: "CURSOR",
+    label: "Cursor",
+    description: "Run Cursor cloud agents with your Cursor API key.",
+    kind: "api-key",
+  },
 ] as const;
 
 export type AiProviderConfig = (typeof AI_PROVIDERS)[number];
 export type AiProvider = AiProviderConfig["id"];
+export type AgentProvider = AiProvider | "MCP";
 
 export type AiProviderConnection = {
   provider: AiProvider;
