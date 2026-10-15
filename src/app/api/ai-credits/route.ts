@@ -29,11 +29,26 @@ export async function GET() {
     },
   });
 
+  const now = new Date();
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const monthlyResetAt = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  const monthlySpend = await prisma.aiCreditLedgerEntry.aggregate({
+    where: {
+      userId: user.id,
+      type: "SPEND",
+      createdAt: { gte: monthStart },
+    },
+    _sum: { deltaCredits: true },
+  });
+  const monthlyUsedCredits = Math.abs(monthlySpend._sum.deltaCredits ?? 0) + wallet.reservedCredits;
+
   return NextResponse.json({
     balance: wallet.balance,
     reservedCredits: wallet.reservedCredits,
     availableCredits: Math.max(0, wallet.balance - wallet.reservedCredits),
     monthlyAllowance: wallet.monthlyAllowance,
+    monthlyUsedCredits,
+    monthlyResetAt: monthlyResetAt.toISOString(),
     serviceOpenRouterAvailable: Boolean(process.env.OPENROUTER_API_KEY?.trim()),
     entries: entries.map(entry => ({
       ...entry,

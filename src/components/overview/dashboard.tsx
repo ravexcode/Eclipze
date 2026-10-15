@@ -1,12 +1,9 @@
 import { IconArrowUpRight, IconInbox } from "@tabler/icons-react";
 
+import UsageLimits from "@/components/overview/usage-limits";
 import { ISSUE_HEAT_LEVELS } from "@/constants/overview";
 import type { WorkspaceIssue, WorkspaceSnapshot } from "@/types/user";
-import {
-  formatUsageDuration,
-  getAgentUsagePeriods,
-  getYearIssueDays,
-} from "@/utils/overview";
+import { getYearIssueDays } from "@/utils/overview";
 
 const MONTH_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -25,17 +22,14 @@ export default function OverviewDashboard({
   snapshot,
   loading,
   error,
-  onOpenIssue,
   onOpenInbox,
 }: OverviewDashboardProps) {
   const now = new Date();
   const issues = snapshot?.issues ?? [];
-  const sessions = snapshot?.agentSessions ?? [];
   const mails = snapshot?.mails ?? [];
   const yearDays = getYearIssueDays(issues, now);
-  const usagePeriods = getAgentUsagePeriods(sessions, now);
+  const yearIssueCount = yearDays.reduce((total, day) => total + day.count, 0);
   const peakIssueCount = Math.max(1, ...yearDays.map(day => day.count));
-  const peakUsage = Math.max(0, ...usagePeriods.map(period => period.totalMilliseconds));
   const weekCount = Math.max(...yearDays.map(day => day.week)) + 1;
   const monthLabels = yearDays
     .filter(day => day.date.getDate() === 1)
@@ -43,145 +37,150 @@ export default function OverviewDashboard({
       label: MONTH_FORMATTER.format(day.date),
       week: day.week,
     }));
+  const isInitialLoad = loading && !snapshot;
 
   return (
-    <main className="min-h-dvh w-full min-w-0 px-5 py-5 sm:px-8 sm:py-6">
-      <div className="mx-auto flex w-full max-w-[750px] flex-col gap-[30px]">
-        {error ? (
-          <p role="alert" className="text-xs text-alert-red">
-            {error}
-          </p>
-        ) : null}
+    <main className="flex min-h-dvh min-w-0 flex-col">
+      <header className="flex h-10 shrink-0 items-center px-4">
+        <h1 className="text-xs text-foreground-off">
+          Overview
+        </h1>
+      </header>
 
-        <section aria-labelledby="issue-activity-title" className="flex flex-col gap-[15px] rounded-md bg-background-card p-[15px] sm:p-5">
-          <h1 id="issue-activity-title" className="text-lg font-medium">
-            {now.getFullYear()} Issues
-          </h1>
-
-          {loading && !snapshot ? (
-            <p role="status" className="text-xs text-foreground-off">
-              Loading issue activity…
+      <section className="flex min-h-0 flex-1 flex-col px-5 pb-8 sm:px-8">
+        <div className="mx-auto flex w-full max-w-250 flex-col gap-4 pt-4">
+          {error ? (
+            <p
+              role="alert"
+              className="text-xs text-alert-red">
+              {error}
             </p>
-          ) : (
-            <div className="min-w-0 overflow-x-auto pb-1">
-              <div className="grid min-w-[650px] gap-x-1.5 gap-y-1.5" style={{ gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))` }}>
-                <div className="col-span-full grid min-h-6 text-xs text-foreground-off" style={{ gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))` }} aria-hidden="true">
-                  {monthLabels.map(month => (
-                    <span key={`${month.label}-${month.week}`} style={{ gridColumnStart: month.week + 1 }}>{month.label}</span>
-                  ))}
-                </div>
-                {yearDays.map(day => {
-                const level = day.count === 0
-                  ? 0
-                  : Math.min(3, Math.ceil((day.count / peakIssueCount) * 3));
+          ) : null}
 
-                return (
-                  <div key={day.dateKey} className="aspect-square min-w-0 rounded-md" style={{ gridColumnStart: day.week + 1, gridRowStart: day.weekday + 2 }}>
-                    <div
-                      className={`h-full w-full rounded-md ${ISSUE_HEAT_LEVELS[level]}`}
-                      title={`${day.date.toLocaleDateString("en", { month: "short", day: "numeric" })}: ${day.count} issue${day.count === 1 ? "" : "s"}`}
-                      aria-label={`${day.date.toLocaleDateString("en", { month: "long", day: "numeric" })}: ${day.count} issues`}
-                    />
-                  </div>
-                );
-              })}
-              </div>
-            </div>
-          )}
-        </section>
+          <div className="grid gap-4 md:grid-cols-2">
+            <UsageLimits />
 
-        <section aria-labelledby="agents-usage-title" className="flex flex-col gap-[15px] rounded-md bg-background-card p-[15px] sm:p-5">
-          <h2 id="agents-usage-title" className="text-lg font-medium">
-            Agents usage
-          </h2>
-
-          {loading && !snapshot ? (
-            <p role="status" className="text-xs text-foreground-off">
-              Loading agent usage…
-            </p>
-          ) : (
-            <div className="flex flex-col gap-[15px]">
-              {usagePeriods.map(period => {
-                const percentage = peakUsage === 0
-                  ? 0
-                  : Math.round((period.totalMilliseconds / peakUsage) * 100);
-
-                return (
-                  <div key={period.label} className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between gap-4 text-xs">
-                      <span className="text-foreground-off">{period.label}</span>
-                      <span className="text-foreground">
-                        {formatUsageDuration(period.totalMilliseconds)}
-                        <span className="ml-2 text-foreground-off">
-                          {period.sessionCount} session{period.sessionCount === 1 ? "" : "s"}
-                        </span>
-                      </span>
-                    </div>
-                    <div
-                      className="h-[7px] overflow-hidden rounded-md bg-background-focus"
-                      role="progressbar"
-                      aria-label={`${period.label} agent usage`}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={percentage}>
-                      <div
-                        className="h-full rounded-md bg-status-purple transition-[width] duration-300"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        <section aria-labelledby="inbox-title" className="flex flex-col gap-[15px] rounded-md bg-background-card p-[15px] sm:p-5">
-          <div className="flex items-center justify-between gap-4">
-            <h2 id="inbox-title" className="text-lg font-medium">
-              Inbox
-            </h2>
-            <button
-              type="button"
-              onClick={onOpenInbox}
-              className="inline-flex items-center gap-1.5 text-xs text-foreground-off transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
-              Open all messages
-              <IconArrowUpRight size={16} strokeWidth={1.8} />
-            </button>
-          </div>
-
-          {loading && !snapshot ? (
-            <p role="status" className="text-xs text-foreground-off">
-              Loading inbox…
-            </p>
-          ) : mails.length > 0 ? (
-            <div className="flex flex-col">
-              {mails.slice(0, 6).map(mail => (
+            <section
+              aria-labelledby="inbox-title"
+              className="flex flex-col gap-3 rounded-md border border-background-focus bg-background-card p-4">
+              <div className="flex items-center justify-between gap-4">
+                <h2
+                  id="inbox-title"
+                  className="text-xs font-medium">
+                  Inbox
+                </h2>
                 <button
-                  key={mail.id}
                   type="button"
                   onClick={onOpenInbox}
-                  className="flex min-h-9 items-center gap-2.5 border-b border-background-focus/70 py-2 text-left text-xs transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
-                  <span
-                    aria-hidden="true"
-                    className={`h-2 w-2 shrink-0 rounded-full ${mail.readAt ? "bg-foreground-off/50" : "bg-status-purple"}`}
-                  />
-                  <span className="min-w-0 flex-1 truncate text-foreground-off">
-                    <span className="mr-2 text-foreground">{mail.sender.username ?? mail.sender.email}</span>
-                    {mail.subject}
-                  </span>
-                  <IconArrowUpRight className="shrink-0 text-foreground-off" size={15} strokeWidth={1.8} />
+                  className="inline-flex items-center gap-1 text-xs text-foreground-off transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+                  Open all
+                  <IconArrowUpRight size={14} strokeWidth={1.8} />
                 </button>
-              ))}
+              </div>
+
+              {isInitialLoad ? (
+                <p
+                  role="status"
+                  className="text-xs text-foreground-off">
+                  Loading inbox…
+                </p>
+              ) : mails.length > 0 ? (
+                <div className="flex flex-col">
+                  {mails.slice(0, 5).map(mail => (
+                    <button
+                      key={mail.id}
+                      type="button"
+                      onClick={onOpenInbox}
+                      className="flex min-h-9 items-center gap-2.5 rounded-md px-2 py-2 text-left text-xs transition-colors hover:bg-background-focus focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+                      <span
+                        aria-hidden="true"
+                        className={`h-1.5 w-1.5 shrink-0 rounded-full ${mail.readAt ? "bg-background-focus" : "bg-foreground"}`}
+                      />
+                      <span className="min-w-0 flex-1 truncate text-foreground-off">
+                        <span className="mr-2 text-foreground">
+                          {mail.sender.username ?? mail.sender.email}
+                        </span>
+                        {mail.subject}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-1 items-center justify-center gap-2 py-6 text-xs text-foreground-off">
+                  <IconInbox size={16} strokeWidth={1.7} />
+                  <p>No mail yet.</p>
+                </div>
+              )}
+            </section>
+          </div>
+
+          <section
+            aria-labelledby="issue-activity-title"
+            className="flex flex-col gap-3 rounded-md border border-background-focus bg-background-card p-4">
+            <div className="flex items-center justify-between gap-4">
+              <h2
+                id="issue-activity-title"
+                className="text-xs font-medium">
+                {now.getFullYear()} issues
+              </h2>
+              {!isInitialLoad ? (
+                <span className="text-xs text-foreground-off">
+                  {yearIssueCount} created
+                </span>
+              ) : null}
             </div>
-          ) : (
-            <div className="flex items-center gap-2.5 py-2.5 text-xs text-foreground-off">
-              <IconInbox size={19} strokeWidth={1.7} />
-              <p>No mail yet.</p>
-            </div>
-          )}
-        </section>
-      </div>
+
+            {isInitialLoad ? (
+              <p
+                role="status"
+                className="text-xs text-foreground-off">
+                Loading issue activity…
+              </p>
+            ) : (
+              <div className="min-w-0 overflow-x-auto pb-1">
+                <div
+                  className="grid min-w-[650px] gap-1"
+                  style={{ gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))` }}>
+                  <div
+                    aria-hidden="true"
+                    className="col-span-full grid min-h-5 text-[10px] text-foreground-off"
+                    style={{ gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))` }}>
+                    {monthLabels.map(month => (
+                      <span
+                        key={`${month.label}-${month.week}`}
+                        style={{ gridColumnStart: month.week + 1 }}>
+                        {month.label}
+                      </span>
+                    ))}
+                  </div>
+
+                  {yearDays.map(day => {
+                    const level = day.count === 0
+                      ? 0
+                      : Math.min(3, Math.ceil((day.count / peakIssueCount) * 3));
+
+                    return (
+                      <div
+                        key={day.dateKey}
+                        className="aspect-square min-w-0"
+                        style={{
+                          gridColumnStart: day.week + 1,
+                          gridRowStart: day.weekday + 2,
+                        }}>
+                        <div
+                          className={`h-full w-full rounded-[3px] ${ISSUE_HEAT_LEVELS[level]}`}
+                          title={`${day.date.toLocaleDateString("en", { month: "short", day: "numeric" })}: ${day.count} issue${day.count === 1 ? "" : "s"}`}
+                          aria-label={`${day.date.toLocaleDateString("en", { month: "long", day: "numeric" })}: ${day.count} issues`}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+      </section>
     </main>
   );
 }

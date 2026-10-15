@@ -52,3 +52,10 @@ export type AiProviderConnection = {
 export function isAiProvider(value: unknown): value is AiProvider {
   return typeof value === "string" && AI_PROVIDERS.some(provider => provider.id === value);
 }
+
+export type AiCreditUsage = {
+  availableCredits: number;
+  monthlyAllowance: number;
+  monthlyUsedCredits: number;
+  monthlyResetAt: string;
+};

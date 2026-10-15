@@ -182,199 +182,247 @@ export default function ProjectsWorkspace() {
     await load();
   };
 
+
   return (
-    <div className="mx-auto flex w-full max-w-245 flex-col gap-6 px-5 py-8 sm:px-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-lg font-medium tracking-[-0.02em]">
-            Your projects
-          </p>
-          <p className="mt-1 text-xs text-foreground-off">
-            Track status, link repositories, and keep related issues together.
-          </p>
-        </div>
-        <Button type="button" onClick={startCreate}>
-          <IconPlus size={16} strokeWidth={1.8} className="mr-1" />
-          New project
-        </Button>
-      </div>
+    <main className="flex min-h-dvh min-w-0 flex-col">
+      <header className="flex h-10 shrink-0 items-center px-4">
+        <h1 className="text-xs text-foreground-off">
+          Projects
+        </h1>
+      </header>
 
-      {error ? (
-        <p
-          role="alert"
-          className="rounded-md border border-alert-red bg-surface p-4 text-xs text-alert-red">
-          {error}
-        </p>
-      ) : null}
-
-      {showForm ? (
-        <form
-          onSubmit={save}
-          className="flex flex-col gap-4 rounded-md border border-background-focus bg-surface p-5">
-          <div className="grid gap-4 md:grid-cols-[1fr_180px]">
-            <label className="flex flex-col gap-2 text-xs">
-              Name
-              <input
-                required
-                value={form.name}
-                onChange={(event) =>
-                  setForm((previous) => ({
-                    ...previous,
-                    name: event.target.value,
-                  }))
-                }
-                className="rounded-md bg-surface-raised px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
-                placeholder="Eclipse"
-              />
-            </label>
-            <label className="flex flex-col gap-2 text-xs">
-              Status
-              <select
-                value={form.status}
-                onChange={(event) =>
-                  setForm((previous) => ({
-                    ...previous,
-                    status: event.target.value as ProjectStatus,
-                  }))
-                }
-                className="rounded-md bg-surface-raised px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
-                <option value="ACTIVE">Active</option>
-                <option value="AT_RISK">At risk</option>
-                <option value="COMPLETED">Completed</option>
-              </select>
-            </label>
-          </div>
-          <label className="flex flex-col gap-2 text-xs">
-            Description
-            <textarea
-              value={form.description}
-              onChange={(event) =>
-                setForm((previous) => ({
-                  ...previous,
-                  description: event.target.value,
-                }))
-              }
-              className="min-h-24 resize-y rounded-md bg-surface-raised px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
-              placeholder="What is this project for?"
-            />
-          </label>
-          <label className="flex flex-col gap-2 text-xs">
-            External URL
-            <input
-              type="url"
-              value={form.externalUrl}
-              onChange={(event) =>
-                setForm((previous) => ({
-                  ...previous,
-                  externalUrl: event.target.value,
-                }))
-              }
-              className="rounded-md bg-surface-raised px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
-              placeholder="https://github.com/org/repo"
-            />
-          </label>
-          <div className="flex justify-end gap-2">
+      <section className="flex min-h-0 flex-1 flex-col px-5 pb-8 sm:px-8">
+        <div className="mx-auto flex w-full max-w-250 flex-col gap-4 pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium">
+                Your projects
+              </p>
+              <p className="mt-1 text-xs text-foreground-off">
+                Track status, link repositories, and keep related issues together.
+              </p>
+            </div>
             <Button
               type="button"
-              variant="ghost"
-              onClick={() => setShowForm(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={saving}>
-              {saving
-                ? "Saving…"
-                : editingId
-                  ? "Save project"
-                  : "Create project"}
+              onClick={startCreate}>
+              <IconPlus size={14} strokeWidth={1.8} className="mr-1" />
+              New project
             </Button>
           </div>
-        </form>
-      ) : null}
 
-      {loading ? (
-        <p className="text-xs text-foreground-off" role="status">
-          Loading projects…
-        </p>
-      ) : projects.length === 0 ? (
-        <article className="rounded-md border border-background-focus bg-surface p-6">
-          <p className="text-lg font-medium">No projects yet</p>
-          <p className="mt-2 text-xs leading-6 text-foreground-off">
-            Create a project to attach repositories and group issues.
-          </p>
-        </article>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {projects.map((project) => (
-            <article
-              key={project.id}
-              className="flex flex-col gap-4 rounded-md border border-background-focus bg-surface p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex min-w-0 items-start gap-3">
-                  <span
-                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${PROJECT_STATUS_DOT[project.status]}`}
+          {error ? (
+            <p
+              role="alert"
+              className="text-xs text-alert-red">
+              {error}
+            </p>
+          ) : null}
+
+          {showForm ? (
+            <fieldset className="flex flex-col gap-3 rounded-md border border-background-focus bg-background-card p-4">
+              <legend className="px-1 text-xs font-medium">
+                {editingId ? "Edit project" : "New project"}
+              </legend>
+              <form
+                onSubmit={save}
+                className="flex flex-col gap-3">
+                <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+                  <label className="flex flex-col gap-1.5 text-xs">
+                    Name
+                    <input
+                      required
+                      value={form.name}
+                      onChange={(event) =>
+                        setForm((previous) => ({
+                          ...previous,
+                          name: event.target.value,
+                        }))
+                      }
+                      className="rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+                      placeholder="Eclipse"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5 text-xs">
+                    Status
+                    <select
+                      value={form.status}
+                      onChange={(event) =>
+                        setForm((previous) => ({
+                          ...previous,
+                          status: event.target.value as ProjectStatus,
+                        }))
+                      }
+                      className="rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+                      <option value="ACTIVE">Active</option>
+                      <option value="AT_RISK">At risk</option>
+                      <option value="COMPLETED">Completed</option>
+                    </select>
+                  </label>
+                </div>
+                <label className="flex flex-col gap-1.5 text-xs">
+                  Description
+                  <textarea
+                    value={form.description}
+                    onChange={(event) =>
+                      setForm((previous) => ({
+                        ...previous,
+                        description: event.target.value,
+                      }))
+                    }
+                    className="min-h-20 resize-y rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+                    placeholder="What is this project for?"
                   />
-                  <div className="min-w-0">
-                    <p className="text-lg font-medium">{project.name}</p>
-                    <p className="mt-1 text-xs text-foreground-off">
-                      {PROJECT_STATUS_LABELS[project.status]}
-                    </p>
-                    <p className="mt-2 max-w-xl text-xs leading-6 text-foreground-off">
-                      {project.description ?? "No description yet."}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                </label>
+                <label className="flex flex-col gap-1.5 text-xs">
+                  External URL
+                  <input
+                    type="url"
+                    value={form.externalUrl}
+                    onChange={(event) =>
+                      setForm((previous) => ({
+                        ...previous,
+                        externalUrl: event.target.value,
+                      }))
+                    }
+                    className="rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+                    placeholder="https://github.com/org/repo"
+                  />
+                </label>
+                <div className="flex justify-end gap-2">
                   <Button
                     type="button"
-                    variant="secondary"
-                    onClick={() => void toggleProjectSessions(project.id)}
-                    aria-expanded={expandedProjectId === project.id}>
-                    {expandedProjectId === project.id ? "Hide sessions" : "Sessions"}
+                    variant="ghost"
+                    onClick={() => setShowForm(false)}>
+                    Cancel
                   </Button>
-                  {project.externalUrl ? (
-                    <a
-                      href={project.externalUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-foreground-off hover:bg-surface-raised hover:text-foreground">
-                      Open
-                      <IconArrowUpRight size={14} />
-                    </a>
-                  ) : null}
                   <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => startEdit(project)}>
-                    Edit
+                    type="submit"
+                    disabled={saving}>
+                    {saving
+                      ? "Saving…"
+                      : editingId
+                        ? "Save project"
+                        : "Create project"}
                   </Button>
-                  <button
-                    type="button"
-                    onClick={() => void remove(project.id)}
-                    className="rounded-md p-2 text-foreground-off hover:bg-surface-raised hover:text-alert-red"
-                    aria-label={`Delete ${project.name}`}>
-                    <IconTrash size={16} />
-                  </button>
                 </div>
-              </div>
-              {expandedProjectId === project.id ? (
-                <section className="border-t border-background-focus pt-3" aria-label={`${project.name} agent sessions`}>
-                  {loadingProjectRunsId === project.id ? <p role="status" className="text-xs text-foreground-off">Loading sessions…</p> : null}
-                  {projectRuns[project.id]?.length ? (
-                    <div className="flex flex-col gap-1">
-                      {projectRuns[project.id].map(run => (
-                        <Link key={run.id} href={`/agents/${run.id}`} className="flex min-w-0 items-center justify-between gap-3 rounded-md px-2.5 py-2 text-xs hover:bg-surface-raised">
-                          <span className="truncate">{run.prompt?.split("\n")[0] || "Agent session"}</span>
-                          <span className="shrink-0 text-xs text-foreground-off">{run.status}</span>
-                        </Link>
-                      ))}
+              </form>
+            </fieldset>
+          ) : null}
+
+          {loading ? (
+            <p
+              role="status"
+              className="text-xs text-foreground-off">
+              Loading projects…
+            </p>
+          ) : projects.length === 0 ? (
+            <div className="flex flex-col items-center gap-1 rounded-md border border-dashed border-background-focus px-4 py-10 text-center">
+              <p className="text-xs font-medium">
+                No projects yet
+              </p>
+              <p className="text-xs text-foreground-off">
+                Create a project to attach repositories and group issues.
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col divide-y divide-background-focus rounded-md border border-background-focus bg-background-card">
+              {projects.map((project) => (
+                <article
+                  key={project.id}
+                  className="flex flex-col gap-3 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <span
+                        aria-hidden="true"
+                        className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${PROJECT_STATUS_DOT[project.status]}`}
+                      />
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                          <p className="text-sm font-medium">
+                            {project.name}
+                          </p>
+                          <span className="text-xs text-foreground-off">
+                            {PROJECT_STATUS_LABELS[project.status]}
+                          </span>
+                        </div>
+                        <p className="mt-1 max-w-xl text-xs leading-6 text-foreground-off">
+                          {project.description ?? "No description yet."}
+                        </p>
+                      </div>
                     </div>
-                  ) : loadingProjectRunsId !== project.id ? <p className="text-xs text-foreground-off">No sessions for this project yet.</p> : null}
-                </section>
-              ) : null}
-            </article>
-          ))}
+                    <div className="flex shrink-0 flex-wrap items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => void toggleProjectSessions(project.id)}
+                        aria-expanded={expandedProjectId === project.id}>
+                        {expandedProjectId === project.id ? "Hide sessions" : "Sessions"}
+                      </Button>
+                      {project.externalUrl ? (
+                        <a
+                          href={project.externalUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium text-foreground-off hover:bg-background-focus hover:text-foreground">
+                          Open
+                          <IconArrowUpRight size={14} />
+                        </a>
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => startEdit(project)}>
+                        Edit
+                      </Button>
+                      <button
+                        type="button"
+                        onClick={() => void remove(project.id)}
+                        className="rounded-md p-2 text-foreground-off hover:bg-background-focus hover:text-alert-red"
+                        aria-label={`Delete ${project.name}`}>
+                        <IconTrash size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedProjectId === project.id ? (
+                    <section
+                      aria-label={`${project.name} agent sessions`}
+                      className="ml-4.5 border-l border-background-focus pl-3">
+                      {loadingProjectRunsId === project.id ? (
+                        <p
+                          role="status"
+                          className="text-xs text-foreground-off">
+                          Loading sessions…
+                        </p>
+                      ) : projectRuns[project.id]?.length ? (
+                        <div className="flex flex-col">
+                          {projectRuns[project.id].map(run => (
+                            <Link
+                              key={run.id}
+                              href={`/agents/${run.id}`}
+                              className="flex min-w-0 items-center justify-between gap-3 rounded-md px-2 py-1.5 text-xs hover:bg-background-focus">
+                              <span className="truncate">
+                                {run.prompt?.split("\n")[0] || "Agent session"}
+                              </span>
+                              <span className="shrink-0 text-foreground-off">
+                                {run.status.toLowerCase().replaceAll("_", " ")}
+                              </span>
+                            </Link>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-foreground-off">
+                          No sessions for this project yet.
+                        </p>
+                      )}
+                    </section>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </section>
+    </main>
   );
 }

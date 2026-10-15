@@ -1,4 +1,4 @@
-import type { WorkspaceAgentSession, WorkspaceIssue } from "@/types/user";
+import type { WorkspaceIssue } from "@/types/user";
 
 const OVERVIEW_MONTH_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "long",
@@ -16,12 +16,6 @@ export type YearIssueDay = {
   count: number;
   week: number;
   weekday: number;
-};
-
-export type AgentUsagePeriod = {
-  label: string;
-  totalMilliseconds: number;
-  sessionCount: number;
 };
 
 export function formatOverviewMonth(date: Date) {
@@ -96,77 +90,4 @@ export function getYearIssueDays(issues: WorkspaceIssue[], date = new Date()): Y
   }
 
   return days;
-}
-
-function getPeriodStart(period: "day" | "week" | "month", date: Date) {
-  const start = new Date(date);
-  start.setHours(0, 0, 0, 0);
-
-  if (period === "week") {
-    const daysSinceMonday = (start.getDay() + 6) % 7;
-    start.setDate(start.getDate() - daysSinceMonday);
-  }
-
-  if (period === "month") {
-    start.setDate(1);
-  }
-
-  return start.getTime();
-}
-
-function getSessionOverlap(session: WorkspaceAgentSession, from: number, to: number) {
-  const sessionStart = new Date(session.startedAt).getTime();
-  const sessionEnd = session.endedAt ? new Date(session.endedAt).getTime() : to;
-  const overlapStart = Math.max(sessionStart, from);
-  const overlapEnd = Math.min(sessionEnd, to);
-
-  return Math.max(0, overlapEnd - overlapStart);
-}
-
-export function getAgentUsagePeriods(sessions: WorkspaceAgentSession[], date = new Date()): AgentUsagePeriod[] {
-  const now = date.getTime();
-  const periods = [
-    { label: "Today", key: "day" as const },
-    { label: "This week", key: "week" as const },
-    { label: "This month", key: "month" as const },
-  ];
-
-  return periods.map(period => {
-    const start = getPeriodStart(period.key, date);
-    let totalMilliseconds = 0;
-    let sessionCount = 0;
-
-    for (const session of sessions) {
-      const overlap = getSessionOverlap(session, start, now);
-
-      if (overlap <= 0) {
-        continue;
-      }
-
-      totalMilliseconds += overlap;
-      sessionCount += 1;
-    }
-
-    return {
-      label: period.label,
-      totalMilliseconds,
-      sessionCount,
-    };
-  });
-}
-
-export function formatUsageDuration(milliseconds: number) {
-  const totalMinutes = Math.floor(milliseconds / 60_000);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-
-  if (hours === 0) {
-    return `${minutes}m`;
-  }
-
-  if (minutes === 0) {
-    return `${hours}h`;
-  }
-
-  return `${hours}h ${minutes}m`;
 }
