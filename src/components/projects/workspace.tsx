@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import Button from "@/components/ui/button";
+import Dialog from "@/components/ui/dialog";
 import {
   emptyProjectForm,
   PROJECT_STATUS_DOT,
@@ -30,7 +31,8 @@ export default function ProjectsWorkspace() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProjectFormState>(emptyProjectForm);
   const [saving, setSaving] = useState(false);
-  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
+  const [sessionsProject, setSessionsProject] = useState<WorkspaceProject | null>(null);
+  const [showSessions, setShowSessions] = useState(false);
   const [projectRuns, setProjectRuns] = useState<Record<string, AgentRun[]>>({});
   const [loadingProjectRunsId, setLoadingProjectRunsId] = useState<string | null>(null);
 
@@ -84,12 +86,14 @@ export default function ProjectsWorkspace() {
   }, []);
 
   const startCreate = () => {
+    setError(null);
     setEditingId(null);
     setForm(emptyProjectForm);
     setShowForm(true);
   };
 
   const startEdit = (project: WorkspaceProject) => {
+    setError(null);
     setEditingId(project.id);
     setForm({
       name: project.name,
@@ -100,13 +104,11 @@ export default function ProjectsWorkspace() {
     setShowForm(true);
   };
 
-  const toggleProjectSessions = async (projectId: string) => {
-    if (expandedProjectId === projectId) {
-      setExpandedProjectId(null);
-      return;
-    }
+  const openProjectSessions = async (project: WorkspaceProject) => {
+    const projectId = project.id;
 
-    setExpandedProjectId(projectId);
+    setSessionsProject(project);
+    setShowSessions(true);
     setLoadingProjectRunsId(projectId);
     try {
       const response = await apiFetch(`/api/agent-runs?projectId=${encodeURIComponent(projectId)}`, { cache: "no-store" });
@@ -150,8 +152,6 @@ export default function ProjectsWorkspace() {
       }
 
       setShowForm(false);
-      setEditingId(null);
-      setForm(emptyProjectForm);
       await load();
     } catch {
       setError("Unable to save project.");
@@ -218,97 +218,6 @@ export default function ProjectsWorkspace() {
             </p>
           ) : null}
 
-          {showForm ? (
-            <fieldset className="flex flex-col gap-3 rounded-md border border-background-focus bg-background-card p-4">
-              <legend className="px-1 text-xs font-medium">
-                {editingId ? "Edit project" : "New project"}
-              </legend>
-              <form
-                onSubmit={save}
-                className="flex flex-col gap-3">
-                <div className="grid gap-3 md:grid-cols-[1fr_180px]">
-                  <label className="flex flex-col gap-1.5 text-xs">
-                    Name
-                    <input
-                      required
-                      value={form.name}
-                      onChange={(event) =>
-                        setForm((previous) => ({
-                          ...previous,
-                          name: event.target.value,
-                        }))
-                      }
-                      className="rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
-                      placeholder="Eclipse"
-                    />
-                  </label>
-                  <label className="flex flex-col gap-1.5 text-xs">
-                    Status
-                    <select
-                      value={form.status}
-                      onChange={(event) =>
-                        setForm((previous) => ({
-                          ...previous,
-                          status: event.target.value as ProjectStatus,
-                        }))
-                      }
-                      className="rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
-                      <option value="ACTIVE">Active</option>
-                      <option value="AT_RISK">At risk</option>
-                      <option value="COMPLETED">Completed</option>
-                    </select>
-                  </label>
-                </div>
-                <label className="flex flex-col gap-1.5 text-xs">
-                  Description
-                  <textarea
-                    value={form.description}
-                    onChange={(event) =>
-                      setForm((previous) => ({
-                        ...previous,
-                        description: event.target.value,
-                      }))
-                    }
-                    className="min-h-20 resize-y rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
-                    placeholder="What is this project for?"
-                  />
-                </label>
-                <label className="flex flex-col gap-1.5 text-xs">
-                  External URL
-                  <input
-                    type="url"
-                    value={form.externalUrl}
-                    onChange={(event) =>
-                      setForm((previous) => ({
-                        ...previous,
-                        externalUrl: event.target.value,
-                      }))
-                    }
-                    className="rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
-                    placeholder="https://github.com/org/repo"
-                  />
-                </label>
-                <div className="flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setShowForm(false)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={saving}>
-                    {saving
-                      ? "Saving…"
-                      : editingId
-                        ? "Save project"
-                        : "Create project"}
-                  </Button>
-                </div>
-              </form>
-            </fieldset>
-          ) : null}
-
           {loading ? (
             <p
               role="status"
@@ -354,9 +263,9 @@ export default function ProjectsWorkspace() {
                       <Button
                         type="button"
                         variant="ghost"
-                        onClick={() => void toggleProjectSessions(project.id)}
-                        aria-expanded={expandedProjectId === project.id}>
-                        {expandedProjectId === project.id ? "Hide sessions" : "Sessions"}
+                        onClick={() => void openProjectSessions(project)}
+                        aria-haspopup="dialog">
+                        Sessions
                       </Button>
                       {project.externalUrl ? (
                         <a
@@ -383,46 +292,143 @@ export default function ProjectsWorkspace() {
                       </button>
                     </div>
                   </div>
-
-                  {expandedProjectId === project.id ? (
-                    <section
-                      aria-label={`${project.name} agent sessions`}
-                      className="ml-4.5 border-l border-background-focus pl-3">
-                      {loadingProjectRunsId === project.id ? (
-                        <p
-                          role="status"
-                          className="text-xs text-foreground-off">
-                          Loading sessions…
-                        </p>
-                      ) : projectRuns[project.id]?.length ? (
-                        <div className="flex flex-col">
-                          {projectRuns[project.id].map(run => (
-                            <Link
-                              key={run.id}
-                              href={`/agents/${run.id}`}
-                              className="flex min-w-0 items-center justify-between gap-3 rounded-md px-2 py-1.5 text-xs hover:bg-background-focus">
-                              <span className="truncate">
-                                {run.prompt?.split("\n")[0] || "Agent session"}
-                              </span>
-                              <span className="shrink-0 text-foreground-off">
-                                {run.status.toLowerCase().replaceAll("_", " ")}
-                              </span>
-                            </Link>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-foreground-off">
-                          No sessions for this project yet.
-                        </p>
-                      )}
-                    </section>
-                  ) : null}
                 </article>
               ))}
             </div>
           )}
         </div>
       </section>
+
+      <Dialog
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        title={editingId ? "Edit project" : "New project"}
+        description="Projects group repositories, issues, and agent sessions.">
+        <form
+          onSubmit={save}
+          className="flex flex-col gap-3">
+        {error ? (
+          <p
+            role="alert"
+            className="text-xs text-alert-red">
+            {error}
+          </p>
+        ) : null}
+          <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+            <label className="flex flex-col gap-1.5 text-xs">
+              Name
+              <input
+                required
+                value={form.name}
+                onChange={(event) =>
+                  setForm((previous) => ({
+                    ...previous,
+                    name: event.target.value,
+                  }))
+                }
+                className="rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+                placeholder="Eclipse"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5 text-xs">
+              Status
+              <select
+                value={form.status}
+                onChange={(event) =>
+                  setForm((previous) => ({
+                    ...previous,
+                    status: event.target.value as ProjectStatus,
+                  }))
+                }
+                className="rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent">
+                <option value="ACTIVE">Active</option>
+                <option value="AT_RISK">At risk</option>
+                <option value="COMPLETED">Completed</option>
+              </select>
+            </label>
+          </div>
+          <label className="flex flex-col gap-1.5 text-xs">
+            Description
+            <textarea
+              value={form.description}
+              onChange={(event) =>
+                setForm((previous) => ({
+                  ...previous,
+                  description: event.target.value,
+                }))
+              }
+              className="min-h-20 resize-y rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+              placeholder="What is this project for?"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs">
+            External URL
+            <input
+              type="url"
+              value={form.externalUrl}
+              onChange={(event) =>
+                setForm((previous) => ({
+                  ...previous,
+                  externalUrl: event.target.value,
+                }))
+              }
+              className="rounded-md bg-background-focus px-3 py-1.5 text-xs outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+              placeholder="https://github.com/org/repo"
+            />
+          </label>
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setShowForm(false)}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={saving}>
+              {saving
+                ? "Saving…"
+                : editingId
+                  ? "Save project"
+                  : "Create project"}
+            </Button>
+          </div>
+        </form>
+      </Dialog>
+
+      <Dialog
+        isOpen={showSessions}
+        onClose={() => setShowSessions(false)}
+        title={sessionsProject ? `${sessionsProject.name} sessions` : "Sessions"}
+        description="Agent sessions linked to this project.">
+        {sessionsProject && loadingProjectRunsId === sessionsProject.id ? (
+          <p
+            role="status"
+            className="text-xs text-foreground-off">
+            Loading sessions…
+          </p>
+        ) : sessionsProject && projectRuns[sessionsProject.id]?.length ? (
+          <div className="flex flex-col">
+            {projectRuns[sessionsProject.id].map(run => (
+              <Link
+                key={run.id}
+                href={`/agents/${run.id}`}
+                className="flex min-w-0 items-center justify-between gap-3 rounded-md px-2 py-1.5 text-xs hover:bg-background-focus">
+                <span className="truncate">
+                  {run.prompt?.split("\n")[0] || "Agent session"}
+                </span>
+                <span className="shrink-0 text-foreground-off">
+                  {run.status.toLowerCase().replaceAll("_", " ")}
+                </span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-foreground-off">
+            No sessions for this project yet.
+          </p>
+        )}
+      </Dialog>
     </main>
   );
 }

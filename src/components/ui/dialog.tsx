@@ -3,10 +3,13 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { IconX } from "@tabler/icons-react";
 
+import { DIALOG_SIZE_CLASSES } from "@/constants/dialog";
+
 interface Props {
   isOpen: boolean;
   title: string;
   description?: string;
+  size?: "md" | "lg";
   onClose(): void;
   children: ReactNode;
 }
@@ -19,6 +22,7 @@ export default function Dialog(props: Props) {
   const { isOpen, onClose } = props;
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const pressStartedOnBackdrop = useRef(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -51,9 +55,21 @@ export default function Dialog(props: Props) {
       onCancel={event => {
         event.preventDefault();
         onClose();
+      }}
+      onPointerDown={event => {
+        pressStartedOnBackdrop.current = event.target === event.currentTarget;
+      }}
+      onClick={event => {
+        // Close only when the press starts and ends outside the panel, so text selection drags stay open.
+        const isBackdropClick = event.target === event.currentTarget && pressStartedOnBackdrop.current;
+        pressStartedOnBackdrop.current = false;
+
+        if (isBackdropClick) {
+          onClose();
+        }
       }}>
       <div
-        className={`${isOpen ? "menu-enter" : "menu-exit"} w-full max-w-md rounded-md border border-background-focus bg-background-card p-5 shadow-2xl`}>
+        className={`${isOpen ? "menu-enter" : "menu-exit"} ${DIALOG_SIZE_CLASSES[props.size ?? "md"]} max-h-full w-full overflow-y-auto rounded-md border border-background-focus bg-background-card p-5 shadow-2xl`}>
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 id={titleId} className="text-sm font-medium text-foreground">{props.title}</h2>

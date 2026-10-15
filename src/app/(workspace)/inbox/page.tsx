@@ -17,6 +17,7 @@ import MailComposeForm from "@/components/inbox/mail-compose-form";
 import MailDetail from "@/components/inbox/mail-detail";
 import MailList from "@/components/inbox/mail-list";
 import DashLayout from "@/components/layouts/dash";
+import Dialog from "@/components/ui/dialog";
 import type {
   MailFolder,
   MailFormValues,
@@ -79,12 +80,10 @@ export default function InboxPage() {
   const selectFolder = (nextFolder: MailFolder) => {
     setFolder(nextFolder);
     setSelectedId("");
-    setComposeOpen(false);
   };
 
   const selectMail = async (mail: MailItem) => {
     setSelectedId(mail.id);
-    setComposeOpen(false);
     if (folder !== "inbox" || mail.readAt) return;
 
     const readAt = new Date().toISOString();
@@ -143,6 +142,11 @@ export default function InboxPage() {
     } finally {
       setSending(false);
     }
+  };
+
+  const closeCompose = () => {
+    setComposeOpen(false);
+    setError(null);
   };
 
   return (
@@ -222,16 +226,7 @@ export default function InboxPage() {
 
           {error && !composeOpen ? <p role="alert" className="border-b border-alert-red/30 px-6 py-2.5 text-xs text-alert-red">{error}</p> : null}
 
-          {composeOpen ? (
-            <MailComposeForm
-              values={form}
-              busy={sending}
-              error={error}
-              onChange={updates => setForm(current => ({ ...current, ...updates }))}
-              onSubmit={sendMail}
-              onCancel={() => { setComposeOpen(false); setError(null); }}
-            />
-          ) : loading ? (
+          {loading ? (
             <p role="status" className="p-7 text-xs text-foreground-off">Loading message…</p>
           ) : selectedMail ? (
             <MailDetail mail={selectedMail} folder={folder} onReply={() => startCompose(selectedMail)} />
@@ -245,6 +240,22 @@ export default function InboxPage() {
           )}
         </section>
       </main>
+
+      <Dialog
+        isOpen={composeOpen}
+        onClose={closeCompose}
+        size="lg"
+        title="New message"
+        description="Send a message to another verified Eclipze user.">
+        <MailComposeForm
+          values={form}
+          busy={sending}
+          error={error}
+          onChange={updates => setForm(current => ({ ...current, ...updates }))}
+          onSubmit={sendMail}
+          onCancel={closeCompose}
+        />
+      </Dialog>
     </DashLayout>
   );
 }

@@ -7,6 +7,7 @@ import IssueForm from "@/components/issues/issue-form";
 import IssueResults from "@/components/issues/issue-results";
 import IssueToolbar from "@/components/issues/issue-toolbar";
 import DashLayout from "@/components/layouts/dash";
+import Dialog from "@/components/ui/dialog";
 import Heading from "@/components/ui/heading";
 import { initialIssueForm } from "@/constants/issues";
 import type { IssueFormValues, IssueItem } from "@/types/issues";
@@ -116,19 +117,11 @@ export default function IssuesPage() {
             unread={unread}
             loading={loading}
             onRefresh={() => void load(true)}
-            onCreateIssue={() => setShowForm((value) => !value)}
+            onCreateIssue={() => {
+              setError(null);
+              setShowForm(true);
+            }}
           />
-
-          {showForm && (
-            <IssueForm
-              form={form}
-              onChange={(updates) =>
-                setForm((previous) => ({ ...previous, ...updates }))
-              }
-              onSubmit={createIssue}
-              onCancel={() => setShowForm(false)}
-            />
-          )}
 
           <IssueFilters
             query={query}
@@ -148,6 +141,23 @@ export default function IssuesPage() {
           />
         </div>
       </main>
+
+      <Dialog
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        size="lg"
+        title="New issue"
+        description="Describe what you need so the team can follow up.">
+        <IssueForm
+          form={form}
+          error={error}
+          onChange={(updates) =>
+            setForm((previous) => ({ ...previous, ...updates }))
+          }
+          onSubmit={createIssue}
+          onCancel={() => setShowForm(false)}
+        />
+      </Dialog>
     </DashLayout>
   );
 }

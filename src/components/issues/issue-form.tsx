@@ -5,6 +5,7 @@ import type { IssuePriority, IssueType } from "@/types/user";
 
 type IssueFormProps = {
   form: IssueFormValues;
+  error: string | null;
   onChange: (updates: Partial<IssueFormValues>) => void;
   onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
   onCancel: () => void;
@@ -12,6 +13,7 @@ type IssueFormProps = {
 
 export default function IssueForm({
   form,
+  error,
   onChange,
   onSubmit,
   onCancel,
@@ -19,19 +21,27 @@ export default function IssueForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="flex flex-col gap-4 rounded-md bg-background-card p-5">
-      <div className="grid gap-4 md:grid-cols-[1fr_180px_180px]">
-        <label className="flex flex-col gap-2 text-xs">
-          Title
-          <input
-            required
-            value={form.title}
-            onChange={(event) => onChange({ title: event.target.value })}
-            className="rounded-md bg-background-focus px-3 py-1.5 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
-            placeholder="What do you need help with?"
-          />
-        </label>
+      className="flex flex-col gap-4">
+      {error ? (
+        <p
+          role="alert"
+          className="text-xs text-alert-red">
+          {error}
+        </p>
+      ) : null}
 
+      <label className="flex flex-col gap-2 text-xs">
+        Title
+        <input
+          required
+          value={form.title}
+          onChange={(event) => onChange({ title: event.target.value })}
+          className="rounded-md bg-background-focus px-3 py-1.5 text-foreground outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
+          placeholder="What do you need help with?"
+        />
+      </label>
+
+      <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-2 text-xs">
           Type
           <select
