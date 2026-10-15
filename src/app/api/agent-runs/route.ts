@@ -4,7 +4,14 @@ import { NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth";
 import { appendRunEvent, serializeAgentRun, startAgentRun } from "@/lib/agent-runs";
-import { ensureAiCreditWallet, reserveAiCredits, usdToAiCredits } from "@/lib/ai-credits";
+import {
+  ensureAiCreditWallet,
+  findExhaustedUsageWindow,
+  getAiCreditUsageWindows,
+  reserveAiCredits,
+  usdToAiCredits,
+} from "@/lib/ai-credits";
+import { formatTimeUntil } from "@/utils/usage-limits";
 import { resolveAllowedCommand, createInstructionsDigest } from "@/lib/agent-runner";
 import { getOpenRouterCredential, getOpenRouterModels } from "@/lib/openrouter";
 import { getProviderApiKey } from "@/lib/ai-provider-credentials";
@@ -176,6 +183,23 @@ export async function POST(request: Request) {
     creditReservation = Math.max(1, Math.ceil(usdToAiCredits(estimatedUsd) * 1.25));
 
     const wallet = await ensureAiCreditWallet(user.id);
+    const usageWindows = await getAiCreditUsageWindows({
+      userId: user.id,
+      reservedCredits: wallet.reservedCredits,
+    });
+    const exhaustedWindow = findExhaustedUsageWindow(usageWindows);
+
+    if (exhaustedWindow) {
+      const resetMessage = exhaustedWindow.resetAt
+        ? ` It resets in ${formatTimeUntil(exhaustedWindow.resetAt)}.`
+        : "";
+
+      return NextResponse.json({
+        message: `You reached your ${exhaustedWindow.label} usage limit of ${exhaustedWindow.limitCredits} credits.${resetMessage}`,
+        usageWindow: exhaustedWindow,
+      }, { status: 429, headers: PRIVATE_NO_STORE_HEADERS });
+    }
+
     const availableCredits = wallet.balance - wallet.reservedCredits;
     if (creditReservation > availableCredits) {
       return NextResponse.json({

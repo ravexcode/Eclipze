@@ -3,11 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { AGENT_CREDITS_UPDATED_EVENT } from "@/constants/agent-events";
-import { USAGE_LIMIT_TICKS } from "@/constants/usage-limits";
-import type { AiCreditUsage } from "@/types/ai";
+import type { AiCreditUsage, AiCreditUsageWindow } from "@/types/ai";
 import { apiFetch } from "@/utils/api-fetch";
 import { readJson } from "@/utils/json-payload";
-import { formatUsageCredits, getMonthlyUsageLimit } from "@/utils/usage-limits";
+import { formatUsageReset, getUsageBarClass, getUsageWindowAvailablePercent } from "@/utils/usage-limits";
 
 export default function UsageLimits() {
   const [usage, setUsage] = useState<AiCreditUsage | null>(null);
@@ -45,24 +44,15 @@ export default function UsageLimits() {
     };
   }, [load]);
 
-  const limit = usage ? getMonthlyUsageLimit(usage) : null;
-
   return (
     <section
       aria-labelledby="usage-limits-title"
       className="flex flex-col gap-4 rounded-md border border-background-focus bg-background-card p-4">
-      <div className="flex items-center justify-between gap-4">
-        <h2
-          id="usage-limits-title"
-          className="text-xs font-medium">
-          Monthly usage
-        </h2>
-        {limit ? (
-          <span className="text-xs text-foreground-off">
-            Resets {limit.resetLabel}
-          </span>
-        ) : null}
-      </div>
+      <h2
+        id="usage-limits-title"
+        className="text-xs font-medium">
+        Usage limits
+      </h2>
 
       {error ? (
         <p
@@ -70,61 +60,56 @@ export default function UsageLimits() {
           className="text-xs text-alert-red">
           {error}
         </p>
-      ) : !limit ? (
+      ) : !usage ? (
         <p
           role="status"
           className="text-xs text-foreground-off">
           Loading usage limits…
         </p>
       ) : (
-        <>
-          <div className="flex items-baseline gap-2">
-            <span className={`text-3xl font-medium tracking-[-0.03em] ${limit.tone.label}`}>
-              {limit.remainingPercent}%
-            </span>
-            <span className="text-xs text-foreground-off">
-              remaining this month
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <div
-              role="progressbar"
-              aria-label="Monthly usage remaining"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={limit.remainingPercent}
-              className="h-2 overflow-hidden rounded-full bg-background-focus">
-              <div
-                className={`h-full rounded-full transition-[width] duration-500 ${limit.tone.bar}`}
-                style={{ width: `${limit.remainingPercent}%` }}
-              />
-            </div>
-            <div
-              aria-hidden="true"
-              className="flex justify-between text-[10px] text-foreground-off">
-              {USAGE_LIMIT_TICKS.map(tick => (
-                <span key={tick}>{tick}%</span>
-              ))}
-            </div>
-          </div>
-
-          <dl className="grid grid-cols-3 gap-3 border-t border-background-focus pt-3 text-xs">
-            <div className="flex flex-col gap-1">
-              <dt className="text-foreground-off">Used</dt>
-              <dd>{formatUsageCredits(limit.usedCredits)}</dd>
-            </div>
-            <div className="flex flex-col gap-1">
-              <dt className="text-foreground-off">Available</dt>
-              <dd>{formatUsageCredits(limit.availableCredits)}</dd>
-            </div>
-            <div className="flex flex-col gap-1">
-              <dt className="text-foreground-off">Total</dt>
-              <dd>{formatUsageCredits(limit.totalCredits)}</dd>
-            </div>
-          </dl>
-        </>
+        <div className="flex flex-col gap-4">
+          {usage.usageWindows.map(window => (
+            <UsageWindowRow
+              key={window.key}
+              window={window} />
+          ))}
+        </div>
       )}
     </section>
+  );
+}
+
+function UsageWindowRow({ window }: { window: AiCreditUsageWindow }) {
+  const percent = getUsageWindowAvailablePercent(window);
+  const resetLabel = formatUsageReset(window.resetAt);
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-baseline justify-between gap-4 text-xs">
+        <span className="font-medium text-foreground">{window.label}</span>
+        <span className="text-foreground-off">
+          {percent}% available
+        </span>
+      </div>
+
+      <div
+        role="progressbar"
+        aria-label={`${window.label} credits available`}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        className="h-2 overflow-hidden rounded-full bg-background-focus">
+        <div
+          className={`h-full rounded-full transition-[width,background-color] duration-500 ${getUsageBarClass(percent)}`}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+
+      {resetLabel ? (
+        <span className="text-[10px] text-foreground-off">
+          {resetLabel}
+        </span>
+      ) : null}
+    </div>
   );
 }

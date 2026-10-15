@@ -3,6 +3,8 @@ import "server-only";
 import { Prisma } from "@prisma/client";
 
 import prisma from "@/lib/prisma";
+import { AI_CREDIT_USAGE_WINDOWS } from "@/constants/ai-credits";
+import type { AiCreditUsageWindow } from "@/types/ai";
 
 export const INITIAL_AI_CREDITS = 300;
 export const DEFAULT_MONTHLY_AI_CREDITS = 300;
@@ -252,4 +254,49 @@ export async function releaseAiCreditReservation(input: {
 
     if (released !== 1) throw new Error("Unable to release the AI credit reservation.");
   });
+}
+
+export async function getAiCreditUsageWindows(input: {
+  userId: string;
+  reservedCredits: number;
+}): Promise<AiCreditUsageWindow[]> {
+  const now = Date.now();
+
+  return Promise.all(AI_CREDIT_USAGE_WINDOWS.map(async window => {
+    const windowStart = new Date(now - window.durationMs);
+    const spendFilter = {
+      userId: input.userId,
+      type: "SPEND" as const,
+      createdAt: { gte: windowStart },
+    };
+
+    const [spend, oldestSpend] = await Promise.all([
+      prisma.aiCreditLedgerEntry.aggregate({
+        where: spendFilter,
+        _sum: { deltaCredits: true },
+      }),
+      prisma.aiCreditLedgerEntry.findFirst({
+        where: spendFilter,
+        orderBy: { createdAt: "asc" },
+        select: { createdAt: true },
+      }),
+    ]);
+
+    // Rolling window: capacity returns when the oldest spend in the window ages out.
+    const resetAt = oldestSpend
+      ? new Date(oldestSpend.createdAt.getTime() + window.durationMs).toISOString()
+      : null;
+
+    return {
+      key: window.key,
+      label: window.label,
+      limitCredits: window.limitCredits,
+      usedCredits: Math.abs(spend._sum.deltaCredits ?? 0) + input.reservedCredits,
+      resetAt,
+    };
+  }));
+}
+
+export function findExhaustedUsageWindow(windows: AiCreditUsageWindow[]) {
+  return windows.find(window => window.usedCredits >= window.limitCredits);
 }

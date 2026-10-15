@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { ensureAiCreditWallet } from "@/lib/ai-credits";
+import { ensureAiCreditWallet, getAiCreditUsageWindows } from "@/lib/ai-credits";
 import { getCurrentUser } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
@@ -41,6 +41,10 @@ export async function GET() {
     _sum: { deltaCredits: true },
   });
   const monthlyUsedCredits = Math.abs(monthlySpend._sum.deltaCredits ?? 0) + wallet.reservedCredits;
+  const usageWindows = await getAiCreditUsageWindows({
+    userId: user.id,
+    reservedCredits: wallet.reservedCredits,
+  });
 
   return NextResponse.json({
     balance: wallet.balance,
@@ -49,6 +53,7 @@ export async function GET() {
     monthlyAllowance: wallet.monthlyAllowance,
     monthlyUsedCredits,
     monthlyResetAt: monthlyResetAt.toISOString(),
+    usageWindows,
     serviceOpenRouterAvailable: Boolean(process.env.OPENROUTER_API_KEY?.trim()),
     entries: entries.map(entry => ({
       ...entry,

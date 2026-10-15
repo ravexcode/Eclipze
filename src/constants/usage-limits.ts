@@ -1,29 +1,19 @@
-export const USAGE_LIMIT_TICKS = [0, 25, 50, 75, 100];
+export const USAGE_RESET_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  hour: "numeric",
+  minute: "2-digit",
+});
 
-export const USAGE_LIMIT_TONES = [
+// Ordered from lowest to highest; the first threshold the available percent fits wins.
+export const USAGE_BAR_THRESHOLDS = [
   {
-    minimumPercent: 50,
-    bar: "bg-foreground",
-    label: "text-foreground",
+    maximumPercent: 10,
+    className: "bg-priority-high",
   },
   {
-    minimumPercent: 20,
-    bar: "bg-warning",
-    label: "text-warning",
-  },
-  {
-    minimumPercent: 0,
-    bar: "bg-alert-red",
-    label: "text-alert-red",
+    maximumPercent: 30,
+    className: "bg-priority-medium",
   },
 ];
 
-export const USAGE_RESET_FORMATTER = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  timeZone: "UTC",
-});
-
-export const USAGE_NUMBER_FORMATTER = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 0,
-});
+export const USAGE_BAR_DEFAULT_CLASS = "bg-accent";

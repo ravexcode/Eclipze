@@ -43,6 +43,7 @@ export default function AgentComposer(props: Props) {
     ? []
     : filterMentionableAgents(props.agents ?? [], mentionQuery);
   const isMentionMenuOpen = mentionMatches.length > 0;
+  const isDictationMode = speech.isSupported && (speech.isListening || !props.value.trim());
   const activeIndex = Math.min(highlightedIndex, Math.max(mentionMatches.length - 1, 0));
 
   const selectMention = (agent: MentionableAgent) => {
@@ -99,27 +100,25 @@ export default function AgentComposer(props: Props) {
       <div className="flex items-center justify-between pt-2">
         <SessionSelector currentRunId={props.currentRunId} onSelect={props.onSelectSession} />
 
-        <div className="flex items-center gap-1.5">
-          {speech.isSupported ? (
-            <button
-              type="button"
-              onClick={speech.toggle}
-              aria-pressed={speech.isListening}
-              aria-label={speech.isListening ? "Stop dictation" : "Start dictation"}
-              className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${speech.isListening ? "animate-pulse bg-priority-high text-white" : "text-foreground-off hover:bg-background-focus hover:text-foreground"}`}>
-              {speech.isListening ? <IconPlayerStopFilled size={13} /> : <IconMicrophone size={15} />}
-            </button>
-          ) : null}
-
+        {isDictationMode ? (
+          <button
+            type="button"
+            onClick={speech.toggle}
+            aria-pressed={speech.isListening}
+            aria-label={speech.isListening ? "Stop dictation" : "Start dictation"}
+            className={`flex size-7 shrink-0 items-center justify-center rounded-full text-white transition-colors ${speech.isListening ? "animate-pulse bg-priority-high" : "bg-accent hover:bg-accent-strong"}`}>
+            {speech.isListening ? <IconPlayerStopFilled size={13} /> : <IconMicrophone size={15} />}
+          </button>
+        ) : (
           <button
             type="button"
             onClick={props.onSend}
             disabled={props.isSendDisabled}
             aria-label="Send"
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40">
+            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40">
             <IconArrowUp size={15} strokeWidth={2.2} />
           </button>
-        </div>
+        )}
       </div>
     </div>
   );

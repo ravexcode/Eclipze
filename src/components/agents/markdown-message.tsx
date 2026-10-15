@@ -7,7 +7,7 @@ interface Props {
 
 export default function MarkdownMessage({ children }: Props) {
   return (
-    <div className="markdown-message min-w-0 break-words text-xs leading-6 text-foreground-off">
+    <div className="markdown-message min-w-0 break-words text-xs leading-6 text-foreground">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{

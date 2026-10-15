@@ -53,9 +53,18 @@ export function isAiProvider(value: unknown): value is AiProvider {
   return typeof value === "string" && AI_PROVIDERS.some(provider => provider.id === value);
 }
 
+export type AiCreditUsageWindow = {
+  key: string;
+  label: string;
+  limitCredits: number;
+  usedCredits: number;
+  resetAt: string | null;
+};
+
 export type AiCreditUsage = {
   availableCredits: number;
   monthlyAllowance: number;
   monthlyUsedCredits: number;
   monthlyResetAt: string;
+  usageWindows: AiCreditUsageWindow[];
 };
