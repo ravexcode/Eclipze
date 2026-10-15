@@ -151,7 +151,7 @@ export default function InboxPage() {
       router={router}>
 
       <main
-        className="flex min-h-dvh min-w-0 flex-col lg:h-dvh lg:flex-row lg:overflow-hidden">
+        className="flex min-h-full min-w-0 flex-col lg:h-full lg:flex-row lg:overflow-hidden">
 
         <aside
           className="flex min-h-0 w-full flex-col border-b border-background-focus bg-background-card lg:w-80 lg:shrink-0 lg:border-b-0 lg:border-x">

@@ -40,7 +40,7 @@ export default function OverviewDashboard({
   const isInitialLoad = loading && !snapshot;
 
   return (
-    <main className="flex min-h-dvh min-w-0 flex-col">
+    <main className="flex min-h-full min-w-0 flex-col">
       <header className="flex h-10 shrink-0 items-center px-4">
         <h1 className="text-xs text-foreground-off">
           Overview

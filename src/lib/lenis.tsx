@@ -14,6 +14,7 @@ export default function Lenis({ children }: { children?: React.ReactNode }) {
     smoothWheel: true,
     smoothTouch: false,
     stopInertiaOnNavigate: true,
+    allowNestedScroll: true,
   }), []);
 
   useEffect(() => {

@@ -241,7 +241,7 @@ export default function AgentsPage() {
   return (
     <DashLayout current="agents" router={router}>
       <main
-        className="flex min-h-dvh min-w-0 flex-col">
+        className="flex h-full min-w-0 flex-col">
 
         <header className="flex h-10 shrink-0 items-center justify-end px-4">
           <WorkspaceDialog />

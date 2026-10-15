@@ -65,12 +65,12 @@ export default function DashLayout(props: Props) {
   }, [pathname, props.router, reloadToken]);
 
   return (
-    <div className="grid min-h-dvh w-full grid-cols-1 items-start bg-background text-foreground md:grid-cols-[auto_minmax(0,1fr)]">
+    <div className="flex h-dvh w-full overflow-hidden bg-background text-foreground">
       <Sidebar
         selected={props.current}
         user={user}
         router={props.router} />
-      <div className="relative min-w-0">
+      <div className="relative h-full min-w-0 flex-1 overflow-y-auto">
         {props.children}
       </div>
     </div>

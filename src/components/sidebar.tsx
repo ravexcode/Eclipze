@@ -81,7 +81,7 @@ export default function Sidebar(props: Props) {
 
   return (
     <aside
-      className="h-full flex flex-col items-center justify-start pb-2 pt-7 gap-7 relative px-3 transition-[width,background-color] duration-200"
+      className="h-full shrink-0 flex flex-col items-center justify-start pb-2 pt-7 gap-7 relative px-3 transition-[width,background-color] duration-200"
       style={{
         width: `${width}px`,
         backgroundColor: bgColor,

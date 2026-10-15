@@ -123,7 +123,7 @@ export default function AgentRunPage() {
 
   return (
     <DashLayout current="agents" router={router}>
-      <main className="flex min-h-dvh min-w-0 flex-col">
+      <main className="flex h-full min-w-0 flex-col">
         <header className="flex h-10 shrink-0 items-center justify-between border-b border-background-focus px-4">
           <button type="button" onClick={() => router.push("/agents")} className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-foreground-off transition-colors hover:bg-background-focus hover:text-foreground">
             <IconArrowLeft size={14} /> Agents
