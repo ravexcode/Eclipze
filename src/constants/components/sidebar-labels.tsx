@@ -6,7 +6,7 @@ import {
   IconTarget
 } from "@tabler/icons-react";
 
-export type SelectedSection = "overview" | "inbox" | "issues" | "agents" | "projects" | "settings";
+export type SelectedSection = "overview" | "inbox" | "issues" | "agents" | "projects" | "settings" | "erd";
 
 const icon_size = 18; const icon_width = 2;
 
@@ -41,6 +41,13 @@ export const labels = (selected: SelectedSection) => {
       icon: <IconPointer2 size={icon_size} strokeWidth={icon_width} />,
       redirection: "/agents",
       selected: selected === "agents"
+    },
+    {
+      label: "ERD",
+      icon: <IconPointer2 size={icon_size} strokeWidth={icon_width} />,
+      redirection: "/erd",
+      selected: selected === "erd",
+      isPremium: true,
     },
   ];
 

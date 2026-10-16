@@ -52,66 +52,70 @@ export default function AuthPage(
     setErrorAction(null);
     setIsSubmitting(true);
 
-    if (step === "credentials") {
-      if (type === "up") {
-        setError("You must accept the terms and privacy policy to create an account.");
+    try {
+      if (step === "credentials") {
+        if (type === "up") {
+          setError("You must accept the terms and privacy policy to create an account.");
+          return;
+        }
+
+        const endpoint = type === "in" ? "/api/auth/signin" : "/api/auth/signup";
+        const response = await apiFetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(user),
+        });
+
+        const data = await response.json() as AuthApiResponse;
+
+        if (!response.ok) {
+          setError(data.message);
+          if (data.actionHref && data.actionLabel) setErrorAction({ href: data.actionHref, label: data.actionLabel });
+          return;
+        }
+
+        if (type === "in") {
+          announce({ message: "Login successful!", variant: "success" });
+          invalidateSessionUser();
+          router.push(data.redirectTo ?? "/dashboard");
+          router.refresh();
+          return;
+        }
+
+        setPendingEmail(data.email ?? user.email);
+        setStep(data.nextStep ?? "credentials");
+        setVerificationCode("");
+        announce({ message: data.message, variant: "info" });
         return;
       }
 
-      const endpoint = type === "in" ? "/api/auth/signin" : "/api/auth/signup";
-      const response = await apiFetch(endpoint, {
+      const response = await apiFetch("/api/auth/verify-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(user),
+        body: JSON.stringify({
+          email: pendingEmail || user.email,
+          code: verificationCode,
+        }),
       });
 
       const data = await response.json() as AuthApiResponse;
 
       if (!response.ok) {
         setError(data.message);
-        if (data.actionHref && data.actionLabel) setErrorAction({ href: data.actionHref, label: data.actionLabel });
         return;
       }
 
-      if (type === "in") {
-        announce({ message: "Login successful!", variant: "success" });
-        invalidateSessionUser();
-        router.push(data.redirectTo ?? "/dashboard");
-        router.refresh();
-        return;
-      }
-
-      setPendingEmail(data.email ?? user.email);
-      setStep(data.nextStep ?? "credentials");
-      setVerificationCode("");
-      announce({ message: data.message, variant: "info" });
-      return;
+      invalidateSessionUser();
+      announce({ message: "Email verified. You are now signed in.", variant: "success" });
+      router.push(data.redirectTo ?? "/dashboard");
+      router.refresh();
+    } catch {
+      setError("Unable to complete your request. Please try again.");
     }
-
-    const response = await apiFetch("/api/auth/verify-email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: pendingEmail || user.email,
-        code: verificationCode,
-      }),
-    });
-
-    const data = await response.json() as AuthApiResponse;
-
-    if (!response.ok) {
-      setError(data.message);
-      return;
-    }
-
-    invalidateSessionUser();
-    announce({ message: "Email verified. You are now signed in.", variant: "success" });
-    router.push(data.redirectTo ?? "/dashboard");
-    router.refresh();
   };
 
   const onError = (e: React.SubmitEvent<HTMLFormElement>) => {
@@ -143,6 +147,8 @@ export default function AuthPage(
       }
 
       announce({ message: data.message, variant: "success" });
+    } catch {
+      setError("Unable to resend the code. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
