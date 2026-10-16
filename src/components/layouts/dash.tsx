@@ -56,6 +56,7 @@ export default function DashLayout(props: Props) {
         avatar: sessionUser.avatarUrl ?? "/logo.svg",
         id: sessionUser.id,
         role: sessionUser.role,
+        plan: sessionUser.plan,
       });
     };
 

@@ -17,6 +17,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 // Icons
 import {
   IconLayoutSidebar,
+  IconLock,
   IconSearch
 } from "@tabler/icons-react";
 
@@ -32,6 +33,9 @@ import UserProfile from "./ui/profile";
 // Types
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import type { User } from "@/types/user";
+
+// Utils
+import { canAccessErd } from "@/utils/erd";
 
 // Main content
 export default function Sidebar(props: Props) {
@@ -132,16 +136,39 @@ export default function Sidebar(props: Props) {
             <section
               className="w-full flex flex-col gap-1 text-xs">
               {
-                filtered_labels.map((label) =>
-                  <Link
-                    key={label.redirection}
-                    href={label.redirection}
-                    className={"w-full flex gap-2 items-center justify-start px-3 py-1.5 rounded-md " + (label.selected ? "bg-background-focus" : "hover:bg-background-focus/50 text-foreground-off")}>
-                    {label.icon}
+                filtered_labels.map((label) => {
+                  const isLocked = label.isPremium === true && !canAccessErd(props.user);
 
-                    {label.label}
-                  </Link>
-                )
+                  if (isLocked) {
+                    return (
+                      <span
+                        key={label.redirection}
+                        aria-disabled="true"
+                        title="Requires a developer account on a paid plan"
+                        className="w-full flex gap-2 items-center justify-start px-3 py-1.5 rounded-md text-foreground-off opacity-50 grayscale cursor-not-allowed select-none">
+                        {label.icon}
+
+                        {label.label}
+
+                        <IconLock
+                          size={13}
+                          strokeWidth={1.8}
+                          className="ml-auto" />
+                      </span>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={label.redirection}
+                      href={label.redirection}
+                      className={"w-full flex gap-2 items-center justify-start px-3 py-1.5 rounded-md " + (label.selected ? "bg-background-focus" : "hover:bg-background-focus/50 text-foreground-off")}>
+                      {label.icon}
+
+                      {label.label}
+                    </Link>
+                  );
+                })
               }
               {filtered_labels.length === 0 ? (
                 <p className="px-3 py-2 text-foreground-off" role="status">

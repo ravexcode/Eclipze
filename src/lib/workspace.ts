@@ -19,6 +19,7 @@ type WorkspaceUser = {
   username: string | null;
   avatarUrl: string | null;
   role: "USER" | "DEVELOPER";
+  plan: "FREE" | "PLUS" | "MAX" | "TEAM";
   emailVerifiedAt: Date | null;
   createdAt: Date;
 };

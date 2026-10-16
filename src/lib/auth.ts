@@ -96,6 +96,7 @@ export function serializeUser(user: {
   username: string | null;
   avatarUrl: string | null;
   role: "USER" | "DEVELOPER";
+  plan: "FREE" | "PLUS" | "MAX" | "TEAM";
   emailVerifiedAt: Date | null;
   createdAt: Date;
 }) {
@@ -106,6 +107,7 @@ export function serializeUser(user: {
     displayName: user.username ?? user.email.split("@")[0],
     avatarUrl: user.avatarUrl,
     role: user.role,
+    plan: user.plan,
     emailVerified: Boolean(user.emailVerifiedAt),
     createdAt: user.createdAt.toISOString(),
   };

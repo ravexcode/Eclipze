@@ -64,7 +64,7 @@ export function setSessionUser(user: SessionUser) {
   sessionRequest = null;
   cachedUser = user;
 
-  if (previousUser && (previousUser.id !== user.id || previousUser.role !== user.role)) {
+  if (previousUser && (previousUser.id !== user.id || previousUser.role !== user.role || previousUser.plan !== user.plan)) {
     clearPrivateCaches();
   }
 }

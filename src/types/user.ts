@@ -24,6 +24,7 @@ export type SessionUser = {
   displayName: string;
   avatarUrl: string | null;
   role: UserRole;
+  plan: UserPlan;
   emailVerified: boolean;
   createdAt: string;
 };
@@ -33,10 +34,12 @@ export type UserProfile = {
   avatar: string;
   id: string;
   role: UserRole;
+  plan: UserPlan;
 }
 
 export type ProjectStatus = "ACTIVE" | "AT_RISK" | "COMPLETED";
 export type UserRole = "USER" | "DEVELOPER";
+export type UserPlan = "FREE" | "PLUS" | "MAX" | "TEAM";
 export type IssueType = "BUG" | "FEATURE" | "SUPPORT";
 export type IssuePriority = "LOW" | "MEDIUM" | "HIGH";
 export type IssueStatus = "OPEN" | "IN_PROGRESS" | "WAITING_FOR_USER" | "RESOLVED" | "CLOSED";
@@ -134,4 +137,5 @@ export type User = {
   avatar: string;
   id: string;
   role: "USER" | "DEVELOPER";
+  plan: UserPlan;
 }
