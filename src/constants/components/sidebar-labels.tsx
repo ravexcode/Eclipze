@@ -1,4 +1,5 @@
 import {
+  IconDatabase,
   IconFolders,
   IconInbox,
   IconLayoutDashboard,
@@ -44,7 +45,7 @@ export const labels = (selected: SelectedSection) => {
     },
     {
       label: "ERD",
-      icon: <IconPointer2 size={icon_size} strokeWidth={icon_width} />,
+      icon: <IconDatabase size={icon_size} strokeWidth={icon_width} />,
       redirection: "/erd",
       selected: selected === "erd",
       isPremium: true,

@@ -11,8 +11,10 @@ import { usePathname } from "next/navigation";
 
 import { getSessionUser } from "@/utils/session";
 
+import type { SelectedSection } from "@/constants/components/sidebar-labels";
+
 interface Props {
-  current: "overview" | "inbox" | "issues" | "agents" | "projects" | "settings";
+  current: SelectedSection;
   router: AppRouterInstance;
   children?: ReactNode;
 }
