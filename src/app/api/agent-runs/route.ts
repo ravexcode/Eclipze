@@ -185,6 +185,7 @@ export async function POST(request: Request) {
     const wallet = await ensureAiCreditWallet(user.id);
     const usageWindows = await getAiCreditUsageWindows({
       userId: user.id,
+      plan: user.plan,
       reservedCredits: wallet.reservedCredits,
     });
     const exhaustedWindow = findExhaustedUsageWindow(usageWindows);
@@ -203,7 +204,7 @@ export async function POST(request: Request) {
     const availableCredits = wallet.balance - wallet.reservedCredits;
     if (creditReservation > availableCredits) {
       return NextResponse.json({
-        message: `This model needs up to ${creditReservation} credits reserved for a run. Your available balance is ${Math.max(0, availableCredits)} credits. Choose a lower-cost model or wait for your next monthly grant.`,
+        message: `This model needs up to ${creditReservation} credits reserved for a run. Your available balance is ${Math.max(0, availableCredits)} credits. ${user.plan === "FREE" ? "Choose a lower-cost model." : "Choose a lower-cost model or wait for your next monthly grant."}`,
         availableCredits: Math.max(0, availableCredits),
         requiredCredits: creditReservation,
       }, { status: 402, headers: PRIVATE_NO_STORE_HEADERS });

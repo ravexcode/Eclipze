@@ -27,7 +27,7 @@ export const SUBSCRIPTION_PLANS = [
   {
     key: "free",
     name: "Free",
-    description: "Try Eclipze with a small monthly AI allowance.",
+    description: "Try Eclipze with a one-time AI allowance.",
     priceCents: 0,
     billing: "free",
     minimumSeats: 1,
@@ -42,7 +42,7 @@ export const SUBSCRIPTION_PLANS = [
     features: [
       "Projects, issues, and messages",
       "Bring your own AI provider keys",
-      "$0.30 in monthly AI credits",
+      "$0.30 in AI credits in total, with no monthly reset",
     ],
   },
   {
@@ -91,7 +91,7 @@ export const SUBSCRIPTION_PLANS = [
   },
   {
     key: "team",
-    name: "Team",
+    name: "Enterprise",
     description: "Full access for teams, with shared credits and central billing.",
     priceCents: 1_500,
     billing: "monthly_per_seat",

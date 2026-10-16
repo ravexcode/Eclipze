@@ -43,6 +43,7 @@ export async function GET() {
   const monthlyUsedCredits = Math.abs(monthlySpend._sum.deltaCredits ?? 0) + wallet.reservedCredits;
   const usageWindows = await getAiCreditUsageWindows({
     userId: user.id,
+    plan: user.plan,
     reservedCredits: wallet.reservedCredits,
   });
 
@@ -50,7 +51,7 @@ export async function GET() {
     balance: wallet.balance,
     reservedCredits: wallet.reservedCredits,
     availableCredits: Math.max(0, wallet.balance - wallet.reservedCredits),
-    monthlyAllowance: wallet.monthlyAllowance,
+    monthlyAllowance: user.plan === "FREE" ? 0 : wallet.monthlyAllowance,
     monthlyUsedCredits,
     monthlyResetAt: monthlyResetAt.toISOString(),
     usageWindows,

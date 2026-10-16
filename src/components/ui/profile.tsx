@@ -29,6 +29,7 @@ import { useAnnouncements } from "@/components/announcements/announcement-provid
 
 // Utils imports
 import { apiFetch } from "@/utils/api-fetch";
+import { getPlanName } from "@/utils/plans";
 import { invalidateSessionUser } from "@/utils/session";
 
 const MENU_EXIT_DURATION_MS = 150;
@@ -147,8 +148,8 @@ export default function UserProfile({ profile }: Props) {
             )}
             <div className="min-w-0">
               <p className="truncate text-foreground">{profile.name}</p>
-              <p className="mt-0.5 text-foreground-off">
-                {profile.role === "DEVELOPER" ? "Developer" : "Member"}
+              <p className={`mt-0.5 text-xs ${profile.plan === "FREE" ? "text-foreground" : "text-accent"}`}>
+                {getPlanName(profile.plan)} plan
               </p>
             </div>
           </div>

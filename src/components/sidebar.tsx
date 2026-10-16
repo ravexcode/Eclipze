@@ -144,7 +144,7 @@ export default function Sidebar(props: Props) {
                       <span
                         key={label.redirection}
                         aria-disabled="true"
-                        title="Requires a developer account on a paid plan"
+                        title="Requires a developer account"
                         className="w-full flex gap-2 items-center justify-start px-3 py-1.5 rounded-md text-foreground-off opacity-50 grayscale cursor-not-allowed select-none">
                         {label.icon}
 

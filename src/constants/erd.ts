@@ -146,7 +146,8 @@ export const ERD_AGENT_MAX_TOOL_RESULT_LENGTH = 16_000;
 export const ERD_AGENT_MAX_ANSWER_LENGTH = 24_000;
 export const ERD_AGENT_ESTIMATED_OUTPUT_TOKENS = 4_096;
 export const ERD_AGENT_PROMPT_OVERHEAD_CHARACTERS = 12_000;
-export const ERD_AGENT_UNSUPPORTED_PROVIDERS = new Set(["MCP", "CURSOR"]);
+// Only OpenRouter agents run on platform credits, which the ERD agent always spends.
+export const ERD_AGENT_PROVIDER = "OPENROUTER";
 
 // New tables from the agent are laid out in a grid below the existing ones.
 export const ERD_AGENT_LAYOUT_COLUMNS = 4;

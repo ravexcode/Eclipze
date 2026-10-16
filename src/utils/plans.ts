@@ -1,4 +1,5 @@
-import type { SubscriptionPlan } from "@/constants/plans";
+import { SUBSCRIPTION_PLANS, type SubscriptionPlan } from "@/constants/plans";
+import type { UserPlan } from "@/types/user";
 
 export function formatPlanPrice(plan: Pick<SubscriptionPlan, "priceCents" | "billing">) {
   if (plan.billing === "free") {
@@ -14,4 +15,10 @@ export function formatPlanPrice(plan: Pick<SubscriptionPlan, "priceCents" | "bil
   return plan.billing === "monthly_per_seat"
     ? `${price} / seat / month`
     : `${price} / month`;
+}
+
+export function getPlanName(plan: UserPlan) {
+  const subscriptionPlan = SUBSCRIPTION_PLANS.find(item => item.key === plan.toLowerCase());
+
+  return subscriptionPlan?.name ?? "Free";
 }
