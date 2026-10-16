@@ -13,6 +13,11 @@ enum VerificationCodePurpose {
   PASSWORD_RESET
 }
 
+enum LegalDocumentKind {
+  TERMS
+  PRIVACY
+}
+
 enum AuthProvider {
   CREDENTIALS
   GITHUB
@@ -162,6 +167,7 @@ model User {
   agentRunApprovals     AgentRunApproval[]
   aiCreditWallet        AiCreditWallet?
   aiCreditEntries       AiCreditLedgerEntry[]
+  legalAcceptances      LegalAcceptance[]
 
   @@map("users")
 }
@@ -527,4 +533,18 @@ model McpConnection {
 
   @@index([userId])
   @@map("mcp_connections")
+}
+
+model LegalAcceptance {
+  id         String            @id @default(cuid())
+  userId     String
+  document   LegalDocumentKind
+  // ISO date of the accepted version, matching the version in src/constants/legal.ts.
+  version    String
+  acceptedAt DateTime          @default(now())
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, document, version])
+  @@index([userId])
+  @@map("legal_acceptances")
 }

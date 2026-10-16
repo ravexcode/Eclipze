@@ -1,13 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import type { LegalSection } from "@/constants/legal";
+import { LEGAL_DOCUMENTS } from "@/constants/legal";
+import type { LegalDocumentKey, LegalDocumentVersion } from "@/types/legal";
+import {
+  formatLegalVersionDate,
+  getCurrentLegalVersion,
+  getLegalVersionPath,
+} from "@/utils/legal";
 
 type LegalDocumentProps = {
-  title: string;
-  intro: string;
-  sections: LegalSection[];
-  current: "terms" | "privacy";
+  document: LegalDocumentKey;
+  version: LegalDocumentVersion;
 };
 
 const LEGAL_LINKS = [
@@ -16,11 +20,14 @@ const LEGAL_LINKS = [
 ] as const;
 
 export default function LegalDocument({
-  title,
-  intro,
-  sections,
-  current,
+  document,
+  version,
 }: LegalDocumentProps) {
+  const definition = LEGAL_DOCUMENTS[document];
+  const currentVersion = getCurrentLegalVersion(document);
+  const isCurrent = version.version === currentVersion.version;
+  const updatedLabel = formatLegalVersionDate(version.version);
+
   return (
     <main lang="en" className="min-h-dvh bg-background px-5 pb-16 pt-6 sm:px-8 sm:pt-10">
       <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-6 border-b border-background-focus pb-5">
@@ -33,8 +40,8 @@ export default function LegalDocument({
             <Link
               key={link.key}
               href={link.href}
-              aria-current={current === link.key ? "page" : undefined}
-              className={current === link.key
+              aria-current={document === link.key && isCurrent ? "page" : undefined}
+              className={document === link.key
                 ? "text-foreground"
                 : "transition-colors hover:text-foreground"}
             >
@@ -45,22 +52,34 @@ export default function LegalDocument({
       </header>
 
       <article className="mx-auto w-full max-w-3xl">
-        <div className="border-b border-background-focus py-12 sm:py-16">
+        <div className="border-b border-background-focus py-6 mb-6">
           <p className="mb-3 text-xs text-foreground-off">Legal · Nuevo León, Mexico</p>
-          <h1 className="font-base text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">{title}</h1>
-          <p className="mt-4 max-w-2xl text-xs leading-7 text-foreground-off">{intro}</p>
-          <p className="mt-6 text-xs text-foreground-off">Draft for review · October 2, 2026</p>
+          <h1 className="font-base text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">{version.title}</h1>
+          <p className="mt-4 max-w-2xl text-xs leading-7 text-foreground-off">{version.intro}</p>
+          <p className="mt-6 text-xs text-foreground-off">
+            Draft for review · Last updated{" "}
+            <time dateTime={version.version}>{updatedLabel}</time>
+          </p>
         </div>
 
-        <aside className="my-8 rounded-md border border-accent/40 bg-background-card p-5 sm:p-6">
-          <h2 className="text-xs font-medium">Completion needed</h2>
-          <p className="mt-2 text-xs leading-6 text-foreground-off">
-            This draft reflects the application code and the operator details provided so far. Before publishing it, confirm the operator's full address, service providers and infrastructure, retention periods, and final legal wording.
-          </p>
-        </aside>
+        {isCurrent ? null : (
+          <aside className="mt-8 rounded-md border border-priority-medium/40 bg-background-card p-5 sm:p-6">
+            <h2 className="text-xs font-medium">Archived version</h2>
+            <p className="mt-2 text-xs leading-6 text-foreground-off">
+              You are viewing the version of the {definition.title} updated on {updatedLabel}. It is no longer in effect.{" "}
+              <Link
+                href={definition.path}
+                className="text-foreground underline underline-offset-4 transition-colors hover:text-accent"
+              >
+                View the current version
+              </Link>
+              .
+            </p>
+          </aside>
+        )}
 
         <div className="space-y-9">
-          {sections.map(section => (
+          {version.sections.map(section => (
             <section key={section.title} className="scroll-mt-8">
               <h2 className="text-xl font-medium tracking-[-0.02em]">{section.title}</h2>
               <div className="mt-3 space-y-4 text-[15px] leading-7 text-foreground-off">
@@ -87,6 +106,45 @@ export default function LegalDocument({
             </section>
           ))}
         </div>
+
+        <section id="version-history" className="mt-12 scroll-mt-8 border-t border-background-focus pt-8">
+          <h2 className="text-xl font-medium tracking-[-0.02em]">Version history</h2>
+          <ol className="mt-4 space-y-3">
+            {definition.versions.map(entry => {
+              const isViewing = entry.version === version.version;
+              const isEntryCurrent = entry.version === currentVersion.version;
+
+              return (
+                <li
+                  key={entry.version}
+                  className="rounded-md border border-background-focus bg-background-card px-4 py-3"
+                >
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                    {isViewing ? (
+                      <span className="font-medium text-foreground" aria-current="page">
+                        {formatLegalVersionDate(entry.version)}
+                      </span>
+                    ) : (
+                      <Link
+                        href={getLegalVersionPath(document, entry.version)}
+                        className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-accent"
+                      >
+                        {formatLegalVersionDate(entry.version)}
+                      </Link>
+                    )}
+                    {isEntryCurrent ? (
+                      <span className="text-accent">Current</span>
+                    ) : null}
+                    {isViewing ? (
+                      <span className="text-foreground-off">Viewing</span>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-xs leading-6 text-foreground-off">{entry.summary}</p>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
 
         <footer className="mt-12 border-t border-background-focus pt-6 text-xs text-foreground-off">
           <p>

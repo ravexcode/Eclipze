@@ -7,6 +7,7 @@ import {
   isValidEmail,
   normalizeEmail,
 } from "@/lib/auth";
+import { recordCurrentLegalAcceptance } from "@/lib/legal-acceptance";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null) as {
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
     });
   }
 
+  await recordCurrentLegalAcceptance(user.id);
   await createSession(user.id);
 
   return NextResponse.json({

@@ -10,6 +10,7 @@ import {
   verifyPassword,
 } from "@/lib/auth";
 import { sendNewSignInEmail } from "@/lib/auth-email";
+import { recordCurrentLegalAcceptance } from "@/lib/legal-acceptance";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null) as {
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
     }, { status: 403 });
   }
 
+  await recordCurrentLegalAcceptance(user.id);
   await createSession(user.id);
   void sendNewSignInEmail({
     to: user.email,

@@ -19,6 +19,7 @@ import {
   getAppOrigin,
   getGoogleOAuthConfig,
 } from "@/lib/google-oauth";
+import { recordCurrentLegalAcceptance } from "@/lib/legal-acceptance";
 
 export async function GET(request: Request) {
   const appOrigin = getAppOrigin(request);
@@ -77,6 +78,7 @@ export async function GET(request: Request) {
     return redirectWithError(result.error);
   }
 
+  await recordCurrentLegalAcceptance(result.user.id);
   await createSession(result.user.id);
   void sendNewSignInEmail({
     to: result.user.email,

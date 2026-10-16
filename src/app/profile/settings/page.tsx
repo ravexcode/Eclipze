@@ -7,6 +7,7 @@ import DashLayout from "@/components/layouts/dash";
 import DangerZone from "@/components/settings/danger-zone";
 import DeveloperAccountSection from "@/components/settings/developer-account-section";
 import AiCreditsSection from "@/components/settings/ai-credits-section";
+import LegalAgreementsSection from "@/components/settings/legal-agreements-section";
 import PasswordSection from "@/components/settings/password-section";
 import ProfileSection from "@/components/settings/profile-section";
 import ProvidersSection from "@/components/settings/providers-section";
@@ -63,6 +64,7 @@ export default function SettingsPage() {
               <DeveloperAccountSection
                 user={user}
                 onChanged={setUser} />
+              <LegalAgreementsSection />
               <SettingsSection
                 title="Danger zone"
                 description="Sensitive actions that affect access to your account."
