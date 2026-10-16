@@ -1,5 +1,4 @@
 import {
-  ERD_ALLOWED_PLANS,
   ERD_COLUMN_ROW_HEIGHT,
   ERD_MAX_NAME_LENGTH,
   ERD_MAX_SCALE,
@@ -19,7 +18,7 @@ import type {
   ErdRelationDraft,
   ErdTable,
 } from "@/types/erd";
-import type { UserPlan, UserRole } from "@/types/user";
+import type { UserRole } from "@/types/user";
 
 type Point = {
   x: number;
@@ -36,12 +35,13 @@ export type ErdRelationGeometry = {
 
 // Access
 
-export function canAccessErd(user: { role: UserRole; plan: UserPlan } | null | undefined) {
+// Any developer account can use ERD; the ERD agent spends the user's AI credits.
+export function canAccessErd(user: { role: UserRole } | null | undefined) {
   if (!user) {
     return false;
   }
 
-  return user.role === "DEVELOPER" && ERD_ALLOWED_PLANS.includes(user.plan);
+  return user.role === "DEVELOPER";
 }
 
 // Document editing

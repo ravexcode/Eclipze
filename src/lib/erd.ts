@@ -21,7 +21,7 @@ import type {
   ErdRelation,
   ErdTable,
 } from "@/types/erd";
-import type { UserPlan, UserRole } from "@/types/user";
+import type { UserRole } from "@/types/user";
 import { canAccessErd } from "@/utils/erd";
 
 type ParseResult<T> = { value: T; error?: never } | { value?: never; error: string };
@@ -30,9 +30,9 @@ export function erdJson(body: Record<string, unknown>, status = 200) {
   return NextResponse.json(body, { status, headers: ERD_PRIVATE_HEADERS });
 }
 
-export function erdAccessError(user: { role: UserRole; plan: UserPlan }) {
+export function erdAccessError(user: { role: UserRole }) {
   if (!canAccessErd(user)) {
-    return erdJson({ message: "ERD requires a developer account on a paid plan." }, 403);
+    return erdJson({ message: "ERD requires a developer account." }, 403);
   }
 
   return null;

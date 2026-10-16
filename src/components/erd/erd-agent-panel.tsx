@@ -9,7 +9,7 @@ import ErdChangeList from "@/components/erd/erd-change-list";
 import Button from "@/components/ui/button";
 import MenuSelector from "@/components/ui/menu-selector";
 import { DATABASE_PROVIDER_LABELS } from "@/constants/database-connections";
-import { ERD_AGENT_SUGGESTIONS, ERD_AGENT_UNSUPPORTED_PROVIDERS } from "@/constants/erd";
+import { ERD_AGENT_PROVIDER, ERD_AGENT_SUGGESTIONS } from "@/constants/erd";
 import type { DatabaseConnectionSummary, DatabaseProject } from "@/types/database-connections";
 import type { ErdDocument } from "@/types/erd";
 import type { WorkspaceAgent } from "@/types/user";
@@ -60,7 +60,7 @@ export default function ErdAgentPanel(props: Props) {
         if (cancelled) return;
 
         const usableAgents = (payload?.agents ?? []).filter(agent => (
-          agent.status === "ACTIVE" && !ERD_AGENT_UNSUPPORTED_PROVIDERS.has(agent.provider)
+          agent.status === "ACTIVE" && agent.provider === ERD_AGENT_PROVIDER
         ));
 
         setAgents(usableAgents);
@@ -198,7 +198,7 @@ export default function ErdAgentPanel(props: Props) {
           </p>
         ) : agents.length === 0 ? (
           <p className="text-xs text-foreground-off">
-            Create an active agent with an API key provider to start chatting.{" "}
+            Create an active OpenRouter agent to start chatting.{" "}
             <Link
               href="/agents"
               className="text-foreground underline underline-offset-2">
@@ -264,7 +264,7 @@ export default function ErdAgentPanel(props: Props) {
         {chat.messages.length === 0 ? (
           <div className="flex flex-col gap-2">
             <p className="text-xs text-foreground-off">
-              Ask the agent to create ERDs, review the list of changes against your database, or update the database.
+              Ask the agent to create ERDs, review the list of changes against your database, or update the database. Each message spends your AI credits.
             </p>
             {ERD_AGENT_SUGGESTIONS.map(suggestion => (
               <button

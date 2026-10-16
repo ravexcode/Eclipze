@@ -51,8 +51,6 @@ export default function ERDPage() {
       ) : user ? (
         <ErdUpgradeDialog
           isOpen={showUpgrade}
-          role={user.role}
-          plan={user.plan}
           onClose={closeUpgrade} />
       ) : null}
     </DashLayout>

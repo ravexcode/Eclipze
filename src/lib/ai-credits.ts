@@ -3,8 +3,13 @@ import "server-only";
 import { Prisma } from "@prisma/client";
 
 import prisma from "@/lib/prisma";
-import { AI_CREDIT_USAGE_WINDOWS } from "@/constants/ai-credits";
+import {
+  AI_CREDIT_FREE_TOTAL_LIMIT,
+  AI_CREDIT_FREE_TOTAL_WINDOW,
+  AI_CREDIT_USAGE_WINDOWS,
+} from "@/constants/ai-credits";
 import type { AiCreditUsageWindow } from "@/types/ai";
+import type { UserPlan } from "@/types/user";
 
 export const INITIAL_AI_CREDITS = 300;
 export const DEFAULT_MONTHLY_AI_CREDITS = 300;
@@ -40,6 +45,25 @@ async function ensureWalletInTransaction(transaction: Prisma.TransactionClient, 
   let lastGrant = wallet.lastMonthlyGrantAt ?? wallet.createdAt;
   let nextGrant = monthStartAfter(lastGrant);
   const now = new Date();
+  const user = await transaction.user.findUnique({ where: { id: userId }, select: { plan: true } });
+
+  // Free accounts keep only their initial grant. Advancing the grant date without crediting
+  // prevents a later upgrade from back-filling the months spent on the Free plan.
+  if (user?.plan === "FREE") {
+    while (nextGrant <= now) {
+      lastGrant = nextGrant;
+      nextGrant = monthStartAfter(lastGrant);
+    }
+
+    if (lastGrant.getTime() !== wallet.lastMonthlyGrantAt?.getTime()) {
+      wallet = await transaction.aiCreditWallet.update({
+        where: { id: wallet.id },
+        data: { lastMonthlyGrantAt: lastGrant },
+      });
+    }
+
+    return wallet;
+  }
 
   while (nextGrant <= now) {
     const month = `${nextGrant.getUTCFullYear()}-${String(nextGrant.getUTCMonth() + 1).padStart(2, "0")}`;
@@ -258,8 +282,25 @@ export async function releaseAiCreditReservation(input: {
 
 export async function getAiCreditUsageWindows(input: {
   userId: string;
+  plan: UserPlan;
   reservedCredits: number;
 }): Promise<AiCreditUsageWindow[]> {
+  if (input.plan === "FREE") {
+    // Lifetime limit: spending never ages out, so the window has no reset.
+    const spend = await prisma.aiCreditLedgerEntry.aggregate({
+      where: { userId: input.userId, type: "SPEND" },
+      _sum: { deltaCredits: true },
+    });
+
+    return [{
+      key: AI_CREDIT_FREE_TOTAL_WINDOW.key,
+      label: AI_CREDIT_FREE_TOTAL_WINDOW.label,
+      limitCredits: AI_CREDIT_FREE_TOTAL_LIMIT,
+      usedCredits: Math.abs(spend._sum.deltaCredits ?? 0) + input.reservedCredits,
+      resetAt: null,
+    }];
+  }
+
   const now = Date.now();
 
   return Promise.all(AI_CREDIT_USAGE_WINDOWS.map(async window => {
