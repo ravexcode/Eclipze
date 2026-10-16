@@ -59,3 +59,29 @@ export type ErdDiagramResponse = {
   updatedAt: string | null;
   message?: string;
 };
+
+export type ErdDatabaseChangeKind = "create" | "alter" | "drop";
+
+export type ErdDatabaseChange = {
+  kind: ErdDatabaseChangeKind;
+  target: string;
+  description: string;
+  statement: string;
+  isDestructive: boolean;
+};
+
+export type ErdAgentMessage = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  changes?: ErdDatabaseChange[];
+  isError?: boolean;
+};
+
+export type ErdAgentResponse = {
+  answer: string;
+  document: ErdDocument | null;
+  changes: ErdDatabaseChange[] | null;
+  credits: number | null;
+  message?: string;
+};

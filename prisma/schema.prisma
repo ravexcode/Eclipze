@@ -25,6 +25,14 @@ enum AuthProvider {
   GITLAB
 }
 
+enum DatabaseProvider {
+  SUPABASE
+  PRISMA
+  MONGODB
+  NEON
+  INSFORGE
+}
+
 enum AiProvider {
   CLAUDE
   GPT
@@ -178,6 +186,7 @@ model User {
   aiCreditEntries       AiCreditLedgerEntry[]
   legalAcceptances      LegalAcceptance[]
   erdDiagrams           ErdDiagram[]
+  databaseConnections   DatabaseConnection[]
 
   @@map("users")
 }
@@ -573,4 +582,22 @@ model ErdDiagram {
 
   @@index([userId])
   @@map("erd_diagrams")
+}
+
+model DatabaseConnection {
+  id                  String           @id @default(cuid())
+  userId              String
+  provider            DatabaseProvider
+  // Account token or connection string, encrypted with AI_CREDENTIALS_ENCRYPTION_KEY.
+  encryptedCredential String
+  credentialHint      String?
+  // InsForge project URL; other providers use fixed API hosts.
+  baseUrl             String?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("database_connections")
 }

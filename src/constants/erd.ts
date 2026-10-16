@@ -3,6 +3,7 @@ import { SUBSCRIPTION_PLANS } from "@/constants/plans";
 import type {
   ErdCardinality,
   ErdColumnType,
+  ErdDatabaseChangeKind,
   ErdDocument,
   ErdExportFormat,
   ErdSaveState,
@@ -135,4 +136,38 @@ export const ERD_SAVE_STATE_DOT: Record<ErdSaveState, string> = {
   unsaved: "bg-warning",
   saving: "bg-status-cyan",
   error: "bg-alert-red",
+};
+
+// Agent chat.
+export const ERD_AGENT_MAX_MESSAGES = 30;
+export const ERD_AGENT_MAX_MESSAGE_LENGTH = 8_000;
+export const ERD_AGENT_MAX_TOOL_CYCLES = 8;
+export const ERD_AGENT_MAX_TOOL_RESULT_LENGTH = 16_000;
+export const ERD_AGENT_MAX_ANSWER_LENGTH = 24_000;
+export const ERD_AGENT_ESTIMATED_OUTPUT_TOKENS = 4_096;
+export const ERD_AGENT_PROMPT_OVERHEAD_CHARACTERS = 12_000;
+export const ERD_AGENT_UNSUPPORTED_PROVIDERS = new Set(["MCP", "CURSOR"]);
+
+// New tables from the agent are laid out in a grid below the existing ones.
+export const ERD_AGENT_LAYOUT_COLUMNS = 4;
+export const ERD_AGENT_LAYOUT_GAP_X = 80;
+export const ERD_AGENT_LAYOUT_GAP_Y = 80;
+export const ERD_AGENT_LAYOUT_ORIGIN = 40;
+
+export const ERD_AGENT_SUGGESTIONS = [
+  "Create an ERD for a blog with users, posts, and comments",
+  "Review the changes between this diagram and the database",
+  "Import the connected database into this diagram",
+];
+
+export const ERD_DATABASE_CHANGE_KIND_LABELS: Record<ErdDatabaseChangeKind, string> = {
+  create: "Create",
+  alter: "Alter",
+  drop: "Drop",
+};
+
+export const ERD_DATABASE_CHANGE_KIND_CLASSES: Record<ErdDatabaseChangeKind, string> = {
+  create: "text-status-green",
+  alter: "text-status-cyan",
+  drop: "text-alert-red",
 };

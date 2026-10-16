@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IconFolderPlus, IconTablePlus } from "@tabler/icons-react";
 
+import ErdAgentPanel from "@/components/erd/erd-agent-panel";
 import ErdCanvas from "@/components/erd/erd-canvas";
+import ErdDatabaseDialog from "@/components/erd/erd-database-dialog";
 import ErdExportDialog from "@/components/erd/erd-export-dialog";
 import ErdTablePanel from "@/components/erd/erd-table-panel";
 import ErdToolbar from "@/components/erd/erd-toolbar";
@@ -14,7 +16,7 @@ import {
   ERD_SCALE_STEP,
   ERD_TABLE_WIDTH,
 } from "@/constants/erd";
-import type { ErdColumn, ErdRelation, ErdTable, ErdViewport } from "@/types/erd";
+import type { ErdColumn, ErdDocument, ErdRelation, ErdTable, ErdViewport } from "@/types/erd";
 import type { WorkspaceProject } from "@/types/user";
 import { apiFetch } from "@/utils/api-fetch";
 import {
@@ -31,6 +33,7 @@ import {
   writeErdProjectToUrl,
 } from "@/utils/erd";
 import { errorMessage, readJson } from "@/utils/json-payload";
+import { useDatabaseConnections } from "@/utils/use-database-connections";
 import { useErdDiagram } from "@/utils/use-erd-diagram";
 
 export default function ErdWorkspace() {
@@ -42,11 +45,14 @@ export default function ErdWorkspace() {
   const [viewport, setViewport] = useState<ErdViewport>(ERD_DEFAULT_VIEWPORT);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [showExport, setShowExport] = useState(false);
+  const [showAgent, setShowAgent] = useState(false);
+  const [showDatabase, setShowDatabase] = useState(false);
 
   const diagram = useErdDiagram(projectId);
   const { document, updateDocument, save, saveState } = diagram;
   const selectedTable = selectedTableId ? findErdTable(document, selectedTableId) : undefined;
   const selectedProject = projects.find(project => project.id === projectId);
+  const databaseConnections = useDatabaseConnections(Boolean(projectId));
 
   useEffect(() => {
     let cancelled = false;
@@ -205,6 +211,18 @@ export default function ErdWorkspace() {
     }));
   };
 
+  const selectTable = useCallback((tableId: string | null) => {
+    setSelectedTableId(tableId);
+
+    if (tableId) {
+      setShowAgent(false);
+    }
+  }, []);
+
+  const replaceDocument = useCallback((nextDocument: ErdDocument) => {
+    updateDocument(() => nextDocument);
+  }, [updateDocument]);
+
   const removeTable = (tableId: string) => {
     const table = findErdTable(document, tableId);
     const confirmed = window.confirm(`Delete the ${table?.name || "selected"} table and its relations?`);
@@ -265,6 +283,10 @@ export default function ErdWorkspace() {
             onAddTable={addTable}
             onZoom={zoom}
             onResetView={() => setViewport(ERD_DEFAULT_VIEWPORT)}
+            isAgentOpen={showAgent}
+            connectedDatabaseCount={databaseConnections.connections.length}
+            onToggleAgent={() => setShowAgent(current => !current)}
+            onOpenDatabase={() => setShowDatabase(true)}
             onExport={() => setShowExport(true)}
             onSave={() => void save()} />
 
@@ -283,7 +305,7 @@ export default function ErdWorkspace() {
               viewport={viewport}
               selectedTableId={selectedTable ? selectedTable.id : null}
               onViewportChange={setViewport}
-              onSelectTable={setSelectedTableId}
+              onSelectTable={selectTable}
               onMoveTable={moveTable}>
               {diagram.loading ? (
                 <p
@@ -313,7 +335,16 @@ export default function ErdWorkspace() {
               ) : null}
             </ErdCanvas>
 
-            {selectedTable ? (
+            {showAgent ? (
+              <ErdAgentPanel
+                key={projectId}
+                projectId={projectId}
+                document={document}
+                connections={databaseConnections.connections}
+                onDocumentChange={replaceDocument}
+                onOpenDatabase={() => setShowDatabase(true)}
+                onClose={() => setShowAgent(false)} />
+            ) : selectedTable ? (
               <ErdTablePanel
                 key={selectedTable.id}
                 document={document}
@@ -336,6 +367,15 @@ export default function ErdWorkspace() {
         projectName={selectedProject?.name ?? "this project"}
         document={document}
         onClose={() => setShowExport(false)} />
+
+      <ErdDatabaseDialog
+        isOpen={showDatabase}
+        connections={databaseConnections.connections}
+        loading={databaseConnections.loading}
+        loadError={databaseConnections.error}
+        onConnect={databaseConnections.connect}
+        onDisconnect={databaseConnections.disconnect}
+        onClose={() => setShowDatabase(false)} />
     </main>
   );
 }

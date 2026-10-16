@@ -301,11 +301,7 @@ function alignPrismaFields(rows: string[][]) {
 export function exportErdToPrisma(document: ErdDocument) {
   const fieldRows = new Map<string, string[][]>();
   const usedFieldNames = new Map<string, Set<string>>();
-  const oneToOneForeignKeys = new Set(
-    document.relations
-      .filter(relation => relation.cardinality === "ONE_TO_ONE")
-      .map(relation => relation.fromColumnId),
-  );
+  const oneToOneForeignKeys = getOneToOneForeignKeys(document);
 
   for (const table of document.tables) {
     usedFieldNames.set(table.id, new Set(table.columns.map(column => column.name)));
@@ -373,74 +369,95 @@ export function exportErdToPrisma(document: ErdDocument) {
     .join("\n\n");
 }
 
-function quoteSql(identifier: string) {
+export function quoteSql(identifier: string) {
   return `"${identifier}"`;
 }
 
-export function exportErdToSql(document: ErdDocument) {
-  const statements: string[] = [];
-  const oneToOneForeignKeys = new Set(
+export function getOneToOneForeignKeys(document: ErdDocument) {
+  return new Set(
     document.relations
       .filter(relation => relation.cardinality === "ONE_TO_ONE")
       .map(relation => relation.fromColumnId),
   );
+}
 
-  for (const table of document.tables) {
-    const definitions = table.columns.map(column => {
-      const notNull = column.isNullable && !column.isPrimaryKey ? "" : " NOT NULL";
+export function createErdColumnSql(column: ErdColumn) {
+  const notNull = column.isNullable && !column.isPrimaryKey ? "" : " NOT NULL";
 
-      return `    ${quoteSql(column.name)} ${ERD_SQL_COLUMN_TYPES[column.type]}${notNull}`;
-    });
+  return `${quoteSql(column.name)} ${ERD_SQL_COLUMN_TYPES[column.type]}${notNull}`;
+}
 
-    const primaryKeys = table.columns.filter(column => column.isPrimaryKey);
+export function createErdUniqueIndexSql(table: ErdTable, column: ErdColumn) {
+  return `CREATE UNIQUE INDEX ${quoteSql(`${table.name}_${column.name}_key`)} ON ${quoteSql(table.name)}(${quoteSql(column.name)});`;
+}
 
-    if (primaryKeys.length > 0) {
-      definitions.push(
-        `    CONSTRAINT ${quoteSql(`${table.name}_pkey`)} PRIMARY KEY (${primaryKeys.map(column => quoteSql(column.name)).join(", ")})`,
-      );
-    }
+// CREATE TABLE plus the unique indexes for one table.
+export function createErdTableSql(table: ErdTable, oneToOneForeignKeys: Set<string>) {
+  const statements: string[] = [];
+  const definitions = table.columns.map(column => `    ${createErdColumnSql(column)}`);
+  const primaryKeys = table.columns.filter(column => column.isPrimaryKey);
 
-    statements.push(`CREATE TABLE ${quoteSql(table.name)} (\n${definitions.join(",\n")}\n);`);
+  if (primaryKeys.length > 0) {
+    definitions.push(
+      `    CONSTRAINT ${quoteSql(`${table.name}_pkey`)} PRIMARY KEY (${primaryKeys.map(column => quoteSql(column.name)).join(", ")})`,
+    );
+  }
 
-    for (const column of table.columns) {
-      const needsUniqueIndex = !column.isPrimaryKey && (column.isUnique || oneToOneForeignKeys.has(column.id));
+  statements.push(`CREATE TABLE ${quoteSql(table.name)} (\n${definitions.join(",\n")}\n);`);
 
-      if (needsUniqueIndex) {
-        statements.push(
-          `CREATE UNIQUE INDEX ${quoteSql(`${table.name}_${column.name}_key`)} ON ${quoteSql(table.name)}(${quoteSql(column.name)});`,
-        );
-      }
+  for (const column of table.columns) {
+    const needsUniqueIndex = !column.isPrimaryKey && (column.isUnique || oneToOneForeignKeys.has(column.id));
+
+    if (needsUniqueIndex) {
+      statements.push(createErdUniqueIndexSql(table, column));
     }
   }
 
+  return statements;
+}
+
+export function getErdJoinTableName(fromTable: ErdTable, toTable: ErdTable) {
+  return `_${fromTable.name}To${toTable.name}`;
+}
+
+// A foreign key constraint, or a join table for many-to-many relations.
+export function createErdRelationSql(document: ErdDocument, relation: ErdRelation) {
+  const fromTable = findErdTable(document, relation.fromTableId);
+  const toTable = findErdTable(document, relation.toTableId);
+  const fromColumn = fromTable?.columns.find(column => column.id === relation.fromColumnId);
+  const toColumn = toTable?.columns.find(column => column.id === relation.toColumnId);
+
+  if (!fromTable || !toTable || !fromColumn || !toColumn) {
+    return null;
+  }
+
+  if (relation.cardinality === "MANY_TO_MANY") {
+    const joinTable = getErdJoinTableName(fromTable, toTable);
+    const fromKey = `${lowerFirst(fromTable.name)}_${fromColumn.name}`;
+    const toKey = `${lowerFirst(toTable.name)}_${toColumn.name}`;
+
+    return [
+      `CREATE TABLE ${quoteSql(joinTable)} (`,
+      `    ${quoteSql(fromKey)} ${ERD_SQL_COLUMN_TYPES[fromColumn.type]} NOT NULL REFERENCES ${quoteSql(fromTable.name)}(${quoteSql(fromColumn.name)}) ON DELETE CASCADE,`,
+      `    ${quoteSql(toKey)} ${ERD_SQL_COLUMN_TYPES[toColumn.type]} NOT NULL REFERENCES ${quoteSql(toTable.name)}(${quoteSql(toColumn.name)}) ON DELETE CASCADE,`,
+      `    PRIMARY KEY (${quoteSql(fromKey)}, ${quoteSql(toKey)})`,
+      ");",
+    ].join("\n");
+  }
+
+  return `ALTER TABLE ${quoteSql(fromTable.name)} ADD CONSTRAINT ${quoteSql(`${fromTable.name}_${fromColumn.name}_fkey`)} FOREIGN KEY (${quoteSql(fromColumn.name)}) REFERENCES ${quoteSql(toTable.name)}(${quoteSql(toColumn.name)}) ON DELETE RESTRICT ON UPDATE CASCADE;`;
+}
+
+export function exportErdToSql(document: ErdDocument) {
+  const oneToOneForeignKeys = getOneToOneForeignKeys(document);
+  const statements = document.tables.flatMap(table => createErdTableSql(table, oneToOneForeignKeys));
+
   for (const relation of document.relations) {
-    const fromTable = findErdTable(document, relation.fromTableId);
-    const toTable = findErdTable(document, relation.toTableId);
-    const fromColumn = fromTable?.columns.find(column => column.id === relation.fromColumnId);
-    const toColumn = toTable?.columns.find(column => column.id === relation.toColumnId);
+    const statement = createErdRelationSql(document, relation);
 
-    if (!fromTable || !toTable || !fromColumn || !toColumn) {
-      continue;
+    if (statement) {
+      statements.push(statement);
     }
-
-    if (relation.cardinality === "MANY_TO_MANY") {
-      const joinTable = `_${fromTable.name}To${toTable.name}`;
-      const fromKey = `${lowerFirst(fromTable.name)}_${fromColumn.name}`;
-      const toKey = `${lowerFirst(toTable.name)}_${toColumn.name}`;
-
-      statements.push([
-        `CREATE TABLE ${quoteSql(joinTable)} (`,
-        `    ${quoteSql(fromKey)} ${ERD_SQL_COLUMN_TYPES[fromColumn.type]} NOT NULL REFERENCES ${quoteSql(fromTable.name)}(${quoteSql(fromColumn.name)}) ON DELETE CASCADE,`,
-        `    ${quoteSql(toKey)} ${ERD_SQL_COLUMN_TYPES[toColumn.type]} NOT NULL REFERENCES ${quoteSql(toTable.name)}(${quoteSql(toColumn.name)}) ON DELETE CASCADE,`,
-        `    PRIMARY KEY (${quoteSql(fromKey)}, ${quoteSql(toKey)})`,
-        ");",
-      ].join("\n"));
-      continue;
-    }
-
-    statements.push(
-      `ALTER TABLE ${quoteSql(fromTable.name)} ADD CONSTRAINT ${quoteSql(`${fromTable.name}_${fromColumn.name}_fkey`)} FOREIGN KEY (${quoteSql(fromColumn.name)}) REFERENCES ${quoteSql(toTable.name)}(${quoteSql(toColumn.name)}) ON DELETE RESTRICT ON UPDATE CASCADE;`,
-    );
   }
 
   return statements.join("\n\n");

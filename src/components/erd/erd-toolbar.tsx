@@ -1,9 +1,11 @@
 import {
+  IconDatabase,
   IconDeviceFloppy,
   IconFileExport,
   IconFocusCentered,
   IconMinus,
   IconPlus,
+  IconSparkles,
   IconTablePlus,
 } from "@tabler/icons-react";
 
@@ -22,10 +24,14 @@ interface Props {
   scale: number;
   saveState: ErdSaveState;
   isDisabled: boolean;
+  isAgentOpen: boolean;
+  connectedDatabaseCount: number;
   onProjectChange(projectId: string): void;
   onAddTable(): void;
   onZoom(direction: 1 | -1): void;
   onResetView(): void;
+  onToggleAgent(): void;
+  onOpenDatabase(): void;
   onExport(): void;
   onSave(): void;
 }
@@ -85,6 +91,29 @@ export default function ErdToolbar(props: Props) {
             className={`h-1.5 w-1.5 rounded-full ${ERD_SAVE_STATE_DOT[props.saveState]}`} />
           {ERD_SAVE_STATE_LABELS[props.saveState]}
         </p>
+
+        <Button
+          variant="secondary"
+          onClick={props.onToggleAgent}
+          disabled={props.isDisabled}
+          aria-pressed={props.isAgentOpen}
+          className={props.isAgentOpen ? "bg-background-focus" : ""}>
+          <IconSparkles size={14} strokeWidth={1.8} className="mr-1" />
+          Agent
+        </Button>
+
+        <Button
+          variant="secondary"
+          onClick={props.onOpenDatabase}
+          disabled={props.isDisabled}>
+          <IconDatabase size={14} strokeWidth={1.8} className="mr-1" />
+          Database
+          {props.connectedDatabaseCount > 0 ? (
+            <span
+              aria-label={`${props.connectedDatabaseCount} connected`}
+              className="ml-1.5 h-1.5 w-1.5 rounded-full bg-status-green" />
+          ) : null}
+        </Button>
 
         <Button
           variant="secondary"

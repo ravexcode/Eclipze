@@ -34,15 +34,25 @@ export async function assertPublicHttpsUrl(rawUrl: string) {
   if (url.protocol !== "https:") throw new Error("The MCP server URL must use https.");
   if (url.username || url.password) throw new Error("Do not include credentials in the MCP server URL.");
 
-  const hostname = url.hostname.replace(/^\[|\]$/g, "");
-  const addresses = isIP(hostname)
-    ? [{ address: hostname }]
-    : await lookup(hostname, { all: true }).catch(() => []);
+  const hostStatus = await getHostAddressStatus(url.hostname);
 
-  if (addresses.length === 0) throw new Error("The MCP server host could not be resolved.");
-  if (addresses.some(entry => isBlockedAddress(entry.address))) {
+  if (hostStatus === "unresolved") throw new Error("The MCP server host could not be resolved.");
+  if (hostStatus === "private") {
     throw new Error("The MCP server must be reachable on the public internet.");
   }
 
   return url;
+}
+
+// Resolves a hostname and reports whether every address it points to is on the public internet.
+export async function getHostAddressStatus(rawHostname: string) {
+  const hostname = rawHostname.replace(/^\[|\]$/g, "");
+  const addresses = isIP(hostname)
+    ? [{ address: hostname }]
+    : await lookup(hostname, { all: true }).catch(() => []);
+
+  if (addresses.length === 0) return "unresolved";
+  if (addresses.some(entry => isBlockedAddress(entry.address))) return "private";
+
+  return "public";
 }
