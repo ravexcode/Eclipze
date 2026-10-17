@@ -9,11 +9,12 @@ import ErdChangeList from "@/components/erd/erd-change-list";
 import Button from "@/components/ui/button";
 import MenuSelector from "@/components/ui/menu-selector";
 import { DATABASE_PROVIDER_LABELS } from "@/constants/database-connections";
-import { ERD_AGENT_PROVIDER, ERD_AGENT_SUGGESTIONS } from "@/constants/erd";
+import { ERD_AGENT_SUGGESTIONS } from "@/constants/erd";
 import type { DatabaseConnectionSummary, DatabaseProject } from "@/types/database-connections";
 import type { ErdDocument } from "@/types/erd";
 import type { WorkspaceAgent } from "@/types/user";
 import { apiFetch } from "@/utils/api-fetch";
+import { isErdAgentProvider } from "@/utils/erd-agent";
 import { errorMessage, readJson } from "@/utils/json-payload";
 import { loadDatabaseProjects } from "@/utils/use-database-connections";
 import { useErdAgentChat } from "@/utils/use-erd-agent-chat";
@@ -60,7 +61,7 @@ export default function ErdAgentPanel(props: Props) {
         if (cancelled) return;
 
         const usableAgents = (payload?.agents ?? []).filter(agent => (
-          agent.status === "ACTIVE" && agent.provider === ERD_AGENT_PROVIDER
+          agent.status === "ACTIVE" && isErdAgentProvider(agent.provider)
         ));
 
         setAgents(usableAgents);
@@ -198,7 +199,7 @@ export default function ErdAgentPanel(props: Props) {
           </p>
         ) : agents.length === 0 ? (
           <p className="text-xs text-foreground-off">
-            Create an active OpenRouter agent to start chatting.{" "}
+            Create an active OpenRouter, Claude, or OpenAI agent to start chatting.{" "}
             <Link
               href="/agents"
               className="text-foreground underline underline-offset-2">
@@ -264,7 +265,7 @@ export default function ErdAgentPanel(props: Props) {
         {chat.messages.length === 0 ? (
           <div className="flex flex-col gap-2">
             <p className="text-xs text-foreground-off">
-              Ask the agent to create ERDs, review the list of changes against your database, or update the database. Each message spends your AI credits.
+              Ask the agent to create ERDs, review the list of changes against your database, or update the database. Agents on Eclipse AI credits spend credits per message; agents on your own API key bill your provider.
             </p>
             {ERD_AGENT_SUGGESTIONS.map(suggestion => (
               <button

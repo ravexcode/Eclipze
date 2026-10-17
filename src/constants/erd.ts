@@ -9,6 +9,7 @@ import type {
   ErdSaveState,
   ErdViewport,
 } from "@/types/erd";
+import type { AiProvider } from "@/types/ai";
 import type { UserPlan } from "@/types/user";
 
 // Access: developer accounts on any paid plan.
@@ -146,8 +147,9 @@ export const ERD_AGENT_MAX_TOOL_RESULT_LENGTH = 16_000;
 export const ERD_AGENT_MAX_ANSWER_LENGTH = 24_000;
 export const ERD_AGENT_ESTIMATED_OUTPUT_TOKENS = 4_096;
 export const ERD_AGENT_PROMPT_OVERHEAD_CHARACTERS = 12_000;
-// Only OpenRouter agents run on platform credits, which the ERD agent always spends.
-export const ERD_AGENT_PROVIDER = "OPENROUTER";
+// Chat-completion providers the ERD agent can run on. OpenRouter on the
+// Eclipse service key spends AI credits; saved user keys bill their provider.
+export const ERD_AGENT_PROVIDERS: readonly AiProvider[] = ["OPENROUTER", "CLAUDE", "GPT"];
 
 // New tables from the agent are laid out in a grid below the existing ones.
 export const ERD_AGENT_LAYOUT_COLUMNS = 4;

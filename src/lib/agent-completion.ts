@@ -5,9 +5,8 @@ import { extname, join, relative, resolve, sep } from "node:path";
 
 import { resolveAllowedCommand, runAllowedCommand, sanitizeRunnerOutput, type RunnerEvent } from "@/lib/agent-runner";
 import { isSafeWorkspacePath } from "@/lib/workspace-repository";
-import { getOpenRouterCredential } from "@/lib/openrouter";
-import { getProviderApiKey } from "@/lib/ai-provider-credentials";
-import { requestChatCompletion, runCursorAgent } from "@/lib/agent-providers";
+import { getProviderCredential } from "@/lib/ai-provider-credentials";
+import { requestChatCompletion, runCursorAgent, type ChatMessage } from "@/lib/agent-providers";
 import { callMcpAgentTool } from "@/lib/mcp-client";
 import prisma from "@/lib/prisma";
 import { PROVIDER_LABELS } from "@/constants/agent-providers";
@@ -331,11 +330,85 @@ async function runAgentTool(input: {
   throw new Error("The requested tool is not available.");
 }
 
-async function readProviderCredential(userId: string, provider: AiProvider) {
-  if (provider === "OPENROUTER") return getOpenRouterCredential(userId);
+type AgentToolDefinition = NonNullable<Parameters<typeof requestChatCompletion>[0]["tools"]>[number];
 
-  const apiKey = await getProviderApiKey(userId, provider);
-  return apiKey ? { apiKey, isServiceKey: false } : null;
+// Shared tool loop for chat-completion agents (OpenRouter, Claude, OpenAI).
+// Used by repository runs and the ERD agent so both resolve credentials and bill the same way.
+export async function runAgentToolLoop(input: {
+  provider: AiProvider;
+  credential: { apiKey: string; isServiceKey: boolean };
+  model: string;
+  userId: string;
+  messages: ChatMessage[];
+  tools?: AgentToolDefinition[];
+  maxCycles: number;
+  runTool(name: string, args: Record<string, unknown>): Promise<string>;
+}) {
+  const messages = [...input.messages];
+  let totalCostUsd = 0;
+  let hasReportedCost = false;
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
+
+  const readCost = () => hasReportedCost ? totalCostUsd : null;
+  const readUsage = () => ({ inputTokens: totalInputTokens, outputTokens: totalOutputTokens });
+
+  for (let cycle = 0; cycle < input.maxCycles; cycle += 1) {
+    const completion = await requestChatCompletion({
+      provider: input.provider,
+      apiKey: input.credential.apiKey,
+      model: input.model,
+      userId: input.userId,
+      messages,
+      tools: input.tools,
+    });
+    if (completion.costUsd !== null) {
+      totalCostUsd += completion.costUsd;
+      hasReportedCost = true;
+    }
+    totalInputTokens += completion.inputTokens ?? 0;
+    totalOutputTokens += completion.outputTokens ?? 0;
+    const toolCalls = completion.toolCalls;
+
+    if (!toolCalls.length) {
+      const answer = readAssistantText(completion.content).trim();
+      if (!answer) throw new Error(`${PROVIDER_LABELS[input.provider]} returned an empty response.`);
+
+      if (input.credential.isServiceKey && readCost() === null) {
+        throw new Error("OpenRouter did not return usage cost for this task. No credits were charged.");
+      }
+
+      return {
+        answer,
+        reachedToolLimit: false,
+        costUsd: readCost(),
+        usage: readUsage(),
+      };
+    }
+
+    messages.push({ role: "assistant", content: completion.content ?? null, tool_calls: toolCalls });
+    for (const toolCall of toolCalls) {
+      let toolArgs: Record<string, unknown>;
+      try {
+        const parsed = JSON.parse(toolCall.function?.arguments || "{}") as unknown;
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Tool input must be a JSON object.");
+        toolArgs = parsed as Record<string, unknown>;
+      } catch {
+        messages.push({ role: "tool", tool_call_id: toolCall.id, content: "Invalid tool arguments." });
+        continue;
+      }
+
+      const result = await input.runTool(toolCall.function?.name ?? "", toolArgs);
+      messages.push({ role: "tool", tool_call_id: toolCall.id, content: result });
+    }
+  }
+
+  return {
+    answer: null,
+    reachedToolLimit: true,
+    costUsd: readCost(),
+    usage: readUsage(),
+  };
 }
 
 export async function generateAgentResponse(input: {
@@ -397,7 +470,7 @@ export async function generateAgentResponse(input: {
     };
   }
 
-  const credential = await readProviderCredential(input.userId, input.provider);
+  const credential = await getProviderCredential(input.userId, input.provider);
   if (!credential) {
     throw new Error(`Connect a ${PROVIDER_LABELS[input.provider]} provider in Settings before starting a task.`);
   }
@@ -419,7 +492,7 @@ export async function generateAgentResponse(input: {
     };
   }
 
-  const messages: Array<Record<string, unknown>> = [
+  const messages: ChatMessage[] = [
     {
       role: "system",
       content: [
@@ -439,68 +512,20 @@ export async function generateAgentResponse(input: {
     { role: "user", content: input.prompt },
   ];
 
-  let totalCostUsd = 0;
-  let hasReportedCost = false;
-  let totalInputTokens = 0;
-  let totalOutputTokens = 0;
-  for (let cycle = 0; cycle < 8; cycle += 1) {
-    const completion = await requestChatCompletion({
-      provider: input.provider,
-      apiKey: credential.apiKey,
-      model: input.model,
-      userId: input.userId,
-      messages,
-      tools: mayUseTools ? AGENT_TOOLS : undefined,
-    });
-    if (completion.costUsd !== null) {
-      totalCostUsd += completion.costUsd;
-      hasReportedCost = true;
-    }
-    totalInputTokens += completion.inputTokens ?? 0;
-    totalOutputTokens += completion.outputTokens ?? 0;
-    const message = { content: completion.content };
-    const toolCalls = completion.toolCalls;
-
-    if (!toolCalls.length) {
-      const answer = readAssistantText(message.content).trim();
-      if (!answer) throw new Error(`${PROVIDER_LABELS[input.provider]} returned an empty response.`);
-      const costUsd = hasReportedCost
-        ? totalCostUsd
-        : null;
-
-      if (credential.isServiceKey && costUsd === null) {
-        throw new Error("OpenRouter did not return usage cost for this task. No credits were charged.");
-      }
-
-      return {
-        answer: answer.slice(0, 48_000),
-        costUsd,
-        usage: {
-          inputTokens: totalInputTokens,
-          outputTokens: totalOutputTokens,
-        },
-      };
-    }
-
-    messages.push({ role: "assistant", content: message.content ?? null, tool_calls: toolCalls });
-    for (const toolCall of toolCalls) {
-      const toolName = toolCall.function?.name ?? "";
-      let toolArgs: Record<string, unknown>;
-      try {
-        const parsed = JSON.parse(toolCall.function?.arguments ?? "{}") as unknown;
-        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Tool input must be a JSON object.");
-        toolArgs = parsed as Record<string, unknown>;
-      } catch {
-        messages.push({ role: "tool", tool_call_id: toolCall.id, content: "Invalid tool arguments." });
-        continue;
-      }
-
+  const completion = await runAgentToolLoop({
+    provider: input.provider,
+    credential,
+    model: input.model,
+    userId: input.userId,
+    messages,
+    tools: mayUseTools ? AGENT_TOOLS : undefined,
+    maxCycles: 8,
+    runTool: async (toolName, toolArgs) => {
       if (input.permissionMode === "USER_APPROVE") {
         const approval = await input.requestApproval(toolName, toolArgs);
         if (approval === "CANCELLED") throw new Error("Task cancelled while waiting for approval.");
         if (approval === "DENIED") {
-          messages.push({ role: "tool", tool_call_id: toolCall.id, content: "The user denied this action. Do not retry the same action; continue with an alternative or explain the limitation." });
-          continue;
+          return "The user denied this action. Do not retry the same action; continue with an alternative or explain the limitation.";
         }
       }
 
@@ -513,15 +538,19 @@ export async function generateAgentResponse(input: {
           args: toolArgs,
           onEvent: input.onEvent,
         });
-        messages.push({ role: "tool", tool_call_id: toolCall.id, content: sanitizeRunnerOutput(result).slice(0, 16_000) });
+        return sanitizeRunnerOutput(result).slice(0, 16_000);
       } catch (error) {
-        messages.push({
-          role: "tool",
-          tool_call_id: toolCall.id,
-          content: error instanceof Error ? sanitizeRunnerOutput(error.message) : "Tool failed.",
-        });
+        return error instanceof Error ? sanitizeRunnerOutput(error.message) : "Tool failed.";
       }
-    }
+    },
+  });
+
+  if (completion.answer !== null) {
+    return {
+      answer: completion.answer.slice(0, 48_000),
+      costUsd: completion.costUsd,
+      usage: completion.usage,
+    };
   }
 
   throw new Error("This task reached its tool-use limit. Review the isolated changes and send a follow-up task.");

@@ -3,11 +3,13 @@ import {
   ERD_AGENT_LAYOUT_GAP_X,
   ERD_AGENT_LAYOUT_GAP_Y,
   ERD_AGENT_LAYOUT_ORIGIN,
+  ERD_AGENT_PROVIDERS,
   ERD_CARDINALITIES,
   ERD_COLUMN_TYPES,
   ERD_SQL_COLUMN_TYPES,
   ERD_TABLE_WIDTH,
 } from "@/constants/erd";
+import type { AiProvider } from "@/types/ai";
 import type { DatabaseSchema, DatabaseSchemaTable } from "@/types/database-connections";
 import type {
   ErdCardinality,
@@ -506,4 +508,8 @@ export function diffErdWithMongo(document: ErdDocument, schema: DatabaseSchema):
   }
 
   return [...changes, ...droppedCollections];
+}
+
+export function isErdAgentProvider(provider: string): provider is AiProvider {
+  return ERD_AGENT_PROVIDERS.some(item => item === provider);
 }

@@ -12,8 +12,8 @@ import {
   ERD_AGENT_MAX_TOOL_RESULT_LENGTH,
 } from "@/constants/erd";
 import { ERD_AGENT_SYSTEM_INSTRUCTIONS, ERD_AGENT_TOOLS } from "@/constants/erd-agent";
-import { PROVIDER_LABELS } from "@/constants/agent-providers";
-import { requestChatCompletion, type ChatMessage } from "@/lib/agent-providers";
+import { runAgentToolLoop } from "@/lib/agent-completion";
+import type { ChatMessage } from "@/lib/agent-providers";
 import { DATABASE_PROVIDER_CLIENTS } from "@/lib/database-providers";
 import type { DatabaseCredential } from "@/lib/database-providers/types";
 import { parseErdDocument } from "@/lib/erd";
@@ -37,19 +37,6 @@ type ErdAgentState = {
   documentChanged: boolean;
   changes: ErdDatabaseChange[] | null;
 };
-
-function readAssistantText(value: unknown) {
-  if (typeof value === "string") return value;
-  if (!Array.isArray(value)) return "";
-
-  return value.flatMap(part => {
-    if (!part || typeof part !== "object") return [];
-
-    const text = (part as Record<string, unknown>).text;
-
-    return typeof text === "string" ? [text] : [];
-  }).join("\n");
-}
 
 function describeDatabaseTarget(database: ErdAgentDatabase | null) {
   if (!database) {
@@ -151,7 +138,7 @@ async function runErdAgentTool(name: string, args: Record<string, unknown>, stat
 
 export async function runErdAgent(input: {
   provider: AiProvider;
-  apiKey: string;
+  credential: { apiKey: string; isServiceKey: boolean };
   model: string;
   userId: string;
   messages: Array<{ role: "user" | "assistant"; content: string }>;
@@ -177,74 +164,35 @@ export async function runErdAgent(input: {
     ...input.messages,
   ];
 
-  let totalCostUsd = 0;
-  let hasReportedCost = false;
-
-  for (let cycle = 0; cycle < ERD_AGENT_MAX_TOOL_CYCLES; cycle += 1) {
-    const completion = await requestChatCompletion({
-      provider: input.provider,
-      apiKey: input.apiKey,
-      model: input.model,
-      userId: input.userId,
-      messages,
-      tools: ERD_AGENT_TOOLS,
-    });
-
-    if (completion.costUsd !== null) {
-      totalCostUsd += completion.costUsd;
-      hasReportedCost = true;
-    }
-
-    if (completion.toolCalls.length === 0) {
-      const answer = readAssistantText(completion.content).trim();
-
-      if (!answer) throw new Error(`${PROVIDER_LABELS[input.provider]} returned an empty response.`);
-
-      return {
-        answer: answer.slice(0, ERD_AGENT_MAX_ANSWER_LENGTH),
-        document: state.documentChanged ? state.document : null,
-        changes: state.changes,
-        costUsd: hasReportedCost ? totalCostUsd : null,
-      };
-    }
-
-    messages.push({ role: "assistant", content: completion.content ?? null, tool_calls: completion.toolCalls });
-
-    for (const toolCall of completion.toolCalls) {
-      let toolArgs: Record<string, unknown>;
-
-      try {
-        const parsed = JSON.parse(toolCall.function?.arguments || "{}") as unknown;
-
-        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Tool input must be a JSON object.");
-
-        toolArgs = parsed as Record<string, unknown>;
-      } catch {
-        messages.push({ role: "tool", tool_call_id: toolCall.id, content: "Invalid tool arguments." });
-        continue;
-      }
-
+  const completion = await runAgentToolLoop({
+    provider: input.provider,
+    credential: input.credential,
+    model: input.model,
+    userId: input.userId,
+    messages,
+    tools: ERD_AGENT_TOOLS,
+    maxCycles: ERD_AGENT_MAX_TOOL_CYCLES,
+    runTool: async (name, args) => {
       let result: string;
 
       try {
-        result = await runErdAgentTool(toolCall.function?.name ?? "", toolArgs, state, input.database);
+        result = await runErdAgentTool(name, args, state, input.database);
       } catch (error) {
         result = `Tool failed: ${error instanceof Error ? error.message : "Unknown error."}`;
       }
 
-      messages.push({
-        role: "tool",
-        tool_call_id: toolCall.id,
-        content: result.slice(0, ERD_AGENT_MAX_TOOL_RESULT_LENGTH),
-      });
-    }
-  }
+      return result.slice(0, ERD_AGENT_MAX_TOOL_RESULT_LENGTH);
+    },
+  });
 
-  // Keep the work done so far: the diagram or database may already have changed.
+  // On the tool limit, keep the work done so far: the diagram or database may already have changed.
+  const answer = completion.answer
+    ?? "I reached my tool-use limit for this message. Send a follow-up message to continue.";
+
   return {
-    answer: "I reached my tool-use limit for this message. Send a follow-up message to continue.",
+    answer: answer.slice(0, ERD_AGENT_MAX_ANSWER_LENGTH),
     document: state.documentChanged ? state.document : null,
     changes: state.changes,
-    costUsd: hasReportedCost ? totalCostUsd : null,
+    costUsd: completion.costUsd,
   };
 }

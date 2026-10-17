@@ -6,8 +6,8 @@ import {
   ERD_AGENT_MAX_MESSAGES,
   ERD_AGENT_MAX_TOOL_CYCLES,
   ERD_AGENT_PROMPT_OVERHEAD_CHARACTERS,
-  ERD_AGENT_PROVIDER,
 } from "@/constants/erd";
+import { PROVIDER_LABELS } from "@/constants/agent-providers";
 import {
   ensureAiCreditWallet,
   findExhaustedUsageWindow,
@@ -17,13 +17,15 @@ import {
   settleAiCreditReservation,
   usdToAiCredits,
 } from "@/lib/ai-credits";
+import { getProviderCredential } from "@/lib/ai-provider-credentials";
 import { getCurrentUser } from "@/lib/auth";
 import { findDatabaseConnection, readDatabaseCredential } from "@/lib/database-connections";
 import { erdAccessError, erdJson, parseErdDocument } from "@/lib/erd";
 import { runErdAgent, type ErdAgentDatabase } from "@/lib/erd-agent";
-import { getOpenRouterCredential, getOpenRouterModels } from "@/lib/openrouter";
+import { getOpenRouterModels } from "@/lib/openrouter";
 import prisma from "@/lib/prisma";
 import { ownedProject, parseBody } from "@/lib/workspace-api";
+import { isErdAgentProvider } from "@/utils/erd-agent";
 import { formatTimeUntil } from "@/utils/usage-limits";
 
 type AgentMessage = { role: "user" | "assistant"; content: string };
@@ -101,21 +103,22 @@ export async function POST(request: Request) {
     return erdJson({ message: "This agent is inactive." }, 400);
   }
 
-  // The ERD agent always runs on platform-funded OpenRouter usage and spends the user's AI credits.
-  if (agent.provider !== ERD_AGENT_PROVIDER) {
-    return erdJson({ message: "The ERD agent runs on your AI credits. Choose an agent that uses OpenRouter." }, 400);
+  const provider = agent.provider;
+
+  if (!isErdAgentProvider(provider)) {
+    return erdJson({ message: "The ERD agent works with OpenRouter, Claude, or OpenAI agents. Choose one of those." }, 400);
   }
 
   let credential;
 
   try {
-    credential = await getOpenRouterCredential(user.id);
+    credential = await getProviderCredential(user.id, provider);
   } catch (error) {
     return erdJson({ message: error instanceof Error ? error.message : "Unable to read the provider connection." }, 503);
   }
 
-  if (!credential?.isServiceKey) {
-    return erdJson({ message: "AI credits are not available right now. Try again later." }, 503);
+  if (!credential) {
+    return erdJson({ message: `Connect a ${PROVIDER_LABELS[provider]} provider in Settings before chatting with this agent.` }, 400);
   }
 
   let database: ErdAgentDatabase | null = null;
@@ -142,62 +145,68 @@ export async function POST(request: Request) {
     }
   }
 
-  // Credits are reserved up front like agent runs, then settled to the reported cost.
+  // Only the Eclipse OpenRouter service key spends AI credits. Saved user keys bill their own provider.
   const reservationId = `erd-agent:${randomUUID()}`;
-  let models;
+  let creditReservation: number | null = null;
 
-  try {
-    models = await getOpenRouterModels(credential.apiKey);
-  } catch (error) {
-    return erdJson({ message: error instanceof Error ? error.message : "Unable to load OpenRouter model pricing." }, 503);
-  }
+  if (credential.isServiceKey) {
+    let models;
 
-  const selectedModel = models.find(item => item.id === agent.defaultModel);
+    try {
+      models = await getOpenRouterModels(credential.apiKey);
+    } catch (error) {
+      return erdJson({ message: error instanceof Error ? error.message : "Unable to load OpenRouter model pricing." }, 503);
+    }
 
-  if (!selectedModel) {
-    return erdJson({ message: "This agent's model is no longer available on OpenRouter." }, 400);
-  }
+    const selectedModel = models.find(item => item.id === agent.defaultModel);
 
-  const promptCharacters = messages.reduce((total, message) => total + message.content.length, 0)
-    + JSON.stringify(document.value).length
-    + ERD_AGENT_PROMPT_OVERHEAD_CHARACTERS;
-  const estimatedInputTokens = Math.ceil(promptCharacters / 2) * Math.ceil(ERD_AGENT_MAX_TOOL_CYCLES / 2);
-  const estimatedUsd = (estimatedInputTokens * selectedModel.pricing.prompt)
-    + (ERD_AGENT_ESTIMATED_OUTPUT_TOKENS * selectedModel.pricing.completion);
-  const creditReservation = Math.max(1, Math.ceil(usdToAiCredits(estimatedUsd) * 1.25));
+    if (!selectedModel) {
+      return erdJson({ message: "This agent's model is no longer available on OpenRouter." }, 400);
+    }
 
-  const wallet = await ensureAiCreditWallet(user.id);
-  const usageWindows = await getAiCreditUsageWindows({
-    userId: user.id,
-    plan: user.plan,
-    reservedCredits: wallet.reservedCredits,
-  });
-  const exhaustedWindow = findExhaustedUsageWindow(usageWindows);
+    const promptCharacters = messages.reduce((total, message) => total + message.content.length, 0)
+      + JSON.stringify(document.value).length
+      + ERD_AGENT_PROMPT_OVERHEAD_CHARACTERS;
+    const estimatedInputTokens = Math.ceil(promptCharacters / 2) * Math.ceil(ERD_AGENT_MAX_TOOL_CYCLES / 2);
+    const estimatedUsd = (estimatedInputTokens * selectedModel.pricing.prompt)
+      + (ERD_AGENT_ESTIMATED_OUTPUT_TOKENS * selectedModel.pricing.completion);
+    const requiredCredits = Math.max(1, Math.ceil(usdToAiCredits(estimatedUsd) * 1.25));
 
-  if (exhaustedWindow) {
-    const resetMessage = exhaustedWindow.resetAt
-      ? ` It resets in ${formatTimeUntil(exhaustedWindow.resetAt)}.`
-      : "";
+    const wallet = await ensureAiCreditWallet(user.id);
+    const usageWindows = await getAiCreditUsageWindows({
+      userId: user.id,
+      plan: user.plan,
+      reservedCredits: wallet.reservedCredits,
+    });
+    const exhaustedWindow = findExhaustedUsageWindow(usageWindows);
 
-    return erdJson({
-      message: `You reached your ${exhaustedWindow.label} usage limit of ${exhaustedWindow.limitCredits} credits.${resetMessage}`,
-    }, 429);
-  }
+    if (exhaustedWindow) {
+      const resetMessage = exhaustedWindow.resetAt
+        ? ` It resets in ${formatTimeUntil(exhaustedWindow.resetAt)}.`
+        : "";
 
-  const reserved = await reserveAiCredits({ userId: user.id, runId: reservationId, credits: creditReservation });
+      return erdJson({
+        message: `You reached your ${exhaustedWindow.label} usage limit of ${exhaustedWindow.limitCredits} credits.${resetMessage}`,
+      }, 429);
+    }
 
-  if (!reserved) {
-    return erdJson({
-      message: `This model needs up to ${creditReservation} credits reserved per message. ${user.plan === "FREE" ? "Choose a lower-cost agent." : "Choose a lower-cost agent or wait for your next monthly grant."}`,
-    }, 402);
+    const reserved = await reserveAiCredits({ userId: user.id, runId: reservationId, credits: requiredCredits });
+
+    if (!reserved) {
+      return erdJson({
+        message: `This model needs up to ${requiredCredits} credits reserved per message. ${user.plan === "FREE" ? "Choose a lower-cost agent." : "Choose a lower-cost agent or wait for your next monthly grant."}`,
+      }, 402);
+    }
+
+    creditReservation = requiredCredits;
   }
 
   let creditsSettled = false;
 
   try {
     const result = await runErdAgent({
-      provider: ERD_AGENT_PROVIDER,
-      apiKey: credential.apiKey,
+      provider,
+      credential,
       model: agent.defaultModel,
       userId: user.id,
       messages,
@@ -206,7 +215,7 @@ export async function POST(request: Request) {
     });
     let credits: number | null = null;
 
-    if (result.costUsd !== null) {
+    if (creditReservation !== null && result.costUsd !== null) {
       credits = await settleAiCreditReservation({
         userId: user.id,
         runId: reservationId,
@@ -225,7 +234,7 @@ export async function POST(request: Request) {
   } catch (error) {
     return erdJson({ message: error instanceof Error ? error.message : "The agent could not respond." }, 502);
   } finally {
-    if (!creditsSettled) {
+    if (creditReservation !== null && !creditsSettled) {
       await releaseAiCreditReservation({ userId: user.id, runId: reservationId, reservedCredits: creditReservation }).catch(() => undefined);
     }
   }
