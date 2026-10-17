@@ -54,6 +54,7 @@ export default function DashLayout(props: Props) {
       setUser({
         name: sessionUser.displayName,
         avatar: sessionUser.avatarUrl ?? "/logo.svg",
+        email: sessionUser.email,
         id: sessionUser.id,
         role: sessionUser.role,
         plan: sessionUser.plan,

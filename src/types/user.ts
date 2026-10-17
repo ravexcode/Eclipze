@@ -32,6 +32,7 @@ export type SessionUser = {
 export type UserProfile = {
   name: string;
   avatar: string;
+  email: string;
   id: string;
   role: UserRole;
   plan: UserPlan;
@@ -135,6 +136,7 @@ export default UserCredentials;
 export type User = {
   name: string;
   avatar: string;
+  email: string;
   id: string;
   role: "USER" | "DEVELOPER";
   plan: UserPlan;

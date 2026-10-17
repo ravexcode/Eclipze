@@ -32,8 +32,6 @@ import { apiFetch } from "@/utils/api-fetch";
 import { getPlanName } from "@/utils/plans";
 import { invalidateSessionUser } from "@/utils/session";
 
-const MENU_EXIT_DURATION_MS = 150;
-
 export default function UserProfile({ profile }: Props) {
   const router = useRouter();
   const { announce } = useAnnouncements();
@@ -99,11 +97,13 @@ export default function UserProfile({ profile }: Props) {
         aria-expanded={visible}
         className="w-full rounded-md hover:bg-background-focus cursor-pointer p-2 flex gap-2 items-center justify-start"
         onClick={() => {
-          setVisible(prev => !prev);
-          setIsMounted(prev => !prev);
+          if (visible) {
+            setVisible(false);
+            return;
+          }
 
-          const unmountTimer = window.setTimeout(() => setIsMounted(false), MENU_EXIT_DURATION_MS);
-          return () => window.clearTimeout(unmountTimer);
+          setIsMounted(true);
+          setVisible(true);
         }} >
         {
           profile.avatar ?
@@ -132,6 +132,18 @@ export default function UserProfile({ profile }: Props) {
       {isMounted ? (
         <div
           role="menu"
+          onAnimationEnd={(event) => {
+            if (
+              event.target !== event.currentTarget ||
+              event.animationName !== "menu-exit" ||
+              visible
+            ) {
+              return;
+            }
+
+            setIsMounted(false);
+          }}
+          style={{ animationDuration: "150ms" }}
           className={`${visible ? "menu-enter" : "menu-exit"} absolute bottom-full left-0 mb-2 w-full overflow-hidden rounded-md border border-background-focus bg-background-card text-xs shadow-2xl`}>
           <div className="flex items-center gap-2.5 border-b border-background-focus p-3">
             {profile.avatar ? (
@@ -145,11 +157,12 @@ export default function UserProfile({ profile }: Props) {
             ) : (
               <IconUserCircle size={36} stroke={1.2} className="text-foreground-off" />
             )}
-            <p className="truncate text-foreground">
-              {profile.name} <br />
-              <span
-                className="text-foreground-off text-xs">
-                {profile.id}
+            <p className="min-w-0 flex-1">
+              <span className="block truncate text-foreground">
+                {profile.name}
+              </span>
+              <span className="block truncate text-foreground-off text-xs">
+                {profile.email}
               </span>
             </p>
           </div>
