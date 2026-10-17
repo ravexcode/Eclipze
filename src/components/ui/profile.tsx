@@ -43,16 +43,6 @@ export default function UserProfile({ profile }: Props) {
   const containerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    if (visible) {
-      setIsMounted(true);
-      return;
-    }
-
-    const unmountTimer = window.setTimeout(() => setIsMounted(false), MENU_EXIT_DURATION_MS);
-    return () => window.clearTimeout(unmountTimer);
-  }, [visible]);
-
-  useEffect(() => {
     if (!visible) return;
 
     const closeOnOutsideClick = (event: MouseEvent) => {
@@ -108,7 +98,13 @@ export default function UserProfile({ profile }: Props) {
         aria-haspopup="menu"
         aria-expanded={visible}
         className="w-full rounded-md hover:bg-background-focus cursor-pointer p-2 flex gap-2 items-center justify-start"
-        onClick={() => setVisible(prev => !prev)} >
+        onClick={() => {
+          setVisible(prev => !prev);
+          setIsMounted(prev => !prev);
+
+          const unmountTimer = window.setTimeout(() => setIsMounted(false), MENU_EXIT_DURATION_MS);
+          return () => window.clearTimeout(unmountTimer);
+        }} >
         {
           profile.avatar ?
             <Image
@@ -126,7 +122,10 @@ export default function UserProfile({ profile }: Props) {
 
         <p
           className="w-full text-xs text-start">
-          {profile.name}
+          {profile.name} <br />
+          <span className={`mt-0.5 text-xs ${profile.plan === "FREE" ? "text-foreground" : "text-blue-500"}`}>
+            {getPlanName(profile.plan)} plan
+          </span>
         </p>
       </button>
 
@@ -146,12 +145,13 @@ export default function UserProfile({ profile }: Props) {
             ) : (
               <IconUserCircle size={36} stroke={1.2} className="text-foreground-off" />
             )}
-            <div className="min-w-0">
-              <p className="truncate text-foreground">{profile.name}</p>
-              <p className={`mt-0.5 text-xs ${profile.plan === "FREE" ? "text-foreground" : "text-accent"}`}>
-                {getPlanName(profile.plan)} plan
-              </p>
-            </div>
+            <p className="truncate text-foreground">
+              {profile.name} <br />
+              <span
+                className="text-foreground-off text-xs">
+                {profile.id}
+              </span>
+            </p>
           </div>
 
           <div className="p-1">
